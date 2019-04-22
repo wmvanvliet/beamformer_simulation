@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def generate_signal(times, freq, n_trial=1, phase_lock=False):
+def generate_signal(times, freq=10., n_trial=1, phase_lock=False):
     """Simulate a time series.
 
     Parameters:
@@ -9,11 +9,13 @@ def generate_signal(times, freq, n_trial=1, phase_lock=False):
     times : np.array
         time vector
     freq : float
-        frequency of oscillations
+        frequency of oscillations in Hz.
     n_trial : int
         number of trials, defaults to 1.
     """
     signal = np.zeros_like(times)
+
+    print('############ generate signal')
 
     for trial in range(n_trial):
         envelope = np.exp(50. * -(times - 0.5 - trial) ** 2.)
@@ -22,4 +24,4 @@ def generate_signal(times, freq, n_trial=1, phase_lock=False):
             signal += np.cos(phase + freq * 2 * np.pi * times) * envelope
         else:
             signal += np.cos(freq * 2 * np.pi * times) * envelope
-    return signal * 1e-12
+    return signal * 1e-7
