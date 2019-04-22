@@ -1,30 +1,18 @@
-import os
-import os.path as op
 import mne
 import numpy as np
 from tqdm import tqdm
 
-from mne.datasets import sample
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
 from utils import add_stcs
 from matplotlib import pyplot as plt
 
-data_path = sample.data_path()
-subjects_dir = op.join(data_path, 'subjects')
+import config
+from config import fname
 
-os.environ['SUBJECTS_DIR'] = subjects_dir
-
-raw_fname = op.join(data_path, 'MEG/sample/sample_audvis_raw.fif')
-er_raw_fname = op.join(data_path, 'MEG/sample/ernoise_raw.fif')
-bem_fname = op.join(data_path, 'subjects/sample/bem/sample-5120-5120-5120-bem-sol.fif')
-src_fname = op.join(data_path, 'subjects/sample/bem/sample-oct-6-orig-src.fif')
-fwd_fname = op.join(data_path, 'MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif')
-trans_fname = op.join(data_path, 'MEG/sample/sample_audvis_raw-trans.fif')
-
-info = mne.io.read_info(raw_fname)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-fwd = mne.read_forward_solution(fwd_fname)
+fwd = mne.read_forward_solution(fname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
 
@@ -37,7 +25,7 @@ rh_vertno = src[1]['vertno']
 # Simulate a single signal dipole for 1 sec
 ###############################################################################
 
-data = np.asarray([generate_signal(times, freq=10)])
+data = np.asarray([generate_signal(times, freq=config.signal_freq)])
 vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int64)]
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                 tstep=1/info['sfreq'], subject='sample')
@@ -49,9 +37,8 @@ stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
 
 raw_list = []
 # 109 seconds is max length of empty room data
-n_trials = 109
-for i in tqdm(range(n_trials), desc='Generating trials', total=n_trials,
-              unit='trials'):
+for i in tqdm(range(config.n_trials), desc='Generating trials',
+              total=config.n_trials, unit='trials'):
     ###########################################################################
     # Simulate random noise dipoles
     ###########################################################################
@@ -62,7 +49,7 @@ for i in tqdm(range(n_trials), desc='Generating trials', total=n_trials,
         n_noise_dipoles,
         times,
         data_fun=generate_random,
-        random_state=42,
+        random_state=config.random_state,
         labels=labels
     )
 
@@ -89,8 +76,7 @@ raw = mne.concatenate_raws(raw_list)
 ###############################################################################
 # Use empty room noise as sensor noise
 ###############################################################################
-er_raw = mne.io.read_raw_fif(data_path + '/MEG/sample/ernoise_raw.fif',
-                             preload=True) 
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True) 
 raw_picks = mne.pick_types(raw.info, meg=True, eeg=False)
 er_raw_picks = mne.pick_types(er_raw.info, meg=True, eeg=False)
 raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
@@ -100,14 +86,13 @@ raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
 # Save everything
 ###############################################################################
 
-save_fname = 'simulated-raw.fif'
-raw.save(save_fname, overwrite=True)
+raw.save(fname.simulated_raw, overwrite=True)
 
 
 ###############################################################################
 # Plot it!
 ###############################################################################
-with mne.open_report('report.h5') as report:
+with mne.open_report(fname.report) as report:
     fig = plt.figure()
     plt.plot(times, generate_signal(times, freq=10))
     plt.xlabel('Time (s)')
@@ -117,4 +102,4 @@ with mne.open_report('report.h5') as report:
     fig = raw.plot()
     report.add_figs_to_section(fig, 'Simulated raw', section='Sensor-level',
                                replace=True)
-    report.save('report.html', overwrite=True, open_browser=False)
+    report.save(fname.report_html, overwrite=True, open_browser=False)
