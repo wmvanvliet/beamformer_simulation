@@ -7,6 +7,7 @@ from mne.datasets import sample
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
 from utils import add_stcs
+from matplotlib import pyplot as plt
 
 
 data_path = sample.data_path()
@@ -38,6 +39,7 @@ vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int6
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                 tstep=1/info['sfreq'], subject='sample')
 
+
 ###############################################################################
 # Create 109 sec of simulated data
 ###############################################################################
@@ -65,7 +67,7 @@ for i in tqdm(range(n_trials), desc='Generating trials', total=n_trials,
     ###########################################################################
     # Project to sensor space
     ###########################################################################
-    stc = add_stcs(stc_signal, 0.5 * stc_noise)
+    stc = add_stcs(stc_signal, 0.1 * stc_noise)
     raw = simulate_raw(
         info,
         stc,
@@ -80,6 +82,7 @@ for i in tqdm(range(n_trials), desc='Generating trials', total=n_trials,
 
 raw = mne.concatenate_raws(raw_list)
 
+
 ###############################################################################
 # Use empty room noise as sensor noise
 ###############################################################################
@@ -91,9 +94,24 @@ raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
 
 
 ###############################################################################
-# Plot it!
+# Save everything
 ###############################################################################
-raw.plot()
 
 save_fname = 'simulated-raw.fif'
-raw.save(save_fname)
+raw.save(save_fname, overwrite=True)
+
+
+###############################################################################
+# Plot it!
+###############################################################################
+with mne.open_report('report.h5') as report:
+    fig = plt.figure()
+    plt.plot(times, generate_signal(times, freq=10))
+    plt.xlabel('Time (s)')
+    report.add_figs_to_section(fig, 'Signal time course',
+                               section='Sensor-level', replace=True)
+
+    fig = raw.plot()
+    report.add_figs_to_section(fig, 'Simulated raw', section='Sensor-level',
+                               replace=True)
+    report.save('report.html', overwrite=True, open_browser=False)
