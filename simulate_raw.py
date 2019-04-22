@@ -1,3 +1,4 @@
+import os
 import os.path as op
 import mne
 import numpy as np
@@ -7,8 +8,10 @@ from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
 from utils import add_stcs
 
-
 data_path = sample.data_path()
+subjects_dir = op.join(data_path, 'subjects')
+
+os.environ['SUBJECTS_DIR'] = subjects_dir
 
 raw_fname = op.join(data_path, 'MEG/sample/sample_audvis_raw.fif')
 er_raw_fname = op.join(data_path, 'MEG/sample/ernoise_raw.fif')
@@ -62,7 +65,7 @@ for i in range(109):
     ###########################################################################
     # Project to sensor space
     ###########################################################################
-    stc = add_stcs(stc_signal, 0.5 * stc_noise)
+    stc = add_stcs(stc_signal, 0.1 * stc_noise)
     raw = simulate_raw(
         info,
         stc,
