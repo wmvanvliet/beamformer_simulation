@@ -42,20 +42,22 @@ stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
 ###############################################################################
 # Simulate random noise dipoles
 ###############################################################################
-n_noise_dipoles = 50
+labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
+n_noise_dipoles = len(labels)
 stc_noise = simulate_sparse_stc(
     src,
     n_noise_dipoles,
     times,
     data_fun=generate_random,
-    random_state=42
+    random_state=42,
+    labels=labels
 )
 
 
 ###############################################################################
 # Project to sensor space
 ###############################################################################
-stc = add_stcs(stc_signal, 0.5 * stc_noise)
+stc = add_stcs(stc_signal, 0.3 * stc_noise)
 raw = simulate_raw(
     info,
     stc,
