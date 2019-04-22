@@ -17,8 +17,6 @@ def generate_signal(times, freq=10., n_trial=1, phase_lock=False):
     """
     signal = np.zeros_like(times)
 
-    print('############ generate signal')
-
     for trial in range(n_trial):
         envelope = np.exp(50. * -(times - 0.5 - trial) ** 2.)
         if phase_lock is False:
@@ -50,7 +48,7 @@ def generate_random(times, lowpass=40, random_state=None):
     sample_rate = 1 / np.median(np.diff(times))
     rng = check_random_state(random_state)
     signal = rng.randn(padding + n_samples + padding)
-    signal = filtfilt(*butter(4, (lowpass / 2) / sample_rate), signal)
+    signal = filtfilt(*butter(4, lowpass / (sample_rate / 2)), signal)
     signal = signal[padding:-padding]
     signal /= np.amax(signal)
     signal *= 1e-7
