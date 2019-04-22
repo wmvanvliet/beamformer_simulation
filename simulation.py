@@ -4,7 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from mne.datasets import sample
-from time_series import generate_signal
+from mne.simulation import simulate_sparse_stc, simulate_raw
+from time_series import generate_signal, generate_random
+from utils import add_stcs
 
 
 data_path = sample.data_path()
@@ -19,11 +21,7 @@ info = mne.io.read_info(raw_fname)
 fwd = mne.read_forward_solution(fwd_fname)
 src = fwd['src']
 
-n_dipoles = 1
 times = np.arange(0, info['sfreq']) / info['sfreq']
-
-stc = mne.simulation.simulate_sparse_stc(src, n_dipoles, times, data_fun=generate_signal, random_state=42)
-
 
 data = np.asarray([generate_signal(times, freq=10)])
 
@@ -32,8 +30,13 @@ rh_vertno = src[1]['vertno']
 
 vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int64)]
 
-stc = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
-                         tstep=1/info['sfreq'], subject='sample')
+stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
+                                tstep=1/info['sfreq'], subject='sample')
 
-raw = mne.simulation.simulate_raw(info, stc, trans=None, src=None, bem=None, forward=fwd, duration=1)
+n_noise_dipoles = 50
+stc_noise = simulate_sparse_stc(src, n_noise_dipoles, times, data_fun=generate_random, random_state=42)
+
+stc = add_stcs(stc_signal, 0.5 * stc_noise)
+
+raw = simulate_raw(info, stc, trans=None, src=None, bem=None, forward=fwd, duration=1)
 raw.plot()

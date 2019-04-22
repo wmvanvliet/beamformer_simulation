@@ -1,4 +1,6 @@
 import numpy as np
+from mne.utils import check_random_state
+from scipy.signal import butter, filtfilt
 
 
 def generate_signal(times, freq=10., n_trial=1, phase_lock=False):
@@ -7,11 +9,11 @@ def generate_signal(times, freq=10., n_trial=1, phase_lock=False):
     Parameters:
     -----------
     times : np.array
-        time vector
+        Time points.
     freq : float
-        frequency of oscillations in Hz.
+        Frequency of oscillations in Hz.
     n_trial : int
-        number of trials, defaults to 1.
+        Number of trials, defaults to 1.
     """
     signal = np.zeros_like(times)
 
@@ -25,3 +27,31 @@ def generate_signal(times, freq=10., n_trial=1, phase_lock=False):
         else:
             signal += np.cos(freq * 2 * np.pi * times) * envelope
     return signal * 1e-7
+
+
+def generate_random(times, lowpass=40, random_state=None):
+    """Simulate a random time course.
+    Starts out with Guassian noise and lowpass filters that.
+
+    Parameters
+    ----------
+    times : np.array
+        Time points.
+    random_state : None | int | RandomState
+        To specify the random generator state.
+
+    Returns
+    -------
+    signal : np.array, shape (len(times),)
+        The random signal
+    """
+    n_samples = len(times)
+    padding = n_samples // 2
+    sample_rate = 1 / np.median(np.diff(times))
+    rng = check_random_state(random_state)
+    signal = rng.randn(padding + n_samples + padding)
+    signal = filtfilt(*butter(4, (lowpass / 2) / sample_rate), signal)
+    signal = signal[padding:-padding]
+    signal /= np.amax(signal)
+    signal *= 1e-7
+    return signal
