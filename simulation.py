@@ -1,7 +1,6 @@
 import os.path as op
 import mne
 import numpy as np
-import matplotlib.pyplot as plt
 
 from mne.datasets import sample
 from mne.simulation import simulate_sparse_stc, simulate_raw
@@ -30,7 +29,7 @@ rh_vertno = src[1]['vertno']
 
 
 ###############################################################################
-# Simulate a single signal dipole
+# Simulate a single signal dipole for 1 sec
 ###############################################################################
 
 data = np.asarray([generate_signal(times, freq=10)])
@@ -38,33 +37,43 @@ vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int6
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                 tstep=1/info['sfreq'], subject='sample')
 
+###############################################################################
+# Create 109 sec of simulated data
+###############################################################################
 
-###############################################################################
-# Simulate random noise dipoles
-###############################################################################
-n_noise_dipoles = 50
-stc_noise = simulate_sparse_stc(
-    src,
-    n_noise_dipoles,
-    times,
-    data_fun=generate_random,
-    random_state=42
-)
+raw_list = []
+# 109 seconds is max length of empty room data
+for i in range(109):
+    ###########################################################################
+    # Simulate random noise dipoles
+    ###########################################################################
+    n_noise_dipoles = 50
+    stc_noise = simulate_sparse_stc(
+        src,
+        n_noise_dipoles,
+        times,
+        data_fun=generate_random,
+        random_state=42
+    )
 
 
-###############################################################################
-# Project to sensor space
-###############################################################################
-stc = add_stcs(stc_signal, 0.5 * stc_noise)
-raw = simulate_raw(
-    info,
-    stc,
-    trans=None,
-    src=None,
-    bem=None,
-    forward=fwd,
-    duration=1,
-)
+    ###########################################################################
+    # Project to sensor space
+    ###########################################################################
+    stc = add_stcs(stc_signal, 0.5 * stc_noise)
+    raw = simulate_raw(
+        info,
+        stc,
+        trans=None,
+        src=None,
+        bem=None,
+        forward=fwd,
+        duration=1,
+    )
+
+    raw_list.append(raw)
+
+raw = mne.concatenate_raws(raw_list)
 
 ###############################################################################
 # Use empty room noise as sensor noise
@@ -80,3 +89,6 @@ raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
 # Plot it!
 ###############################################################################
 raw.plot()
+
+save_fname = 'simulated-raw.fif'
+raw.save(save_fname)
