@@ -1,6 +1,7 @@
 import os.path as op
 import mne
 import numpy as np
+from tqdm import tqdm
 
 from mne.datasets import sample
 from mne.simulation import simulate_sparse_stc, simulate_raw
@@ -43,7 +44,9 @@ stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
 
 raw_list = []
 # 109 seconds is max length of empty room data
-for i in range(109):
+n_trials = 109
+for i in tqdm(range(n_trials), desc='Generating trials', total=n_trials,
+              unit='trials'):
     ###########################################################################
     # Simulate random noise dipoles
     ###########################################################################
