@@ -11,7 +11,7 @@ noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
 SNR = 0.0  # Ratio noise to signal (not really SNR right now)
 
 # Position of the signal
-signal_vertex = 2000
+signal_vertex_index = 2000
 signal_hemi = 1
 
 random = np.random.RandomState(42) # Random seed for everything
