@@ -39,6 +39,7 @@ fname.add('simulated_events', '{target_path}/simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise%d-epo.fif' % SNR)
 fname.add('report', '{target_path}/report-noise%d.h5' % SNR)
 fname.add('report_html', '{target_path}/report-noise%d.html' % SNR)
+fname.add('results', '{target_path}/results-noise%d.csv' % SNR)
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir

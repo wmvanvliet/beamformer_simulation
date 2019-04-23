@@ -3,6 +3,7 @@ from mne.time_frequency import csd_morlet
 from mne.beamformer import make_dics, apply_dics_csd
 import numpy as np
 from itertools import product
+import pandas as pd
 
 import config
 from config import fname
@@ -50,4 +51,10 @@ for setting in settings:
         dist = np.nan
 
     dists.append(dist)
-    print(setting, dist)
+
+# Save everything to a pandas dataframe
+df = pd.DataFrame(settings, columns=['reg', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter'])
+df['dist'] = dist
+df.to_csv(
+
+
