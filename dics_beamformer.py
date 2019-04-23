@@ -15,27 +15,36 @@ fwd = mne.read_forward_solution(fname.fwd)
 fwd = mne.convert_forward_solution(fwd, surf_ori=True)
 
 # Only use one sensor type (grads)
-epochs.pick_types(meg='grad')
+epochs_grad = epochs.copy().pick_types(meg='grad')
+epochs_mag = epochs.copy().pick_types(meg='mag')
 
 # Make CSD matrix
 csd = csd_morlet(epochs, [config.signal_freq])
 
 # Compute the settings grid
 regs = [0.05, 0.1, 0.5]
+sensor_types = ['grad', 'mag']
 pick_oris = [None, 'normal', 'max-power']
 inversions = ['single', 'matrix']
 weight_norms = ['unit-noise-gain', 'nai', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
-settings = list(product(regs, pick_oris, inversions, weight_norms,
-                        normalize_fwds, real_filters))
+settings = list(product(regs, sensor_types, pick_oris, inversions,
+                        weight_norms, normalize_fwds, real_filters))
 
 # Compute DICS beamformer with all possible parameters
 dists = []
 for setting in settings:
-    reg, pick_ori, inversion, weight_norm, normalize_fwd, real_filter = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter = setting
     try: 
-        filters = make_dics(epochs.info, fwd, csd, reg=reg, pick_ori=pick_ori,
+        if sensor_type == 'grad':
+            info = epochs_grad.info
+        elif sensor_type == 'mag':
+            info = epochs_mag.info
+        else:
+            raise ValueError('Invalid sensor type: %s', sensor_type)
+
+        filters = make_dics(info, fwd, csd, reg=reg, pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
                             normalize_fwd=normalize_fwd,
                             real_filter=real_filter)
