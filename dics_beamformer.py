@@ -46,6 +46,7 @@ for setting in settings:
         dip_true = make_dipole(stc_signal, fwd['src'])
         dip_est = make_dipole(stc, fwd['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+        print(setting, dist)
     except Exception as e:
         print(e)
         dist = np.nan
