@@ -39,7 +39,9 @@ fname.add('simulated_events', '{target_path}/simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise%d-epo.fif' % SNR)
 fname.add('report', '{target_path}/report-noise%d.h5' % SNR)
 fname.add('report_html', '{target_path}/report-noise%d.html' % SNR)
-fname.add('results', '{target_path}/results-noise%d.csv' % SNR)
+fname.add('dics_results', '{target_path}/dics_results-noise%d.csv' % SNR)
+fname.add('lcmv_results', '{target_path}/lcmv-noise%d.csv' % SNR)
+fname.add('mne_results', '{target_path}/mne_results-noise%d.csv' % SNR)
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
