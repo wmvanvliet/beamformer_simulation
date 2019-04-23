@@ -1,6 +1,7 @@
 import mne
 import numpy as np
 from scipy.spatial import distance
+import surfer
 
 import config
 
@@ -49,3 +50,21 @@ def compute_distances(src):
                     src[1]['rr'][src[1]['inuse'].astype(np.bool)]))
     return distance.squareform(distance.pdist(rr))
 
+
+def plot_distance(stc_est, stc_signal, D, surface='inflated'):
+    """Plots the distance to the peak estimated signal, along with the true signal location"""
+    peak = stc_est.get_peak(vert_as_index=True)[0]
+    peak_hemi = 0 if peak < len(stc.vertices[0]) else 1 
+    true_hemi = config.signal_hemi
+
+    est_vert = np.hstack(stc_est.vertices)[peak]
+    true_vert = stc_signal.vertices[true_hemi][0]
+
+    brain = surfer.Brain('sample', hemi='both', surf=surface)
+    brain.add_data(D[peak, :len(stc.vertices[0])], vertices=stc.vertices[0],
+                   hemi='lh', transparent=True)  
+    brain.add_data(D[peak, len(stc.vertices[0]):], vertices=stc.vertices[1],
+                   hemi='rh', transparent=True)  
+    brain.add_foci([est_vert], coords_as_verts=True, hemi='lh' if peak_hemi == 0 else 'rh', color='red')
+    brain.add_foci([true_vert], coords_as_verts=True, hemi='lh' if true_hemi == 0 else 'rh', color='green')
+    return brain
