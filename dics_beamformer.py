@@ -12,9 +12,11 @@ from utils import make_dipole
 # Read in the simulated data
 epochs = mne.read_epochs(fname.simulated_epochs)
 fwd = mne.read_forward_solution(fname.fwd)
+
+# For pick_ori='normal', the fwd needs to be in surface orientation
 fwd = mne.convert_forward_solution(fwd, surf_ori=True)
 
-# Only use one sensor type (grads)
+# The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 
@@ -32,11 +34,12 @@ real_filters = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, inversions,
                         weight_norms, normalize_fwds, real_filters))
 
-# Compute DICS beamformer with all possible parameters
+# Compute DICS beamformer with all possible settings
 dists = []
 for setting in settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter = setting
-    try: 
+    (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
+     real_filter) = setting
+    try:
         if sensor_type == 'grad':
             info = epochs_grad.info
         elif sensor_type == 'mag':
@@ -63,6 +66,8 @@ for setting in settings:
     dists.append(dist)
 
 # Save everything to a pandas dataframe
-df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter'])
+df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
+                                     'inversion', 'weight_norm',
+                                     'normalize_fwd', 'real_filter'])
 df['dist'] = dists
 df.to_csv(fname.dics_results)
