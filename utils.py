@@ -80,3 +80,18 @@ def make_dipole(stc, src):
     pos = src[max_hemi]['rr'][max_vertno]
     dip = mne.Dipole(stc.times, pos, stc.data[max_idx], [1., 0., 0.], 1)
     return dip
+
+
+def evaluate_stc(stc_est, stc_signal):
+    # Find the estimated source distribution at peak activity
+    peak_time = stc_est.get_peak(time_as_index=True)[1]
+    estimate = abs(stc_est).data[:, peak_time]
+
+    # Normalize the estimated source distribution to sum to 1
+    estimate /= estimate.sum()
+
+    # Measure the estimated activity left at the true signal location
+    true_hemi = config.signal_hemi
+    true_vert = stc_signal.vertices[true_hemi][0]
+    true_vert_idx = np.hstack(stc_est.vertices) == true_vert
+    return estimate[true_vert_idx][0]

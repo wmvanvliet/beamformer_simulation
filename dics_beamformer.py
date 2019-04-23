@@ -7,9 +7,10 @@ import pandas as pd
 
 import config
 from config import fname
-from utils import make_dipole
+from utils import make_dipole, evaluate_stc
 
 # Read in the simulated data
+stc_signal = mne.read_source_estimate(fname.stc_signal)
 epochs = mne.read_epochs(fname.simulated_epochs)
 fwd = mne.read_forward_solution(fname.fwd)
 
@@ -36,6 +37,7 @@ settings = list(product(regs, sensor_types, pick_oris, inversions,
 
 # Compute DICS beamformer with all possible settings
 dists = []
+evals = []
 for setting in settings:
     (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
      real_filter) = setting
@@ -54,20 +56,25 @@ for setting in settings:
         stc, freqs = apply_dics_csd(csd, filters)
 
         # Compute distance between true and estimated source
-        stc_signal = mne.read_source_estimate(fname.stc_signal)
         dip_true = make_dipole(stc_signal, fwd['src'])
         dip_est = make_dipole(stc, fwd['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+
+        # Fancy evaluation metric
+        ev = evaluate_stc(stc, stc_signal)
     except Exception as e:
         print(e)
         dist = np.nan
+        ev = np.nan
     print(setting, dist)
 
     dists.append(dist)
+    evals.append(ev)
 
 # Save everything to a pandas dataframe
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'inversion', 'weight_norm',
                                      'normalize_fwd', 'real_filter'])
 df['dist'] = dists
+df['eval'] = evals
 df.to_csv(fname.dics_results)

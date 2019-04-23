@@ -5,9 +5,10 @@ from itertools import product
 import pandas as pd
 
 from config import fname
-from utils import make_dipole
+from utils import make_dipole, evaluate_stc
 
 # Read in the simulated data
+stc_signal = mne.read_source_estimate(fname.stc_signal)
 epochs = mne.read_epochs(fname.simulated_epochs)
 fwd = mne.read_forward_solution(fname.fwd)
 
@@ -33,6 +34,7 @@ settings = list(product(regs, sensor_types, pick_oris, weight_norms))
 
 # Compute DICS beamformer with all possible settings
 dists = []
+evals = []
 for setting in settings:
     reg, sensor_type, pick_ori, weight_norm = setting
     try:
@@ -48,19 +50,24 @@ for setting in settings:
         stc = apply_lcmv(evoked, filters)
 
         # Compute distance between true and estimated source
-        stc_signal = mne.read_source_estimate(fname.stc_signal)
         dip_true = make_dipole(stc_signal, fwd['src'])
         dip_est = make_dipole(stc, fwd['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+
+        # Fancy evaluation metric
+        ev = evaluate_stc(stc, stc_signal)
     except Exception as e:
         print(e)
         dist = np.nan
-    print(setting, dist)
+        ev = np.nan
+    print(setting, dist, ev)
 
     dists.append(dist)
+    evals.append(ev)
 
 # Save everything to a pandas dataframe
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'weight_norm'])
 df['dist'] = dists
+df['eval'] = evals
 df.to_csv(fname.lcmv_results)
