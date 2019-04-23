@@ -1,6 +1,8 @@
 import mne
 import numpy as np
 
+import config
+
 def add_stcs(stc1, stc2):
     """Adds two SourceEstimates together, allowing for different vertices."""
     vertices = [np.union1d(stc1.vertices[0], stc2.vertices[0]),
@@ -29,3 +31,12 @@ def add_stcs(stc1, stc2):
         i += 1
 
     return mne.SourceEstimate(data, vertices, tmin=stc1.tmin, tstep=stc1.tstep)
+
+
+def plot_estimation(stc_est, stc_signal, initial_time=1.5):
+    """Plots the source estimate, along with the true signal location"""
+    brain = stc_est.plot(hemi='both', subject='sample', initial_time=initial_time)
+    hemi = ['lh', 'rh'][config.signal_hemi]
+    vert = stc_signal.vertices[config.signal_hemi][0]
+    brain.add_foci([vert], coords_as_verts=True, hemi=hemi)
+    return brain

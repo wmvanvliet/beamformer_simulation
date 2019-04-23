@@ -8,7 +8,7 @@ trial_length = 2.0 # Length of a trial in seconds
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10 # Frequency at which to simulate the signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
-SNR = 0.0  # Ratio noise to signal (not really SNR right now)
+SNR = 1.0  # Ratio noise to signal (not really SNR right now)
 
 # Position of the signal
 signal_vertex_index = 2000
