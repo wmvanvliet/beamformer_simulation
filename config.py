@@ -1,13 +1,16 @@
 import os
 from fnames import FileNames
 from mne.datasets import sample
+import numpy as np
 
-n_trials = 109  # Number of trials to simulate
+trial_length = 2.0 # Length of a trial in seconds
+# We have 109 seconds of empty room data
+n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10 # Frequency at which to simulate the signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
-SNR = 0.1  # Ratio noise to signal (not really SNR right now)
+SNR = 0.0  # Ratio noise to signal (not really SNR right now)
 
-random_state = 42  # Random seed for everything
+random = np.random.RandomState(42) # Random seed for everything
 
 # Filenames for various things
 fname = FileNames()
@@ -26,6 +29,7 @@ fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files produced by the simulation code
 fname.add('target_path', '.')  # Where to put everything
+fname.add('stc_signal', '{target_path}/stc_signal.h5')
 fname.add('simulated_raw', '{target_path}/simulated-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/simulated-epochs.fif')

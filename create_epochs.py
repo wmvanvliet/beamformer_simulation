@@ -1,26 +1,36 @@
 import os.path as op
 import mne
+import numpy as np
 
 import config
 from config import fname
 
+# Read simulated raw
 raw = mne.io.Raw(fname.simulated_raw, preload=True)
 
-evt_length = 1
-n_events = config.n_trials
-evt_id = 1
-baseline = (None, 0.3)
+###############################################################################
+# Create epochs
+###############################################################################
 
-events = [[int(evt_length * i * raw.info['sfreq']), 0, evt_id] for i in range(n_events)]
+events = np.hstack((
+    (np.arange(config.n_trials) * config.trial_length * raw.info['sfreq'])[:, np.newaxis],
+    np.zeros((config.n_trials, 1)),
+    np.ones((config.n_trials, 1)),
+)).astype(np.int)
 
-epochs = mne.Epochs(raw=raw, events=events, event_id=evt_id, tmin=0.1, tmax=0.9, baseline=baseline, preload=True)
+epochs = mne.Epochs(raw=raw, events=events, event_id=1,
+                    tmin=0.1, tmax=config.trial_length - 0.1,
+                    baseline=(None, 0.3), preload=True)
 
 epochs.save(fname.simulated_epochs, overwrite=True)
 
-evoked = epochs.average()
+
+###############################################################################
+# Save plots
+###############################################################################
 
 with mne.open_report(fname.report) as report:
-    fig = evoked.plot_joint(picks='mag', show=False)
+    fig = epochs.average().plot_joint(picks='mag', show=False)
     report.add_figs_to_section(fig, 'Simulated evoked',
                                section='Sensor-level', replace=True)
     report.save(fname.report_html, overwrite=True, open_browser=False)

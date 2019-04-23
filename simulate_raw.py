@@ -16,27 +16,27 @@ fwd = mne.read_forward_solution(fname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
 
-times = np.arange(0, info['sfreq']) / info['sfreq']
+times = np.arange(0, config.trial_length * info['sfreq']) / info['sfreq']
 lh_vertno = src[0]['vertno']
 rh_vertno = src[1]['vertno']
 
 
 ###############################################################################
-# Simulate a single signal dipole for 1 sec
+# Simulate a single signal dipole source as signal
 ###############################################################################
 
 data = np.asarray([generate_signal(times, freq=config.signal_freq)])
 vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int64)]
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
-                                tstep=1/info['sfreq'], subject='sample')
+                                tstep=1 / info['sfreq'], subject='sample')
+stc_signal.save(fname.stc_signal)
 
 
 ###############################################################################
-# Create 109 sec of simulated data
+# Create trials of simulated data
 ###############################################################################
 
 raw_list = []
-# 109 seconds is max length of empty room data
 for i in tqdm(range(config.n_trials), desc='Generating trials',
               total=config.n_trials, unit='trials'):
     ###########################################################################
@@ -49,7 +49,7 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
         n_noise_dipoles,
         times,
         data_fun=generate_random,
-        random_state=config.random_state,
+        random_state=config.random,
         labels=labels
     )
 
@@ -57,7 +57,7 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
     ###########################################################################
     # Project to sensor space
     ###########################################################################
-    stc = add_stcs(stc_signal, 0.1 * stc_noise)
+    stc = add_stcs(stc_signal, config.SNR * stc_noise)
     raw = simulate_raw(
         info,
         stc,
@@ -65,7 +65,9 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
         src=None,
         bem=None,
         forward=fwd,
-        duration=1,
+        duration=config.trial_length,
+        cov=None,
+        random_state=config.random,
     )
 
     raw_list.append(raw)
