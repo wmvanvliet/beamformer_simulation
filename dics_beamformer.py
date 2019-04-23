@@ -55,5 +55,5 @@ for setting in settings:
 
 # Save everything to a pandas dataframe
 df = pd.DataFrame(settings, columns=['reg', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter'])
-df['dist'] = dist
-df.to_csv(fname.results)
+df['dist'] = dists
+df.to_csv(fname.dics_results)
