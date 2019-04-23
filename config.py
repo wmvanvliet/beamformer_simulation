@@ -40,7 +40,7 @@ fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise%d-epo.fif' %
 fname.add('report', '{target_path}/report-noise%d.h5' % SNR)
 fname.add('report_html', '{target_path}/report-noise%d.html' % SNR)
 fname.add('dics_results', '{target_path}/dics_results-noise%d.csv' % SNR)
-fname.add('lcmv_results', '{target_path}/lcmv-noise%d.csv' % SNR)
+fname.add('lcmv_results', '{target_path}/lcmv_results-noise%d.csv' % SNR)
 fname.add('mne_results', '{target_path}/mne_results-noise%d.csv' % SNR)
 
 # Set subjects_dir
