@@ -63,6 +63,6 @@ for setting in settings:
     dists.append(dist)
 
 # Save everything to a pandas dataframe
-df = pd.DataFrame(settings, columns=['reg', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter'])
+df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter'])
 df['dist'] = dists
 df.to_csv(fname.dics_results)
