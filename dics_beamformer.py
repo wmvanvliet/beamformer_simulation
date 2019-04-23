@@ -66,7 +66,7 @@ for setting in settings:
         print(e)
         dist = np.nan
         ev = np.nan
-    print(setting, dist)
+    print(setting, dist, ev)
 
     dists.append(dist)
     evals.append(ev)
