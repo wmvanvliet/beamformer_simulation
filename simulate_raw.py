@@ -26,7 +26,8 @@ rh_vertno = src[1]['vertno']
 ###############################################################################
 
 data = np.asarray([generate_signal(times, freq=config.signal_freq)])
-vertices = [np.array([], dtype=np.int64), np.array([rh_vertno[0]], dtype=np.int64)]
+vertices = [np.array([], dtype=np.int64), np.array([], dtype=np.int64)]
+vertices[config.signal_hemi] = np.array([config.signal_vertex])
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                 tstep=1 / info['sfreq'], subject='sample')
 stc_signal.save(fname.stc_signal)
@@ -52,7 +53,6 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
         random_state=config.random,
         labels=labels
     )
-
 
     ###########################################################################
     # Project to sensor space

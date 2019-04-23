@@ -18,6 +18,7 @@ def add_stcs(stc1, stc2):
             data[[i]] += stc1.lh_data[stc1.vertices[0] == vert]
         if vert in stc2.vertices[0]:
             data[[i]] += stc2.lh_data[stc2.vertices[0] == vert]
+        i += 1
 
     # Right hemisphere
     for vert in vertices[1]:
@@ -25,5 +26,6 @@ def add_stcs(stc1, stc2):
             data[[i]] += stc1.rh_data[stc1.vertices[1] == vert]
         if vert in stc2.vertices[1]:
             data[[i]] += stc2.rh_data[stc2.vertices[1] == vert]
+        i += 1
 
     return mne.SourceEstimate(data, vertices, tmin=stc1.tmin, tstep=stc1.tstep)
