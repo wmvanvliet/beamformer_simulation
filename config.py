@@ -2,19 +2,28 @@ import os
 from fnames import FileNames
 from mne.datasets import sample
 import numpy as np
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Beamformer simulator')
+parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
+                    help='Amount of noise to add')
+parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
+                    help='Vertex index of the signal dipole')
+args = parser.parse_args()
 
 trial_length = 2.0 # Length of a trial in seconds
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
-signal_freq = 10 # Frequency at which to simulate the signal timecourse
+signal_freq = 10  # Frequency at which to simulate the signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
-SNR = 1.0  # Ratio noise to signal (not really SNR right now)
+SNR = args.noise  # Ratio noise to signal (not really SNR right now)
 
 # Position of the signal
-signal_vertex_index = 2000
+signal_vertex_index = args.vertex
 signal_hemi = 1
 
-random = np.random.RandomState(42) # Random seed for everything
+random = np.random.RandomState(42)  # Random seed for everything
 
 # Filenames for various things
 fname = FileNames()
