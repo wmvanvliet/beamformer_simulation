@@ -33,12 +33,12 @@ fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files produced by the simulation code
 fname.add('target_path', '.')  # Where to put everything
-fname.add('stc_signal', '{target_path}/stc_signal.h5')
-fname.add('simulated_raw', '{target_path}/simulated-raw.fif')
+fname.add('stc_signal', '{target_path}/stc_signal-noise%d' % SNR)
+fname.add('simulated_raw', '{target_path}/simulated-noise%d-raw.fif' % SNR)
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
-fname.add('simulated_epochs', '{target_path}/simulated-epochs.fif')
-fname.add('report', '{target_path}/report.h5')
-fname.add('report_html', '{target_path}/report.html')
+fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise%d-epo.fif' % SNR)
+fname.add('report', '{target_path}/report-noise%d.h5' % SNR)
+fname.add('report_html', '{target_path}/report-noise%d.html' % SNR)
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
