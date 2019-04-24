@@ -58,7 +58,7 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
     ###########################################################################
     # Project to sensor space
     ###########################################################################
-    stc = add_stcs(stc_signal, config.SNR * stc_noise)
+    stc = add_stcs(stc_signal, config.noise * stc_noise)
     raw = simulate_raw(
         info,
         stc,

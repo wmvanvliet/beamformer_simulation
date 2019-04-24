@@ -4,12 +4,13 @@ import numpy as np
 from itertools import product
 import pandas as pd
 
+import config
 from config import fname
 from utils import make_dipole, evaluate_stc
 
 # Read in the simulated data
-stc_signal = mne.read_source_estimate(fname.stc_signal)
-epochs = mne.read_epochs(fname.simulated_epochs)
+stc_signal = mne.read_source_estimate(fname.stc_signal(noise=config.noise))
+epochs = mne.read_epochs(fname.simulated_epochs(noise=config.noise))
 fwd = mne.read_forward_solution(fname.fwd)
 
 # For pick_ori='normal', the fwd needs to be in surface orientation
@@ -70,4 +71,4 @@ df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'weight_norm'])
 df['dist'] = dists
 df['eval'] = evals
-df.to_csv(fname.lcmv_results)
+df.to_csv(fname.lcmv_results(noise=config.noise))

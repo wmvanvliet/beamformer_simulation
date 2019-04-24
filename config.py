@@ -17,7 +17,7 @@ trial_length = 2.0 # Length of a trial in seconds
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10  # Frequency at which to simulate the signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
-SNR = args.noise  # Ratio noise to signal (not really SNR right now)
+noise = args.noise  # Multiplyer for the noise dipoles
 
 # Position of the signal
 signal_vertex_index = args.vertex
@@ -41,16 +41,16 @@ fname.add('fwd', '{sample_folder}/sample_audvis-meg-eeg-oct-6-fwd.fif')
 fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files produced by the simulation code
-fname.add('target_path', '.')  # Where to put everything
-fname.add('stc_signal', '{target_path}/stc_signal-noise%d' % SNR)
-fname.add('simulated_raw', '{target_path}/simulated-noise%d-raw.fif' % SNR)
+fname.add('target_path', './data')  # Where to put everything
+fname.add('stc_signal', '{target_path}/stc_signal-noise{noise}')
+fname.add('simulated_raw', '{target_path}/simulated-noise{noise}-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
-fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise%d-epo.fif' % SNR)
-fname.add('report', '{target_path}/report-noise%d.h5' % SNR)
-fname.add('report_html', '{target_path}/report-noise%d.html' % SNR)
-fname.add('dics_results', '{target_path}/dics_results-noise%d.csv' % SNR)
-fname.add('lcmv_results', '{target_path}/lcmv_results-noise%d.csv' % SNR)
-fname.add('mne_results', '{target_path}/mne_results-noise%d.csv' % SNR)
+fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise}-epo.fif')
+fname.add('report', '{target_path}/report-noise{noise}.h5')
+fname.add('report_html', '{target_path}/report-noise{noise}.html')
+fname.add('dics_results', '{target_path}/dics_results-noise{noise}.csv')
+fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise}.csv')
+fname.add('mne_results', '{target_path}/mne_results-noise{noise}.csv')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
