@@ -39,8 +39,7 @@ stc_signal.save(fname.stc_signal(noise=config.noise, vertex=config.vertex))
 ###############################################################################
 
 raw_list = []
-for i in tqdm(range(config.n_trials), desc='Generating trials',
-              total=config.n_trials, unit='trials'):
+for i in range(config.n_trials):
     ###########################################################################
     # Simulate random noise dipoles
     ###########################################################################
@@ -72,9 +71,9 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
     )
 
     raw_list.append(raw)
+    print('%02d/%02d' % (i + 1, config.n_trials))
 
 raw = mne.concatenate_raws(raw_list)
-
 
 ###############################################################################
 # Use empty room noise as sensor noise
@@ -83,7 +82,6 @@ er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 raw_picks = mne.pick_types(raw.info, meg=True, eeg=False)
 er_raw_picks = mne.pick_types(er_raw.info, meg=True, eeg=False)
 raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
-
 
 ###############################################################################
 # Save everything
