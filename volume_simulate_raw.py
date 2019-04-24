@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
-from utils import add_volume_stcs
+from utils import add_volume_stcs, add_timestamp_next_to_xlabel
 from matplotlib import pyplot as plt
 
 import config
@@ -149,24 +149,7 @@ with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as
     plt.xlabel('Time (s)')
     ax = fig.axes[0]
 
-    xlbl = ax.xaxis.get_label()
-
-    # draw figure using renderer because axis position only fixed after drawing
-    fig.canvas.draw()
-
-    transform = xlbl.get_transform()
-    font_properties = xlbl.get_font_properties()
-    position = xlbl.get_position()
-    ha = xlbl.get_horizontalalignment()
-    va = xlbl.get_verticalalignment()
-
-    txt = ax.text(0., 0., now.strftime('%m/%d/%Y, %H:%M:%S'))
-
-    txt.set_transform(transform)
-    txt.set_position((0.85, position[1]))
-    txt.set_font_properties(font_properties)
-    txt.set_horizontalalignment(ha)
-    txt.set_verticalalignment(va)
+    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
     report.add_figs_to_section(fig, now.strftime('Signal time course'),
                                section='Sensor-level', replace=True)
@@ -176,21 +159,7 @@ with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as
     # axis 1 contains the xlabel
     ax = fig.axes[1]
 
-    xlbl = ax.xaxis.get_label()
-
-    transform = xlbl.get_transform()
-    font_properties = xlbl.get_font_properties()
-    position = xlbl.get_position()
-    ha = xlbl.get_horizontalalignment()
-    va = xlbl.get_verticalalignment()
-
-    txt = ax.text(0., 0, now.strftime('%m/%d/%Y, %H:%M:%S'))
-
-    txt.set_transform(transform)
-    txt.set_position((0.85, position[1]))
-    txt.set_font_properties(font_properties)
-    txt.set_horizontalalignment(ha)
-    txt.set_verticalalignment(va)
+    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
     report.add_figs_to_section(fig, now.strftime('Simulated raw'),
                                section='Sensor-level', replace=True)

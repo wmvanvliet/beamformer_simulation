@@ -4,6 +4,10 @@ import numpy as np
 import config
 from config import vfname
 
+from utils import add_timestamp_next_to_xlabel
+
+from datetime import datetime
+
 # Read simulated raw
 raw = mne.io.Raw(vfname.simulated_raw(noise=config.noise, vertex=config.vertex),
                  preload=True)
@@ -30,8 +34,15 @@ epochs.save(vfname.simulated_epochs(noise=config.noise, vertex=config.vertex),
 # Save plots
 ###############################################################################
 
+now = datetime.now()
 with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as report:
+
     fig = epochs.average().plot_joint(picks='mag', show=False)
+
+    ax = fig.axes[0]
+
+    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+
     report.add_figs_to_section(fig, 'Simulated evoked',
                                section='Sensor-level', replace=True)
     report.save(vfname.report_html(noise=config.noise, vertex=config.vertex),

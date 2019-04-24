@@ -114,3 +114,40 @@ def evaluate_stc(stc_est, stc_signal):
     true_vert = stc_signal.vertices[true_hemi][0]
     true_vert_idx = np.hstack(stc_est.vertices) == true_vert
     return estimate[true_vert_idx][0]
+
+
+def add_timestamp_next_to_xlabel(fig, ax, text):
+    """
+    Add text next to the x axis in the same style.
+
+    Parameters
+    ----------
+    fig : matplotlib figure
+    ax : matplotlib.axes.Axes
+        Axis containing the xlabel.
+    text : str
+        Text to add to the figure
+
+    Returns
+    -------
+    None
+    """
+
+    xlbl = ax.xaxis.get_label()
+
+    # draw figure using renderer because axis position only fixed after drawing
+    fig.canvas.draw()
+
+    transform = xlbl.get_transform()
+    font_properties = xlbl.get_font_properties()
+    position = xlbl.get_position()
+    ha = xlbl.get_horizontalalignment()
+    va = xlbl.get_verticalalignment()
+
+    txt = ax.text(0., 0, text)
+
+    txt.set_transform(transform)
+    txt.set_position((0.85, position[1]))
+    txt.set_font_properties(font_properties)
+    txt.set_horizontalalignment(ha)
+    txt.set_verticalalignment(va)
