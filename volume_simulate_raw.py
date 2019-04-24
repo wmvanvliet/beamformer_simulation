@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
-from utils import add_volume_stcs, add_text_next_to_xlabel
+from utils import add_volume_stcs, add_text_next_to_xlabel, random_three_vector
 from matplotlib import pyplot as plt
 
 import config
@@ -20,7 +20,7 @@ fwd = mne.read_forward_solution(vfname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
 rr = src[0]['rr']
-nn = src[0]['nn']
+nn = np.array([random_three_vector() for i in range(rr.shape[0])])
 
 bem_fname = vfname.bem
 bem = mne.read_bem_surfaces(bem_fname)
