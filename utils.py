@@ -118,15 +118,17 @@ def evaluate_stc(stc_est, stc_signal):
 
 def add_timestamp_next_to_xlabel(fig, ax, text):
     """
-    Add text next to the x axis in the same style.
+    Add text to the right of the label of the x-axis
+    in the same style.
 
     Parameters
     ----------
-    fig : matplotlib figure
+    fig : matplotlib.pyplot.figure
+        The figure containing the axis given by ax.
     ax : matplotlib.axes.Axes
-        Axis containing the xlabel.
+        Axis containing the x-axis label.
     text : str
-        Text to add to the figure
+        Text to add to the figure.
 
     Returns
     -------
@@ -147,7 +149,7 @@ def add_timestamp_next_to_xlabel(fig, ax, text):
     txt = ax.text(0., 0, text)
 
     txt.set_transform(transform)
-    txt.set_position((0.85, position[1]))
+    txt.set_position((position[0] * 1.7, position[1]))
     txt.set_font_properties(font_properties)
     txt.set_horizontalalignment(ha)
     txt.set_verticalalignment(va)
