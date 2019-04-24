@@ -89,7 +89,7 @@ raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
 # Save everything
 ###############################################################################
 
-raw.save(fname.simulated_raw, overwrite=True)
+raw.save(fname.simulated_raw(noise=config.noise, vertex=config.vertex), overwrite=True)
 
 
 ###############################################################################
