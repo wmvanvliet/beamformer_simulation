@@ -6,7 +6,7 @@
 #SBATCH -n 1
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-1
+#SBATCH --array=0-3765
 
 # Location to write the logfile to
 LOG_FILE=logs/simulate_raw-$SLURM_ARRAY_TASK_ID.log
