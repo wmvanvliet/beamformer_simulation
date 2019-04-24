@@ -15,10 +15,12 @@ info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 fwd = mne.read_forward_solution(fname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
+labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
 
 times = np.arange(0, config.trial_length * info['sfreq']) / info['sfreq']
 lh_vertno = src[0]['vertno']
 rh_vertno = src[1]['vertno']
+n_noise_dipoles = len(labels)
 
 
 ###############################################################################
@@ -43,8 +45,6 @@ for i in range(config.n_trials):
     ###########################################################################
     # Simulate random noise dipoles
     ###########################################################################
-    labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
-    n_noise_dipoles = len(labels)
     stc_noise = simulate_sparse_stc(
         src,
         n_noise_dipoles,
