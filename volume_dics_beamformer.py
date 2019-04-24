@@ -28,7 +28,7 @@ csd = csd_morlet(epochs, [config.signal_freq])
 # Compute the settings grid
 regs = [0.05, 0.1, 0.5]
 sensor_types = ['grad', 'mag']
-pick_oris = [None, 'normal', 'max-power']
+pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
 weight_norms = ['unit-noise-gain', 'nai', None]
 normalize_fwds = [True, False]
