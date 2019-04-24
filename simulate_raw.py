@@ -31,7 +31,7 @@ vertices = [np.array([], dtype=np.int64), np.array([], dtype=np.int64)]
 vertices[config.signal_hemi] = np.array([signal_vertex])
 stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                 tstep=1 / info['sfreq'], subject='sample')
-stc_signal.save(fname.stc_signal)
+stc_signal.save(fname.stc_signal(noise=config.noise))
 
 
 ###############################################################################
@@ -95,7 +95,7 @@ raw.save(fname.simulated_raw, overwrite=True)
 ###############################################################################
 # Plot it!
 ###############################################################################
-with mne.open_report(fname.report) as report:
+with mne.open_report(fname.report(noise=config.noise)) as report:
     fig = plt.figure()
     plt.plot(times, generate_signal(times, freq=10))
     plt.xlabel('Time (s)')
@@ -105,4 +105,4 @@ with mne.open_report(fname.report) as report:
     fig = raw.plot()
     report.add_figs_to_section(fig, 'Simulated raw', section='Sensor-level',
                                replace=True)
-    report.save(fname.report_html, overwrite=True, open_browser=False)
+    report.save(fname.report_html(noise=config.noise), overwrite=True, open_browser=False)
