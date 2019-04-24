@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
-from utils import add_volume_stcs, add_timestamp_next_to_xlabel
+from utils import add_volume_stcs, add_text_next_to_xlabel
 from matplotlib import pyplot as plt
 
 import config
@@ -149,7 +149,7 @@ with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as
     plt.xlabel('Time (s)')
     ax = fig.axes[0]
 
-    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+    add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
     report.add_figs_to_section(fig, now.strftime('Signal time course'),
                                section='Sensor-level', replace=True)
@@ -159,7 +159,7 @@ with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as
     # axis 1 contains the xlabel
     ax = fig.axes[1]
 
-    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+    add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
     report.add_figs_to_section(fig, now.strftime('Simulated raw'),
                                section='Sensor-level', replace=True)

@@ -4,7 +4,7 @@ import numpy as np
 import config
 from config import vfname
 
-from utils import add_timestamp_next_to_xlabel
+from utils import add_text_next_to_xlabel
 
 from datetime import datetime
 
@@ -41,7 +41,7 @@ with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as
 
     ax = fig.axes[0]
 
-    add_timestamp_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+    add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
     report.add_figs_to_section(fig, 'Simulated evoked',
                                section='Sensor-level', replace=True)

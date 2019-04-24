@@ -116,7 +116,7 @@ def evaluate_stc(stc_est, stc_signal):
     return estimate[true_vert_idx][0]
 
 
-def add_timestamp_next_to_xlabel(fig, ax, text):
+def add_text_next_to_xlabel(fig, ax, text):
     """
     Add text to the right of the label of the x-axis
     in the same style.
