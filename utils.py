@@ -5,6 +5,7 @@ import surfer
 
 import config
 
+
 def add_stcs(stc1, stc2):
     """Adds two SourceEstimates together, allowing for different vertices."""
     vertices = [np.union1d(stc1.vertices[0], stc2.vertices[0]),
@@ -33,6 +34,24 @@ def add_stcs(stc1, stc2):
         i += 1
 
     return mne.SourceEstimate(data, vertices, tmin=stc1.tmin, tstep=stc1.tstep)
+
+
+def add_volume_stcs(stc1, stc2):
+    """Adds two SourceEstimates together, allowing for different vertices."""
+    vertices = np.union1d(stc1.vertices, stc2.vertices)
+
+    assert stc1.data.shape[1] == stc2.data.shape[1]
+    assert stc1.tmin == stc2.tmin
+    assert stc1.tstep == stc2.tstep
+
+    data = np.zeros((len(vertices), stc1.data.shape[1]))
+    for i, vert in enumerate(vertices):
+        if vert in stc1.vertices:
+            data[[i]] += stc1.data[stc1.vertices == vert]
+        if vert in stc2.vertices:
+            data[[i]] += stc2.data[stc2.vertices == vert]
+
+    return mne.VolSourceEstimate(data, vertices, tmin=stc1.tmin, tstep=stc1.tstep)
 
 
 def plot_estimation(stc_est, stc_signal, initial_time=1.5, surface='inflated'):
@@ -95,3 +114,42 @@ def evaluate_stc(stc_est, stc_signal):
     true_vert = stc_signal.vertices[true_hemi][0]
     true_vert_idx = np.hstack(stc_est.vertices) == true_vert
     return estimate[true_vert_idx][0]
+
+
+def add_text_next_to_xlabel(fig, ax, text):
+    """
+    Add text to the right of the label of the x-axis
+    in the same style.
+
+    Parameters
+    ----------
+    fig : matplotlib.pyplot.figure
+        The figure containing the axis given by ax.
+    ax : matplotlib.axes.Axes
+        Axis containing the x-axis label.
+    text : str
+        Text to add to the figure.
+
+    Returns
+    -------
+    None
+    """
+
+    xlbl = ax.xaxis.get_label()
+
+    # draw figure using renderer because axis position only fixed after drawing
+    fig.canvas.draw()
+
+    transform = xlbl.get_transform()
+    font_properties = xlbl.get_font_properties()
+    position = xlbl.get_position()
+    ha = xlbl.get_horizontalalignment()
+    va = xlbl.get_verticalalignment()
+
+    txt = ax.text(0., 0, text)
+
+    txt.set_transform(transform)
+    txt.set_position((position[0] * 1.7, position[1]))
+    txt.set_font_properties(font_properties)
+    txt.set_horizontalalignment(ha)
+    txt.set_verticalalignment(va)

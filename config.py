@@ -13,13 +13,16 @@ if user == 'rodin':
     # My laptop
     target_path = './data'
     n_jobs = 4
+elif user == 'ckiefer':
+    target_path = './data'
+    n_jobs = 3
 elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
     # My workstation
-    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation/data'
+    target_path = '/m/nbe/scratch/epasana/beamformer_simulation/data'
     n_jobs = 8
 elif 'triton' in host and user == 'vanvlm1':
     # The big computational cluster at Aalto University
-    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation/data'
+    target_path = '/scratch/nbe/epasana/beamformer_simulation/data'
     n_jobs = 1
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
@@ -75,6 +78,37 @@ fname.add('report_html', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04
 fname.add('dics_results', '{target_path}/dics_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
 fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
 fname.add('mne_results', '{target_path}/mne_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
+
+
+# volume source space specific things
+
+n_noise_dipoles_vol = 150 # number of noise_dipoles in volume source space
+
+# Filenames for various volume source space related things
+vfname = FileNames()
+# Files from MNE-sample dataset
+vfname.add('data_path', sample.data_path())
+vfname.add('subjects_dir', '{data_path}/subjects')
+vfname.add('bem_folder', '{data_path}/subjects/sample/bem')
+vfname.add('bem', '{bem_folder}/sample-5120-5120-5120-bem-sol.fif')
+vfname.add('sample_folder', '{data_path}/MEG/sample')
+vfname.add('sample_raw', '{sample_folder}/sample_audvis_raw.fif')
+vfname.add('ernoise', '{sample_folder}/ernoise_raw.fif')
+vfname.add('fwd', '{data_path}/MEG/sample/sample_audvis-meg-vol-7-fwd.fif')
+vfname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
+vfname.add('aseg', '{data_path}/subjects/sample/mri/aseg.mgz')
+
+# Files produced by volume simulation code
+vfname.add('target_path', target_path)  # Where to put everything
+vfname.add('stc_signal', '{target_path}/vstc_signal')
+vfname.add('fwd_discrete', '{target_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
+vfname.add('simulated_raw', '{target_path}/simulated-noise{noise}-vertex{vertex:04d}-vol-raw.fif')
+vfname.add('stc_signal', '{target_path}/stc_signal-noise{noise}-vertex{vertex:04d}-vol')
+vfname.add('simulated_events', '{target_path}/simulated-vol-eve.fif')
+vfname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise}-vertex{vertex:04d}-vol-epo.fif')
+vfname.add('report', '{target_path}/vreport-noise{noise}-vertex{vertex:04d}.h5')
+vfname.add('report_html', '{target_path}/vreport-noise{noise}-vertex{vertex:04d}.html')
+
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
