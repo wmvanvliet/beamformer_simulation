@@ -7,6 +7,7 @@ import argparse
 
 user = os.environ['USER']  # Username of the user running the scripts
 host = getfqdn()  # Hostname of the machine running the scripts
+print('Running on %s@%s', (user, host))
 
 if user == 'rodin':
     # My laptop
@@ -14,11 +15,11 @@ if user == 'rodin':
     n_jobs = 4
 elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
     # My workstation
-    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation'
+    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation/data'
     n_jobs = 8
 elif 'triton' in host and user == 'vanvlm1':
     # The big computational cluster at Aalto University
-    study_path = '/m/nbe/work/vanvlm1/beamformer_simulation'
+    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation/data'
     n_jobs = 1
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
@@ -29,7 +30,7 @@ else:
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Beamformer simulator')
-parser.add_argument('-n', '--noise', type=int, metavar='float', default=1,
+parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
                     help='Amount of noise to add')
 parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
@@ -64,7 +65,7 @@ fname.add('fwd', '{sample_folder}/sample_audvis-meg-eeg-oct-6-fwd.fif')
 fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files produced by the simulation code
-fname.add('target_path', './data')  # Where to put everything
+fname.add('target_path', target_path)  # Where to put everything
 fname.add('stc_signal', '{target_path}/stc_signal-noise{noise}')
 fname.add('simulated_raw', '{target_path}/simulated-noise{noise}-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
