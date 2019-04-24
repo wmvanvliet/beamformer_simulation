@@ -32,13 +32,38 @@ vertno = src[0]['vertno']
 # Simulate a single signal dipole source as signal
 ###############################################################################
 
-signal_vertex = src[0]['vertno'][config.signal_vertex_index]
+signal_vertex = src[0]['vertno'][config.vertex]
 data = np.asarray([generate_signal(times, freq=config.signal_freq)])
 vertices = np.array([signal_vertex])
 stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=0,
                                    tstep=1 / info['sfreq'], subject='sample')
 
 stc_signal.save(vfname.stc_signal)
+
+###############################################################################
+# Create discrete source space based on voxels in volume source space
+###############################################################################
+
+rr = src[0]['rr']
+nn = src[0]['nn']
+
+pos = {'rr': rr, 'nn': nn}
+
+# make discrete source space
+src_disc = mne.setup_volume_source_space(subject='sample', pos=pos,
+                                         mri=None, bem=bem)
+
+# setup_volume_source_space sets coordinate frame to MRI
+# coordinates we supplied are in head frame
+src_disc[0]['coord_frame'] = fwd['src'][0]['coord_frame']
+
+# np.array_equal(fwd_sel['src'][0]['rr'], fwd['src'][0]['rr'][stc.vertices]) is True
+# np.isclose(fwd_sel['src'][0]['nn'], fwd['src'][0]['nn'][stc.vertices]) is True for all entries
+fwd_disc = mne.make_forward_solution(info, trans=trans, src=src_disc,
+                                     bem=bem_fname, meg=True, eeg=False)
+
+fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
+                                        force_fixed=True)
 
 
 ###############################################################################
@@ -47,9 +72,6 @@ stc_signal.save(vfname.stc_signal)
 
 volume_labels = mne.get_volume_labels_from_aseg(vfname.aseg)
 n_noise_dipoles = config.n_noise_dipoles_vol
-
-rr = src[0]['rr']
-nn = src[0]['nn']
 
 # select n_noise_dipoles entries from rr and their corresponding entries from nn
 poss_indices = np.arange(rr.shape[0])
@@ -76,31 +98,13 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
 
     stc = add_volume_stcs(stc_signal, config.SNR * stc_noise)
 
-    pos = {'rr': rr, 'nn': nn}
-
-    # make discrete source space
-    src_sel = mne.setup_volume_source_space(subject='sample', pos=pos,
-                                            mri=None, bem=bem)
-
-    # setup_volume_source_space sets coordinate frame to MRI
-    # coordinates we supplied are in head frame
-    src_sel[0]['coord_frame'] = fwd['src'][0]['coord_frame']
-
-    # np.array_equal(fwd_sel['src'][0]['rr'], fwd['src'][0]['rr'][stc.vertices]) is True
-    # np.isclose(fwd_sel['src'][0]['nn'], fwd['src'][0]['nn'][stc.vertices]) is True for all entries
-    fwd_sel = mne.make_forward_solution(info, trans=trans, src=src_sel,
-                                        bem=bem_fname, meg=True, eeg=False)
-
-    fwd_sel = mne.convert_forward_solution(fwd_sel, surf_ori=True,
-                                           force_fixed=True)
-
     raw = simulate_raw(
         info,
         stc,
         trans=None,
         src=None,
         bem=None,
-        forward=fwd_sel,
+        forward=fwd_disc,
         duration=config.trial_length,
         cov=None,
         random_state=rng,
