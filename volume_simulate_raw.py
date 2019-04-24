@@ -11,6 +11,8 @@ from matplotlib import pyplot as plt
 import config
 from config import vfname
 
+from datetime import datetime
+
 info = mne.io.read_info(vfname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
@@ -67,7 +69,7 @@ if not op.exists(vfname.fwd_discrete):
     fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
                                             force_fixed=True)
 
-    mne.write_forward_solution(vfname.fwd_discrete, fwd_disc, overwrite=True)
+    mne.write_forward_solution(vfname.fwd_discrete, fwd_disc, overwrite=False)
 
 else:
     fwd_disc = mne.read_forward_solution(vfname.fwd_discrete)
@@ -140,14 +142,57 @@ raw.save(vfname.simulated_raw(noise=config.noise, vertex=config.vertex), overwri
 # Plot it!
 ###############################################################################
 
+now = datetime.now()
 with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as report:
     fig = plt.figure()
     plt.plot(times, generate_signal(times, freq=10))
     plt.xlabel('Time (s)')
-    report.add_figs_to_section(fig, 'Signal time course',
+    ax = fig.axes[0]
+
+    xlbl = ax.xaxis.get_label()
+
+    # draw figure using renderer because axis position only fixed after drawing
+    fig.canvas.draw()
+
+    transform = xlbl.get_transform()
+    font_properties = xlbl.get_font_properties()
+    position = xlbl.get_position()
+    ha = xlbl.get_horizontalalignment()
+    va = xlbl.get_verticalalignment()
+
+    txt = ax.text(0., 0., now.strftime('%m/%d/%Y, %H:%M:%S'))
+
+    txt.set_transform(transform)
+    txt.set_position((0.85, position[1]))
+    txt.set_font_properties(font_properties)
+    txt.set_horizontalalignment(ha)
+    txt.set_verticalalignment(va)
+
+    report.add_figs_to_section(fig, now.strftime('Signal time course'),
                                section='Sensor-level', replace=True)
 
     fig = raw.plot()
-    report.add_figs_to_section(fig, 'Simulated raw', section='Sensor-level',
-                               replace=True)
-    report.save(vfname.report_html, overwrite=True, open_browser=False)
+
+    # axis 1 contains the xlabel
+    ax = fig.axes[1]
+
+    xlbl = ax.xaxis.get_label()
+
+    transform = xlbl.get_transform()
+    font_properties = xlbl.get_font_properties()
+    position = xlbl.get_position()
+    ha = xlbl.get_horizontalalignment()
+    va = xlbl.get_verticalalignment()
+
+    txt = ax.text(0., 0, now.strftime('%m/%d/%Y, %H:%M:%S'))
+
+    txt.set_transform(transform)
+    txt.set_position((0.85, position[1]))
+    txt.set_font_properties(font_properties)
+    txt.set_horizontalalignment(ha)
+    txt.set_verticalalignment(va)
+
+    report.add_figs_to_section(fig, now.strftime('Simulated raw'),
+                               section='Sensor-level', replace=True)
+    report.save(vfname.report_html(noise=config.noise, vertex=config.vertex),
+                overwrite=True, open_browser=False)
