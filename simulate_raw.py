@@ -25,7 +25,7 @@ rh_vertno = src[1]['vertno']
 # Simulate a single signal dipole source as signal
 ###############################################################################
 
-signal_vertex = src[config.signal_hemi]['vertno'][config.signal_vertex_index]
+signal_vertex = src[config.signal_hemi]['vertno'][config.vertex]
 data = np.asarray([generate_signal(times, freq=config.signal_freq)])
 vertices = [np.array([], dtype=np.int64), np.array([], dtype=np.int64)]
 vertices[config.signal_hemi] = np.array([signal_vertex])

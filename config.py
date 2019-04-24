@@ -44,7 +44,7 @@ noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
 noise = args.noise  # Multiplyer for the noise dipoles
 
 # Position of the signal
-signal_vertex_index = args.vertex
+vertex = args.vertex
 signal_hemi = 1
 
 random = np.random.RandomState(42)  # Random seed for everything
