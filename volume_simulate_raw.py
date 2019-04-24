@@ -1,3 +1,4 @@
+import os.path as op
 import mne
 import numpy as np
 from tqdm import tqdm
@@ -16,6 +17,8 @@ info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 fwd = mne.read_forward_solution(vfname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
+rr = src[0]['rr']
+nn = src[0]['nn']
 
 bem_fname = vfname.bem
 bem = mne.read_bem_surfaces(bem_fname)
@@ -38,32 +41,36 @@ vertices = np.array([signal_vertex])
 stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=0,
                                    tstep=1 / info['sfreq'], subject='sample')
 
-stc_signal.save(vfname.stc_signal)
+stc_signal.save(vfname.stc_signal(noise=config.noise, vertex=config.vertex))
 
 ###############################################################################
 # Create discrete source space based on voxels in volume source space
 ###############################################################################
 
-rr = src[0]['rr']
-nn = src[0]['nn']
+if not op.exists(vfname.fwd_discrete):
 
-pos = {'rr': rr, 'nn': nn}
+    pos = {'rr': rr, 'nn': nn}
 
-# make discrete source space
-src_disc = mne.setup_volume_source_space(subject='sample', pos=pos,
-                                         mri=None, bem=bem)
+    # make discrete source space
+    src_disc = mne.setup_volume_source_space(subject='sample', pos=pos,
+                                             mri=None, bem=bem)
 
-# setup_volume_source_space sets coordinate frame to MRI
-# coordinates we supplied are in head frame
-src_disc[0]['coord_frame'] = fwd['src'][0]['coord_frame']
+    # setup_volume_source_space sets coordinate frame to MRI
+    # but coordinates we supplied are in head frame -> set correctly
+    src_disc[0]['coord_frame'] = fwd['src'][0]['coord_frame']
 
-# np.array_equal(fwd_sel['src'][0]['rr'], fwd['src'][0]['rr'][stc.vertices]) is True
-# np.isclose(fwd_sel['src'][0]['nn'], fwd['src'][0]['nn'][stc.vertices]) is True for all entries
-fwd_disc = mne.make_forward_solution(info, trans=trans, src=src_disc,
-                                     bem=bem_fname, meg=True, eeg=False)
+    # np.array_equal(fwd_sel['src'][0]['rr'], fwd['src'][0]['rr'][stc.vertices]) is True
+    # np.isclose(fwd_sel['src'][0]['nn'], fwd['src'][0]['nn'][stc.vertices]) is True for all entries
+    fwd_disc = mne.make_forward_solution(info, trans=trans, src=src_disc,
+                                         bem=bem_fname, meg=True, eeg=False)
 
-fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
-                                        force_fixed=True)
+    fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
+                                            force_fixed=True)
+
+    mne.write_forward_solution(vfname.fwd_discrete, fwd_disc, overwrite=True)
+
+else:
+    fwd_disc = mne.read_forward_solution(vfname.fwd_discrete)
 
 
 ###############################################################################
@@ -96,7 +103,7 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
     # Project to sensor space
     ###########################################################################
 
-    stc = add_volume_stcs(stc_signal, config.SNR * stc_noise)
+    stc = add_volume_stcs(stc_signal, config.noise * stc_noise)
 
     raw = simulate_raw(
         info,
@@ -127,12 +134,13 @@ raw._data[raw_picks] += er_raw._data[er_raw_picks, :len(raw.times)]
 # Save everything
 ###############################################################################
 
-raw.save(vfname.simulated_raw, overwrite=True)
+raw.save(vfname.simulated_raw(noise=config.noise, vertex=config.vertex), overwrite=True)
 
 ###############################################################################
 # Plot it!
 ###############################################################################
-with mne.open_report(vfname.report) as report:
+
+with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as report:
     fig = plt.figure()
     plt.plot(times, generate_signal(times, freq=10))
     plt.xlabel('Time (s)')
