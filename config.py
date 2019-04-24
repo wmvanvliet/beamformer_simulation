@@ -19,7 +19,7 @@ elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
     n_jobs = 8
 elif 'triton' in host and user == 'vanvlm1':
     # The big computational cluster at Aalto University
-    target_path = '/m/nbe/scratch/epasana/beamformer_simulation/data'
+    target_path = '/scratch/nbe/epasana/beamformer_simulation/data'
     n_jobs = 1
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
