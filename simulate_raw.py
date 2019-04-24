@@ -65,7 +65,6 @@ for i in range(config.n_trials):
         src=None,
         bem=None,
         forward=fwd,
-        duration=config.trial_length,
         cov=None,
         random_state=config.random,
     )
