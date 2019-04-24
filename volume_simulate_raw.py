@@ -1,7 +1,6 @@
 import os.path as op
 import mne
 import numpy as np
-from tqdm import tqdm
 
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
@@ -87,8 +86,7 @@ poss_indices = np.arange(rr.shape[0])
 
 raw_list = []
 
-for i in tqdm(range(config.n_trials), desc='Generating trials',
-              total=config.n_trials, unit='trials'):
+for i in range(config.n_trials):
     ###########################################################################
     # Simulate random noise dipoles
     ###########################################################################
@@ -119,6 +117,7 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
     )
 
     raw_list.append(raw)
+    print('%02d/%02d' % (i + 1, config.n_trials))
 
 raw = mne.concatenate_raws(raw_list)
 
