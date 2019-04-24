@@ -1,12 +1,35 @@
 import os
+from socket import getfqdn
 from fnames import FileNames
 from mne.datasets import sample
 import numpy as np
 import argparse
 
+user = os.environ['USER']  # Username of the user running the scripts
+host = getfqdn()  # Hostname of the machine running the scripts
+
+if user == 'rodin':
+    # My laptop
+    target_path = './data'
+    n_jobs = 4
+elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
+    # My workstation
+    target_path = '/m/nbe/work/vanvlm1/beamformer_simulation'
+    n_jobs = 8
+elif 'triton' in host and user == 'vanvlm1':
+    # The big computational cluster at Aalto University
+    study_path = '/m/nbe/work/vanvlm1/beamformer_simulation'
+    n_jobs = 1
+else:
+    raise RuntimeError('Please edit scripts/config.py and set the target_path '
+                       'variable to point to the location where the data '
+                       'should be stored and the n_jobs variable to the '
+                       'number of CPU cores the analysis is allowed to use.')
+
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Beamformer simulator')
-parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
+parser.add_argument('-n', '--noise', type=int, metavar='float', default=1,
                     help='Amount of noise to add')
 parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
