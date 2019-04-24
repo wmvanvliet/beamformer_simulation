@@ -66,15 +66,15 @@ fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files produced by the simulation code
 fname.add('target_path', target_path)  # Where to put everything
-fname.add('stc_signal', '{target_path}/stc_signal-noise{noise}')
-fname.add('simulated_raw', '{target_path}/simulated-noise{noise}-raw.fif')
+fname.add('stc_signal', '{target_path}/stc_signal-noise{noise}-vertex{vertex}')
+fname.add('simulated_raw', '{target_path}/simulated-noise{noise}-vertex{vertex}-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
-fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise}-epo.fif')
-fname.add('report', '{target_path}/report-noise{noise}.h5')
-fname.add('report_html', '{target_path}/report-noise{noise}.html')
-fname.add('dics_results', '{target_path}/dics_results-noise{noise}.csv')
-fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise}.csv')
-fname.add('mne_results', '{target_path}/mne_results-noise{noise}.csv')
+fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise}-vertex{vertex}-epo.fif')
+fname.add('report', '{target_path}/report-noise{noise}-vertex{vertex}.h5')
+fname.add('report_html', '{target_path}/report-noise{noise}-vertex{vertex}.html')
+fname.add('dics_results', '{target_path}/dics_results-noise{noise}-vertex{vertex}.csv')
+fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise}-vertex{vertex}.csv')
+fname.add('mne_results', '{target_path}/mne_results-noise{noise}-vertex{vertex}.csv')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
