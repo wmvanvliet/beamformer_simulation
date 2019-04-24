@@ -90,13 +90,25 @@ def plot_distance(stc_est, stc_signal, D, surface='inflated'):
 
 
 def make_dipole(stc, src):
-    """Find the peak in a distrubuted source estimate and make a dipole out of it"""
+    """Find the peak in a distributed source estimate and make a dipole out of it"""
     stc = abs(stc).mean()
     max_idx = stc.get_peak(vert_as_index=True)[0]
     max_vertno = stc.get_peak()[0]
     max_hemi = int(max_idx < len(stc.vertices[0]))
 
     pos = src[max_hemi]['rr'][max_vertno]
+    dip = mne.Dipole(stc.times, pos, stc.data[max_idx], [1., 0., 0.], 1)
+    return dip
+
+
+def make_dipole_volume(stc, src):
+    """Find the peak in a distributed source estimate and make a dipole out of it
+    for volume source space data"""
+    stc = abs(stc).mean()
+    max_idx = stc.get_peak(vert_as_index=True)[0]
+    max_vertno = stc.get_peak()[0]
+
+    pos = src[0]['rr'][max_vertno]
     dip = mne.Dipole(stc.times, pos, stc.data[max_idx], [1., 0., 0.], 1)
     return dip
 
@@ -112,6 +124,20 @@ def evaluate_stc(stc_est, stc_signal):
     # Measure the estimated activity left at the true signal location
     true_hemi = config.signal_hemi
     true_vert = stc_signal.vertices[true_hemi][0]
+    true_vert_idx = np.hstack(stc_est.vertices) == true_vert
+    return estimate[true_vert_idx][0]
+
+
+def evaluate_stc_volume(stc_est, stc_signal):
+    # Find the estimated source distribution at peak activity
+    peak_time = stc_est.get_peak(time_as_index=True)[1]
+    estimate = abs(stc_est).data[:, peak_time]
+
+    # Normalize the estimated source distribution to sum to 1
+    estimate /= estimate.sum()
+
+    # Measure the estimated activity left at the true signal location
+    true_vert = stc_signal.vertices[0]
     true_vert_idx = np.hstack(stc_est.vertices) == true_vert
     return estimate[true_vert_idx][0]
 

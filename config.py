@@ -100,14 +100,16 @@ vfname.add('aseg', '{data_path}/subjects/sample/mri/aseg.mgz')
 
 # Files produced by volume simulation code
 vfname.add('target_path', target_path)  # Where to put everything
-vfname.add('stc_signal', '{target_path}/vstc_signal')
 vfname.add('fwd_discrete', '{target_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
-vfname.add('simulated_raw', '{target_path}/simulated-noise{noise}-vertex{vertex:04d}-vol-raw.fif')
-vfname.add('stc_signal', '{target_path}/stc_signal-noise{noise}-vertex{vertex:04d}-vol')
-vfname.add('simulated_events', '{target_path}/simulated-vol-eve.fif')
-vfname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise}-vertex{vertex:04d}-vol-epo.fif')
-vfname.add('report', '{target_path}/vreport-noise{noise}-vertex{vertex:04d}.h5')
-vfname.add('report_html', '{target_path}/vreport-noise{noise}-vertex{vertex:04d}.html')
+vfname.add('simulated_raw', '{target_path}/volume_simulated-noise{noise}-vertex{vertex:04d}-raw.fif')
+vfname.add('stc_signal', '{target_path}/volume_stc_signal-noise{noise}-vertex{vertex:04d}-vl.stc')
+vfname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
+vfname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-noise{noise}-vertex{vertex:04d}-epo.fif')
+vfname.add('report', '{target_path}/volume_report-noise{noise}-vertex{vertex:04d}.h5')
+vfname.add('report_html', '{target_path}/volume_report-noise{noise}-vertex{vertex:04d}.html')
+vfname.add('dics_results', '{target_path}/volume_dics_results-noise{noise}-vertex{vertex:04d}.csv')
+vfname.add('lcmv_results', '{target_path}/volume_lcmv_results-noise{noise}-vertex{vertex:04d}.csv')
+vfname.add('mne_results', '{target_path}/volume_mne_results-noise{noise}-vertex{vertex:04d}.csv')
 
 
 # Set subjects_dir
