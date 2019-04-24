@@ -114,7 +114,6 @@ for i in tqdm(range(config.n_trials), desc='Generating trials',
         src=None,
         bem=None,
         forward=fwd_disc,
-        duration=config.trial_length,
         cov=None,
         random_state=rng,
     )
