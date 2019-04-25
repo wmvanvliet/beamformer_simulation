@@ -2,6 +2,7 @@ import os
 from socket import getfqdn
 from fnames import FileNames
 from mne.datasets import sample
+from mne.datasets.brainstorm import bst_phantom_ctf
 import numpy as np
 import argparse
 
@@ -111,6 +112,11 @@ vfname.add('dics_results', '{target_path}/volume_dics_results-noise{noise}-verte
 vfname.add('lcmv_results', '{target_path}/volume_lcmv_results-noise{noise}-vertex{vertex:04d}.csv')
 vfname.add('mne_results', '{target_path}/volume_mne_results-noise{noise}-vertex{vertex:04d}.csv')
 
+# Brainstorm phantom data
+phantom_fname = FileNames()
+phantom_fname.add('data_path', bst_phantom_ctf.data_path()) 
+phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
+phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
