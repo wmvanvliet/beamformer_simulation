@@ -6,26 +6,9 @@ import pandas as pd
 
 from tqdm import tqdm
 from itertools import product
-from utils import plot_vstc_grid, set_directory
+from utils import set_directory
+from jumeg.jumeg_volmorpher import plot_vstc_sliced_old
 
-
-###############################################################################
-# Plotting config
-###############################################################################
-display_mode = 'x'
-coords_x = [-55, 55]
-coords_z = [-55, 70]
-
-if display_mode == 'x':
-    coords = coords_x
-elif display_mode == 'z':
-    coords = coords_z
-
-grid = [4, 6]
-res_save = [1920, 1080]
-threshold = 0.0001
-
-title = ''
 
 ###############################################################################
 # Load volume source space
@@ -103,7 +86,18 @@ for i, setting in enumerate(settings):
 
     sel = lcmv.query(q).dropna()
 
+    if len(sel) < 1000:
+        continue
+
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
+
+    # Skip some combinations
+    if weight_norm == 'unit-noise-gain' and depth == True:
+        continue
+    if weight_norm == 'none' and depth == False:
+        continue
+    if sensor_type == 'joint' and use_noise_cov == False:
+        continue
 
     ###############################################################################
     # Create dist stc from simulated data
@@ -135,27 +129,35 @@ for i, setting in enumerate(settings):
     # Plot
     ###############################################################################
 
-    fn_image = 'html/lcmv/%03d_dist_%s.png' % (i, display_mode)
+    fn_image = 'html/lcmv/%03d_dist_ortho.png' % i
 
-    plot_vstc_grid(vstc_dist, vsrc, subjects_dir=vfname.subjects_dir,
-                   time=vstc_dist.tmin, only_positive_values=True,
-                   coords=coords, grid=grid, threshold=threshold,
-                   display_mode=display_mode, fn_save=fn_image)
+    plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
+                         subjects_dir=vfname.subjects_dir,
+                         time=vstc_dist.tmin, cut_coords=(0, 0, 0),
+                         display_mode='ortho', figure=None,
+                         axes=None, colorbar=True, cmap='magma',
+                         symmetric_cbar='auto', threshold=0,
+                         only_positive_values=True,
+                         save=True, fname_save=fn_image)
 
-    fn_image = 'html/lcmv/%03d_eval_%s.png' % (i, display_mode)
+    fn_image = 'html/lcmv/%03d_eval_ortho.png' % i
 
-    plot_vstc_grid(vstc_eval, vsrc, subjects_dir=vfname.subjects_dir,
-                   time=vstc_eval.tmin, only_positive_values=True,
-                   coords=coords, grid=grid, threshold=threshold,
-                   display_mode=display_mode, fn_save=fn_image)
+    plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
+                         subjects_dir=vfname.subjects_dir,
+                         time=vstc_eval.tmin, cut_coords=(0, 0, 0),
+                         display_mode='ortho', figure=None,
+                         axes=None, colorbar=True, cmap='magma',
+                         symmetric_cbar='auto', threshold=0,
+                         only_positive_values=True,
+                         save=True, fname_save=fn_image)
 
     ###############################################################################
     # Plot
     ###############################################################################
 
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="lcmv/%03d_dist_%s.png"></td>' % (i, display_mode)
-    html_table += '<td><img src="lcmv/%03d_eval_%s.png"></td>' % (i, display_mode)
+    html_table += '<td><img src="lcmv/%03d_dist_ortho.png"></td>' % i
+    html_table += '<td><img src="lcmv/%03d_eval_ortho.png"></td>' % i
 
     with open('html/lcmv.html', 'w') as f:
         f.write(html_header)
