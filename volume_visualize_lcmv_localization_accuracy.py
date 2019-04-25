@@ -84,8 +84,8 @@ html_header = (
     '<th>weight_norm</th>'
     '<th>use_noise_cov</th>'
     '<th>depth</th>'
-    '<th>outside view</th>'
-    '<th>inside view</th>'
+    '<th>P2P distance</th>'
+    '<th>Fancy metric</th>'
     '</tr>')
 
 html_footer = '</body></table>'
@@ -105,40 +105,57 @@ for i, setting in enumerate(settings):
 
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
 
+    ###############################################################################
+    # Create dist stc from simulated data
+    ###############################################################################
+
     vert_sel = sel['vertex'].get_values()
+    data_dist_sel = sel['dist'].get_values()
+    data_eval_sel = sel['eval'].get_values()
 
-    data_sel = sel['dist'].get_values()
-
-
-    ###############################################################################
-    # Create stc from simulated data
-    ###############################################################################
-
-    data = np.zeros(shape=(vertno.shape[0], 1))
+    data_dist = np.zeros(shape=(vertno.shape[0], 1))
 
     # do I want to add small value for thresholding in the plot, e.g., 0.001
     # -> causes points with localization error equal to zero to be black in the plot
-    data[vert_sel, 0] = data_sel + 0.001
+    data_dist[vert_sel, 0] = data_dist_sel + 0.001
 
-    vstc = mne.VolSourceEstimate(data=data, vertices=vertno, tmin=0,
+    vstc_dist = mne.VolSourceEstimate(data=data_dist, vertices=vertno, tmin=0,
                                  tstep=1 / info['sfreq'], subject='sample')
 
+    data_eval = np.zeros(shape=(vertno.shape[0], 1))
+
+    # do I want to add small value for thresholding in the plot, e.g., 0.001
+    # -> causes points with localization error equal to zero to be black in the plot
+    data_eval[vert_sel, 0] = data_eval_sel + 0.001
+
+    vstc_eval = mne.VolSourceEstimate(data=data_eval, vertices=vertno, tmin=0,
+                                      tstep=1 / info['sfreq'], subject='sample')
+
     ###############################################################################
-    # Simulate a single signal dipole source as signal
+    # Plot
     ###############################################################################
 
-    # fn_image = 'html/lcmv/%03d_%s.png' % display_mode
+    fn_image = 'html/lcmv/%03d_dist_%s.png' % (i, display_mode)
 
-    fn_image = 'html/lcmv/%03d_%s.png' % (i, display_mode)
-
-    plot_vstc_grid(vstc, vsrc, subjects_dir=vfname.subjects_dir,
-                   time=vstc.tmin, only_positive_values=True,
+    plot_vstc_grid(vstc_dist, vsrc, subjects_dir=vfname.subjects_dir,
+                   time=vstc_dist.tmin, only_positive_values=True,
                    coords=coords, grid=grid, threshold=threshold,
                    display_mode=display_mode, fn_save=fn_image)
 
-    # Add row to the HTML table
+    fn_image = 'html/lcmv/%03d_eval_%s.png' % (i, display_mode)
+
+    plot_vstc_grid(vstc_eval, vsrc, subjects_dir=vfname.subjects_dir,
+                   time=vstc_eval.tmin, only_positive_values=True,
+                   coords=coords, grid=grid, threshold=threshold,
+                   display_mode=display_mode, fn_save=fn_image)
+
+    ###############################################################################
+    # Plot
+    ###############################################################################
+
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="lcmv/%03d_%s.png"></td>' % (i, display_mode)
+    html_table += '<td><img src="lcmv/%03d_dist_%s.png"></td>' % (i, display_mode)
+    html_table += '<td><img src="lcmv/%03d_eval_%s.png"></td>' % (i, display_mode)
 
     with open('html/lcmv.html', 'w') as f:
         f.write(html_header)
