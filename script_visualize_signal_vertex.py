@@ -2,7 +2,7 @@ import mne
 import numpy as np
 from jumeg.jumeg_volmorpher import plot_vstc_sliced_old
 
-from config import fname, vfname
+from config import vfname
 
 info = mne.io.read_info(vfname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
@@ -10,36 +10,39 @@ info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 fwd = mne.read_forward_solution(vfname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
-src_mri_fname = fname.src
-src_mri = mne.read_source_spaces(src_mri_fname)
+src = fwd['src']
 
-src_head = fwd['src']
-rr_head = src_head[0]['rr']
+rr = src[0]['rr']
+vertno = src[0]['vertno']
 
-# there is only one volume source space
-vertno_head = src_head[0]['vertno']
+rr_sel = rr[vertno]
 
 ###############################################################################
 # Simulate a single signal dipole source as signal
 ###############################################################################
 
-com_head = rr_head[vertno_head].mean()
-dist_head = np.linalg.norm(rr_head[vertno_head] - com_head, axis=1)
-idx_max_head = np.argmax(dist_head)
+com = rr_sel.mean(axis=0)
+dist = np.linalg.norm(rr_sel - com, axis=1)
+idx_max = np.argmax(dist)
+idx_min = np.argmin(dist)
 
-signal_vertex = vertno_head[idx_max_head]
+print("vertex with min distance from center of mass %d" % idx_min)
+print("vertex with max distance from center of mass %d" % idx_max)
 
-data_head = np.zeros(shape=(vertno_head.shape[0], 1))
-data_head[idx_max_head] = 1
+data = np.zeros(shape=(rr_sel.shape[0], 1))
+data[idx_max] = 1
 
-stc_signal_head = mne.VolSourceEstimate(data=data_head, vertices=vertno_head, tmin=0,
+stc_signal = mne.VolSourceEstimate(data=data, vertices=vertno, tmin=0,
                                    tstep=1 / info['sfreq'], subject='sample')
 
-src_head[0]['subject_his_id'] = 'sample'
-# TODO: src might have to be in mri coordinates -> check
-plot_vstc_sliced_old(stc_signal_head, src_head, stc_signal_head.tstep,
-                     subjects_dir='/Users/ckiefer/mne_data/MNE-sample-data/subjects',
-                     time=0.5, cut_coords=None,
-                     display_mode='ortho', figure=None, axes=None, colorbar=False,
-                     cmap='gist_ncar', symmetric_cbar=False, threshold=0,
-                     save=True, fname_save='test.png')
+# needs to be set for plot_vstc_sliced_old to work
+if src[0]['subject_his_id'] is None:
+    src[0]['subject_his_id'] = 'sample'
+
+plot_vstc_sliced_old(stc_signal, src, stc_signal.tstep,
+                     subjects_dir=vfname.subjects_dir,
+                     time=stc_signal.times[0], cut_coords=None,
+                     display_mode='ortho', figure=None,
+                     axes=None, colorbar=False,
+                     cmap='gist_ncar', symmetric_cbar=False,
+                     threshold=0, save=True, fname_save='test.png')
