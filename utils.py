@@ -200,9 +200,10 @@ def random_three_vector():
     return x, y, z
 
 
-def make_vstc_sequence(vstc, vsrc, subjects_dir, tmin, tmax, percentile, only_positive_values=False,
-                       sfreq=None, coords=[-60, 55], grid=[4, 6], cmap='gist_ncar', threshold='min',
-                       display_mode='x', res_save=[1920, 1080], fname_save='plt.png'):
+def plot_vstc_grid(vstc, vsrc, subjects_dir, time=None, title='',
+                   only_positive_values=False, coords=[-55, 55],
+                   grid=[4, 6], threshold='min', display_mode='x',
+                   res_save=[1920, 1080], fn_save='plt.png'):
 
     """
     Plot the activity for each time slice and create a movie from the images.
@@ -215,24 +216,17 @@ def make_vstc_sequence(vstc, vsrc, subjects_dir, tmin, tmax, percentile, only_po
         Volume source space for the subject.
     subjects_dir : str
         Path to the subject directory.
-    tmin : float
-        Lower value for cropping the volume source time courses.
-    tmax : float
-        Upper value for corpping the volume source time courses.
-    percentile : float
-        Percentile value used to calculate the threshold value.
-        Determine part of the file names.
+    time : float or None
+        Time point for which the image will be created.
+    title : str
+        Title of the plot.
     only_positive_values : bool
         Constrain the plots to only positive values, e.g., if there
         are no negative values as in the case of MFT inverse solutions.
-    sfreq : float
-        Sampling frequency to be used for the movie creation.
     coords : 2-tuple
         Minimum and maximum value between which the slices are to be made.
     grid : 2-tuple
         Determines the number of rows and columns.
-    cmap : str
-        matplotlib color map
     threshold : float or 'min'
         Vertices with actvitity below the treshold are omitted in the plot. If
         'min' the minimum activity is set as the threshold.
@@ -240,19 +234,12 @@ def make_vstc_sequence(vstc, vsrc, subjects_dir, tmin, tmax, percentile, only_po
         Specifies the display mode, i.e., direction of the slices, for the images.
     res_save : 2-tuple
         Resolution for the saved images.
-    fname_save : str
+    fn_save : str
 
     Returns:
     --------
     None
     """
-
-    vstc = vstc.copy().crop(tmin, tmax)
-
-    if sfreq is not None:
-        vstc.resample(sfreq)
-
-    tstep = vstc.tstep
 
     n_slices = grid[0] * grid[1]
 
@@ -261,47 +248,27 @@ def make_vstc_sequence(vstc, vsrc, subjects_dir, tmin, tmax, percentile, only_po
 
     step_size = (coords_max - coords_min) / float(n_slices)
 
-    cut_coords_z = np.arange(coords_min, coords_max, step_size) + 0.5 * step_size
+    cut_coords = np.arange(coords_min, coords_max, step_size) + 0.5 * step_size
 
-    for idx, time in enumerate(vstc.times):
-
-        frmt = fname_save.split('.')[-1]
-        fn_image = fname_save.split('.png')[0] + '_' + display_mode + '_' + str(int(10 * percentile)).zfill(3)
-        fn_image = fn_image + '_' + str(idx).zfill(3) + '.' + frmt
-
-        title = "%.3f s" % time
-
-        from jumeg.jumeg_volmorpher import plot_vstc_sliced_grid
-        plot_vstc_sliced_grid(subjects_dir=subjects_dir, vstc=vstc, vsrc=vsrc,
-                              tstep=tstep, title=title, time=time, display_mode=display_mode,
-                              cut_coords=cut_coords_z, cmap=cmap, threshold=threshold,
-                              only_positive_values=only_positive_values, grid=grid,
-                              res_save=res_save, fn_image=fn_image)
+    from jumeg.jumeg_volmorpher import plot_vstc_sliced_grid
+    plot_vstc_sliced_grid(subjects_dir=subjects_dir,
+                          vstc=vstc, vsrc=vsrc,
+                          title=title, time=time,
+                          display_mode=display_mode,
+                          cut_coords=cut_coords,
+                          threshold=threshold,
+                          only_positive_values=only_positive_values,
+                          grid=grid, res_save=res_save,
+                          fn_image=fn_save, overwrite=True)
 
 
-def find_files(rootdir='.', pattern='*'):
+def set_directory(path=None):
     """
-    Looks for all files in the root directory matching the file
-    name pattern.
+    check whether the directory exits, if no, create the directory
+    ----------
+    path : the target directory.
 
-    Parameters:
-    -----------
-    rootdir : str
-        Path to the directory to be searched.
-    pattern : str
-        File name pattern to be looked for.
-
-    Returns:
-    --------
-    files : list
-        List of file names matching the pattern.
     """
-
-    files = []
-    for root, dirnames, filenames in os.walk(rootdir):
-        for filename in fnmatch.filter(filenames, pattern):
-            files.append(os.path.join(root, filename))
-
-    files = sorted(files)
-
-    return files
+    exists = os.path.exists(path)
+    if not exists:
+        os.makedirs(path)
