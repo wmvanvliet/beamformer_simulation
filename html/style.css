@@ -1,0 +1,27 @@
+img {
+  width: 70px;
+}
+
+img:active {
+  transform:scale(10) translate(10px, 10px);
+}
+
+table {
+  width: 1000px;
+  border-collapse: collapse;
+}
+
+td, th {
+  text-align: center;
+}
+
+th {
+  position: sticky;
+  background: #CCC;
+  top: 0px;
+  font-size: 15pt;
+}
+
+tr:nth-child(odd) {
+  background: #CCC;
+}
