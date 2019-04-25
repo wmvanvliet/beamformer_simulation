@@ -18,8 +18,6 @@ info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 fwd = mne.read_forward_solution(vfname.fwd)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
-rr = src[0]['rr']
-nn = np.array([random_three_vector() for i in range(rr.shape[0])])
 
 bem_fname = vfname.bem
 bem = mne.read_bem_surfaces(bem_fname)
@@ -31,6 +29,25 @@ times = np.arange(0, config.trial_length * info['sfreq']) / info['sfreq']
 
 # there is only one volume source space
 vertno = src[0]['vertno']
+
+###############################################################################
+# Construct source space normals as random tangential vectors
+###############################################################################
+rr = src[0]['rr']
+
+com = rr.mean(axis=0)
+
+# get vectors pointing from center of mass to voxels
+radial = rr - com
+
+rnd_vectors = np.array([random_three_vector() for i in range(rr.shape[0])])
+
+tangential = np.cross(radial, rnd_vectors)
+
+# normalize to unit length
+tangential = (tangential.T * (1. / np.linalg.norm(tangential, axis=1))).T
+
+nn = tangential
 
 ###############################################################################
 # Simulate a single signal dipole source as signal
