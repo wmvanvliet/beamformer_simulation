@@ -1,3 +1,5 @@
+import os
+import fnmatch
 import mne
 import numpy as np
 from scipy.spatial import distance
@@ -180,6 +182,7 @@ def add_text_next_to_xlabel(fig, ax, text):
     txt.set_horizontalalignment(ha)
     txt.set_verticalalignment(va)
 
+
 def random_three_vector():
     """
     Generates a random 3D unit vector (direction) with a uniform spherical distribution
@@ -189,9 +192,83 @@ def random_three_vector():
     phi = np.random.uniform(0,np.pi*2)
     costheta = np.random.uniform(-1,1)
 
-    theta = np.arccos( costheta )
-    x = np.sin( theta) * np.cos( phi )
-    y = np.sin( theta) * np.sin( phi )
-    z = np.cos( theta )
+    theta = np.arccos(costheta)
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
 
-    return (x,y,z)
+    return x, y, z
+
+
+def plot_vstc_grid(vstc, vsrc, subjects_dir, time=None, title='',
+                   only_positive_values=False, coords=[-55, 55],
+                   grid=[4, 6], threshold='min', display_mode='x',
+                   res_save=[1920, 1080], fn_save='plt.png'):
+
+    """
+    Plot the activity for each time slice and create a movie from the images.
+
+    Parameters:
+    -----------
+    vstc : mne.SourceEstimate
+        Volume source time courses.
+    vsrc : mne.SourceSpaces
+        Volume source space for the subject.
+    subjects_dir : str
+        Path to the subject directory.
+    time : float or None
+        Time point for which the image will be created.
+    title : str
+        Title of the plot.
+    only_positive_values : bool
+        Constrain the plots to only positive values, e.g., if there
+        are no negative values as in the case of MFT inverse solutions.
+    coords : 2-tuple
+        Minimum and maximum value between which the slices are to be made.
+    grid : 2-tuple
+        Determines the number of rows and columns.
+    threshold : float or 'min'
+        Vertices with actvitity below the treshold are omitted in the plot. If
+        'min' the minimum activity is set as the threshold.
+    display_mode : 'x', 'y', 'z', or 'ortho'
+        Specifies the display mode, i.e., direction of the slices, for the images.
+    res_save : 2-tuple
+        Resolution for the saved images.
+    fn_save : str
+
+    Returns:
+    --------
+    None
+    """
+
+    n_slices = grid[0] * grid[1]
+
+    coords_min = coords[0]
+    coords_max = coords[1]
+
+    step_size = (coords_max - coords_min) / float(n_slices)
+
+    cut_coords = np.arange(coords_min, coords_max, step_size) + 0.5 * step_size
+
+    from jumeg.jumeg_volmorpher import plot_vstc_sliced_grid
+    plot_vstc_sliced_grid(subjects_dir=subjects_dir,
+                          vstc=vstc, vsrc=vsrc,
+                          title=title, time=time,
+                          display_mode=display_mode,
+                          cut_coords=cut_coords,
+                          threshold=threshold,
+                          only_positive_values=only_positive_values,
+                          grid=grid, res_save=res_save,
+                          fn_image=fn_save, overwrite=True)
+
+
+def set_directory(path=None):
+    """
+    check whether the directory exits, if no, create the directory
+    ----------
+    path : the target directory.
+
+    """
+    exists = os.path.exists(path)
+    if not exists:
+        os.makedirs(path)

@@ -21,6 +21,7 @@ rr_sel = rr[vertno]
 # Simulate a single signal dipole source as signal
 ###############################################################################
 
+# center of mass
 com = rr_sel.mean(axis=0)
 dist = np.linalg.norm(rr_sel - com, axis=1)
 idx_max = np.argmax(dist)
