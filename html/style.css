@@ -25,3 +25,7 @@ th {
 tr:nth-child(odd) {
   background: #CCC;
 }
+
+input {
+  width: 75px;
+}
