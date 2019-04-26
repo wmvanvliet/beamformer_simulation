@@ -45,6 +45,9 @@ lcmv = pd.concat(dfs, ignore_index=True)
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 
+cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
+cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
+
 ###############################################################################
 # Construct lcmv settings list
 ###############################################################################
@@ -137,7 +140,7 @@ for i, setting in enumerate(settings):
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
-                         only_positive_values=True,
+                         cbar_range=cbar_range_dist,
                          save=True, fname_save=fn_image)
 
     fn_image = 'html/lcmv/%03d_eval_ortho.png' % i
@@ -148,7 +151,7 @@ for i, setting in enumerate(settings):
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
-                         only_positive_values=True,
+                         cbar_range=cbar_range_eval,
                          save=True, fname_save=fn_image)
 
     ###############################################################################

@@ -45,6 +45,9 @@ dics = pd.concat(dfs, ignore_index=True)
 dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
 
+cbar_range_dist = [0, dics['dist'].dropna().get_values().max()]
+cbar_range_eval = [0, dics['eval'].dropna().get_values().max()]
+
 ###############################################################################
 # Construct dics settings list
 ###############################################################################
@@ -137,7 +140,7 @@ for i, setting in enumerate(settings):
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
-                         only_positive_values=True,
+                         cbar_range=cbar_range_dist,
                          save=True, fname_save=fn_image)
 
     fn_image = 'html/dics/%03d_eval_ortho.png' % i
@@ -148,7 +151,7 @@ for i, setting in enumerate(settings):
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
-                         only_positive_values=True,
+                         cbar_range=cbar_range_eval,
                          save=True, fname_save=fn_image)
 
     ###############################################################################
