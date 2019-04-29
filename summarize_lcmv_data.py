@@ -90,7 +90,7 @@ for i, setting in enumerate(settings):
     # Skip some combinations
     if weight_norm == 'unit-noise-gain' and depth == True:
         continue
-    if weight_norm == 'none' and depth == True:
+    if weight_norm == 'none' and depth == False:
         continue
     if sensor_type == 'joint' and use_noise_cov == False:
         continue
