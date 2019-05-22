@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from itertools import product
 from utils import set_directory
-from jumeg.jumeg_volmorpher import plot_vstc_sliced_old
+from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 
 
 ###############################################################################
@@ -61,18 +61,35 @@ depths = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
 
-html_header = (
-    '<html><head><link rel="stylesheet" type="text/css" href="style.css"></head><body>'
-    '<table><tr>'
-    '<th>reg</th>'
-    '<th>sensor type</th>'
-    '<th>pick_ori</th>'
-    '<th>weight_norm</th>'
-    '<th>use_noise_cov</th>'
-    '<th>depth</th>'
-    '<th>P2P distance</th>'
-    '<th>Fancy metric</th>'
-    '</tr>')
+html_header = '''
+    <html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <script src="filter.js"></script>
+    </head>
+    <body>
+    <table>
+    <tr>
+        <th>reg</th>
+        <th>sensor type</th>
+        <th>pick_ori</th>
+        <th>weight_norm</th>
+        <th>use_noise_cov</th>
+        <th>depth</th>
+        <th>P2P distance</th>
+        <th>Fancy metric</th>
+    </tr>
+    <tr>
+        <td><input type="text" onkeyup="filter(0, this)" placeholder="reg"></td>
+        <td><input type="text" onkeyup="filter(1, this)" placeholder="sensor type"></td>
+        <td><input type="text" onkeyup="filter(2, this)" placeholder="pick_ori"></td>
+        <td><input type="text" onkeyup="filter(3, this)" placeholder="weight_norm"></td>
+        <td><input type="text" onkeyup="filter(4, this)" placeholder="use_noise_doc"></td>
+        <td><input type="text" onkeyup="filter(5, this)" placeholder="depth"></td>
+        <td></td>
+        <td></td>
+    </tr>
+'''
 
 html_footer = '</body></table>'
 
@@ -162,7 +179,7 @@ for i, setting in enumerate(settings):
     html_table += '<td><img src="lcmv/%03d_dist_ortho.png"></td>' % i
     html_table += '<td><img src="lcmv/%03d_eval_ortho.png"></td>' % i
 
-    with open('html/lcmv.html', 'w') as f:
+    with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
         f.write(html_table)
         f.write(html_footer)

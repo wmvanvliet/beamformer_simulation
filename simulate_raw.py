@@ -67,6 +67,7 @@ for i in range(config.n_trials):
         forward=fwd,
         cov=None,
         random_state=config.random,
+        duration=config.trial_length,
     )
 
     raw_list.append(raw)

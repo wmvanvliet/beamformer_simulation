@@ -35,18 +35,6 @@ settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
 
 
-html_header = (
-    '<html><head><link rel="stylesheet" type="text/css" href="style.css"></head><body>'
-    '<table><tr>'
-    '<th>reg</th>'
-    '<th>sensor type</th>'
-    '<th>pick_ori</th>'
-    '<th>weight_norm</th>'
-    '<th>use_noise_cov</th>'
-    '<th>depth</th>'
-    '<th colspan="2">P2P distance</th>'
-    '<th colspan="2">Fancy metric</th>'
-    '</tr>')
 html_header = '''
     <html>
     <head>

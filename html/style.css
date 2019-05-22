@@ -1,13 +1,24 @@
+body {
+  font-family: sans-serif;
+}
+
+a {
+  color: darkblue;
+  text-decoration: none;
+}
+
 img {
-  width: 70px;
+  height: 70px;
 }
 
 img:active {
-  transform:scale(10) translate(10px, 10px);
+  transform:scale(5) translate(10px, 10px);
 }
 
 table {
-  width: 1000px;
+  margin: auto;
+  width: 100%;
+  max-width: 1300px;
   border-collapse: collapse;
 }
 
@@ -28,4 +39,22 @@ tr:nth-child(odd) {
 
 input {
   width: 75px;
+}
+
+body.text {
+  max-width: 800px;
+  margin: auto;
+}
+
+h1 {
+  margin-bottom: 0px;
+}
+
+p.authors {
+  margin-top: 0px;
+  font-style: italic;
+}
+
+dt {
+  font-weight: bold;
 }
