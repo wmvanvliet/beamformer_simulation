@@ -1,0 +1,201 @@
+% Bibliography formatting commands
+% Sorry for the hideous mess. I copied this from somewhere else and hacked on
+% it until I was happy with the LaTeX output.
+
+% Define small caps style
+\newcommand\smallcapsnospace[1]{\scshape{\MakeTextLowercase{#1}}}
+
+% Set DOIs in small mono type in the margin
+\DeclareFieldFormat{doi}{%
+  \marginnote{\footnotesize\textsf{doi\addcolon
+  \ifhyperref
+    {\href{http://dx.doi.org/#1}{#1}}
+    {#1}}}}
+% Set page numbers in small caps in case there are any letters in them
+\DeclareFieldFormat[article]{pages}{\smallcapsnospace{#1}}
+% Change 'Cand. thesis' to 'Bachelor's thesis'
+\DefineBibliographyStrings{english}{
+  candthesis = {Bachelor's thesis}}
+% Move DOI/URL note up to the top
+\renewbibmacro*{url+urldate}{%
+  \ifthenelse{\(\iffieldundef{url}\AND\iffieldundef{abstracturl}\AND\iffieldundef{abstractloc}\)\OR\NOT\iffieldundef{doi}}%
+    {}%
+    {\iffieldundef{url}{}{\printfield{url}}}}
+% I have no idea what the fuck is going on in the following macro.
+% \iffieldundef{doi} prevents there from being too many margin notes.
+\renewbibmacro*{doi+eprint+url}{%
+  \iftoggle{bbx:doi}
+    {\printfield{doi}}
+    {}%
+  \iftoggle{bbx:url}
+    {\iffieldundef{doi}%
+      {\marginnote{\tiny\usebibmacro{url+urldate}}}%
+      {}}
+    {}}
+% "Retrieved" message
+\newbibmacro*{customurldate}{%
+  \ifthenelse{\(\iffieldundef{url}\AND\iffieldundef{abstracturl}\AND\iffieldundef{abstractloc}\)\OR\NOT\iffieldundef{doi}}
+   {}
+   {\ifthenelse{\iffieldundef{abstracturl}\AND\iffieldundef{abstractloc}}
+     {}
+     {\printtext{\bibcpstring{abstract}}\addspace}%
+      \printtext{\bibstring{retrieved}}%
+      \setunit{\addspace}%
+      \iffieldundef{urlyear}
+        {}
+        {\printurldate%
+         \setunit*{\addperiod\addspace}}}}%
+% ISO standard code in small caps
+\DeclareFieldFormat[standard]{shorttitle}{\smallcaps{#1}}
+% Customize the format of some bibliography entry types
+\DeclareBibliographyDriver{article}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor}%
+  \setunit*{\labelnamepunct}\newblock
+  \usebibmacro{title}%
+  \newunit\newblock
+  \usebibmacro{journal+issuetitle}%
+  \setunit{\bibpagespunct}%
+  \printfield{pages}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{book}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{maintitle+title}%
+  \setunit{\addspace}\newblock
+  \usebibmacro{book:editor+trans}%
+  \newunit\newblock
+  \printfield{series}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \usebibmacro{location+publisher}%
+  \newunit\newblock
+  \usebibmacro{origyear}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{thesis}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{title}%
+  \ifthenelse{\NOT\iffieldundef{title}\OR\boolean{bbx:titleinauthpos}}{\newunit}{\setunit{\addspace}}\newblock
+  \usebibmacro{type+institution}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{inproceedings}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{title}%
+  \ifthenelse{\NOT\iffieldundef{title}\OR\boolean{bbx:titleinauthpos}}{\newunit}{\setunit{\addspace}}\newblock
+  \usebibmacro{editor+trans}%
+  \setunit*{\addcomma\addspace}\newblock
+  \usebibmacro{maintitle+booktitle}%
+  \iffieldundef{eventyear}{}{\setunit{\addcomma\addspace}}%
+  \printeventdate
+  \setunit*{\addspace}\newblock
+  \usebibmacro{addinfo}%
+  \newunit\newblock
+  \printfield{series}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \printlist{organization}%
+  \newunit
+  \printfield[apacase]{eventtitle}%
+  \newunit
+  \printfield{venue}%
+  \newunit\newblock
+  \usebibmacro{location+publisher}%
+  \newunit\newblock
+  \usebibmacro{origyear}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{online}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{title}%
+  \ifthenelse{\iffieldundef{title}\AND\boolean{bbx:titleinauthpos}}{\newunit}{\setunit{\addspace}}\newblock
+  \printfield{entrysubtype}%
+  \addperiod\addspace
+  \usebibmacro{customurldate}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{software}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor}%
+  \setunit{\labelnamepunct}\newblock
+  \usebibmacro{apa:softwaretitle}%
+  \newunit\newblock
+  \usebibmacro{location+publisher}%
+  \newunit\newblock
+  \printfield{addendum}%
+  \newunit\newblock
+  \usebibmacro{related}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
+\DeclareBibliographyDriver{standard}{%
+  \usebibmacro{doi+eprint+url}%
+  \setunit*{\nopunct}\newblock
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \printfield{shorttitle}%
+  \addcolon\addspace
+  \usebibmacro{title}%
+  \newunit\newblock
+  \usebibmacro{location+publisher}%
+  \usebibmacro{apa:pageref}%
+  \usebibmacro{apa:finpunct}%
+  \usebibmacro{finentry}}
