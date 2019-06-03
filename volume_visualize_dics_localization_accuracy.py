@@ -62,19 +62,6 @@ real_filters = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, inversions,
                         weight_norms, normalize_fwds, real_filters))
 
-html_header = (
-    '<html><head><link rel="stylesheet" type="text/css" href="style.css"></head><body>'
-    '<table><tr>'
-    '<th>reg</th>'
-    '<th>sensor type</th>'
-    '<th>pick_ori</th>'
-    '<th>inversion</th>'
-    '<th>weight_norm</th>'
-    '<th>normalize_fwd</th>'
-    '<th>real_filter</th>'
-    '<th>P2P distance</th>'
-    '<th>Fancy metric</th>'
-    '</tr>')
 html_header = '''
     <html>
     <head>
