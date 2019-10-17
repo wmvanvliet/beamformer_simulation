@@ -45,7 +45,7 @@ trial_length = 2.0  # Length of a trial in seconds
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10  # Frequency at which to simulate the signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
-noise = args.noise  # Multiplyer for the noise dipoles
+noise = args.noise  # Multiplier for the noise dipoles
 
 # Position of the signal
 vertex = args.vertex
