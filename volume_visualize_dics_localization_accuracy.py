@@ -135,7 +135,7 @@ for i, setting in enumerate(settings):
     data_dist[vert_sel, 0] = data_dist_sel + 0.001
 
     vstc_dist = mne.VolSourceEstimate(data=data_dist, vertices=vertno, tmin=0,
-                                 tstep=1 / info['sfreq'], subject='sample')
+                                      tstep=1 / info['sfreq'], subject='sample')
 
     data_eval = np.zeros(shape=(vertno.shape[0], 1))
 

@@ -40,7 +40,7 @@ depths = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
 
-# Compute DICS beamformer with all possible settings
+# Compute LCMV beamformer with all possible settings
 dists = []
 evals = []
 for setting in settings:
