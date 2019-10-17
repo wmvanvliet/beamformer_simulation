@@ -1,0 +1,50 @@
+Point of the paper:
+To assess the practical impact of a set of parameters commonly used in LCMV and DICS beamforming.
+
+Goals:
+ - Our results should straightforwardly translate into concrete recommendations.
+ - No "it depends", we should be able to say what exactly it depends on.
+ - If a parameter performs bad in our tests, we should be comfortable removing it from the MNE API.
+
+Parameters:
+ - Regularization
+ - Reduce rank
+ - Orientation picking (pool, normal, max-power, vector)
+ - Weight normalization (unit-noise-gain, nai, none)
+ - Depth weighting
+ - Leadfield normalization
+ - Vector vs Scalar beamformer (single, matrix)
+ - For DICS: real values only
+ - Noise covariance whitening (needs to be implemented for DICS)
+
+Tests:
+ - Simulation
+   Sources all over the cortex. Not exactly on grid points! Avoid forward model "crime": add localization error
+ - Real data    
+   1. Head cast data with median nerve stimulation. One subject. Around 300 trials.
+   2. MNE-Python somato dataset as publically available data set
+
+Metrics:
+ - Localization accuracy
+ - Point Spread (Fancy Method (tm))
+ - Output SNR (crosstalk?)
+ - Move two sources together (different, orthogonal time courses at each source), evaluate signal correlation at each distance: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0157655 page 16
+
+Tasks:
+1) Finish data analysis --- deadline 1st Nov
+- Britta: real data analysis (data from Aarhus + MNE-Python sample data)
+- Marijn: MNE-Python somato dataset (publically available)
+- Marijn: Get noise covariance (CSD) matrix whitening for DICS - PR should involve Eric
+- Chris: Update simulation code (generate sources exactly on gridpoints, use different forward model for simulation and source localization)
+  Britta has done a manual co-registration on mne-sample in order to create a new. -trans file. Compute difference with original trans file. Error should be in the order of 5mm (coregistration error).
+- Chris: Update "grid-search" script that runs beamformer with all parameters and runs evaluation metrics
+
+2) Get figures
+- Marijn: make web-interface to browse through results
+- Britta: make comparable figures for the real data results, merging headcast and somato results
+
+3) Writing
+- Everyone!
+
+Meetings:
+- Tuesday, 5th Nov, 9:00 CPH and 10:00 HEL time
