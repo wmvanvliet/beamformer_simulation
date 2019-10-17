@@ -131,6 +131,7 @@ for i in range(config.n_trials):
         forward=fwd_disc,
         cov=None,
         random_state=rng,
+        duration=config.trial_length,
     )
 
     raw_list.append(raw)

@@ -40,7 +40,7 @@ parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
 args = parser.parse_args()
 
-trial_length = 2.0 # Length of a trial in seconds
+trial_length = 2.0  # Length of a trial in seconds
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10  # Frequency at which to simulate the signal timecourse

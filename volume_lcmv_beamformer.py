@@ -30,6 +30,15 @@ evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()
 evoked_joint = epochs_joint.average()
 
+# Compare
+#   - vector vs. scalar (max-power orientation)
+#   - Array-gain BF (leadfield normalization)
+#   - Unit-gain BF ('vanilla' LCMV)
+#   - Unit-noise-gain BF (weight normalization)
+#   - pre-whitening (noise-covariance)
+#   - different sensor types
+#   - what changes with condition contrasting
+
 # Compute the settings grid
 regs = [0.05, 0.1, 0.5]
 sensor_types = ['joint', 'grad', 'mag']

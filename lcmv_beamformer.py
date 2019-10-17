@@ -16,7 +16,6 @@ fwd = mne.read_forward_solution(fname.fwd)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd = mne.convert_forward_solution(fwd, surf_ori=True)
 
-# The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
@@ -45,7 +44,7 @@ depths = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
 
-# Compute DICS beamformer with all possible settings
+# Compute LCMV beamformer with all possible settings
 dists = []
 evals = []
 for setting in settings:
