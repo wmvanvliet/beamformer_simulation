@@ -40,9 +40,9 @@ epochs = create_epochs(raw, config.trial_length, config.n_trials,
 ###############################################################################
 
 # Read in the manually created forward solution
-fwd = mne.read_forward_solution(fname.fwd)
+fwd_man = mne.read_forward_solution(fname.fwd)
 # For pick_ori='normal', the fwd needs to be in surface orientation
-fwd = mne.convert_forward_solution(fwd, surf_ori=True)
+fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
@@ -87,21 +87,16 @@ for setting in settings:
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
-        filters = make_lcmv(
-            evoked.info,
-            fwd,
-            cov,
-            reg=reg,
-            pick_ori=pick_ori,
-            weight_norm=weight_norm,
-            noise_cov=noise_cov if use_noise_cov else None,
-            depth=depth
-        )
+        filters = make_lcmv(evoked.info, fwd_man, cov, reg=reg,
+                            pick_ori=pick_ori, weight_norm=weight_norm,
+                            noise_cov=noise_cov if use_noise_cov else None,
+                            depth=depth)
+
         stc = apply_lcmv(evoked, filters)
 
         # Compute distance between true and estimated source
-        dip_true = make_dipole(stc_signal, fwd['src'])
-        dip_est = make_dipole(stc, fwd['src'])
+        dip_true = make_dipole(stc_signal, fwd_man['src'])
+        dip_est = make_dipole(stc, fwd_man['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
 
         # Fancy evaluation metric
@@ -120,4 +115,4 @@ df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'weight_norm', 'use_noise_cov', 'depth'])
 df['dist'] = dists
 df['eval'] = evals
-#df.to_csv(fname.lcmv_results(noise=config.noise, vertex=config.vertex))
+df.to_csv(fname.lcmv_results(noise=config.noise, vertex=config.vertex))
