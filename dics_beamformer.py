@@ -1,4 +1,5 @@
 import mne
+import os.path as op
 from mne.time_frequency import csd_morlet
 from mne.beamformer import make_dics, apply_dics_csd
 import numpy as np
@@ -21,30 +22,43 @@ fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 # Simulate raw data and create epochs
 ###############################################################################
 
-info = mne.io.read_info(fname.sample_raw)
-info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-fwd_true = mne.read_forward_solution(fname.fwd_true)
-fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
-src_true = fwd_true['src']
-er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
-labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
+# TODO:
+#   Should the epochs be the same for LCMV and DICS
+#   Are the dipole locations always the same or should they be randomized?
 
-raw, stc_signal = simulate_raw(info, src_true, fwd_true, config.vertex, config.signal_hemi,
-                               config.signal_freq, config.trial_length, config.n_trials,
-                               config.noise, config.random, labels, er_raw, fn_stc_signal=None,
-                               fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
+    print('load stc_signal')
+    stc_signal = mne.read_source_estimate(fn_stc_signal)
+    print('load epochs')
+    epochs = mne.read_epochs(fn_simulated_epochs)
 
-del info, fwd_true, src_true, er_raw, labels
+else:
+    print('simulate data')
+    info = mne.io.read_info(fname.sample_raw)
+    info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
+    fwd_true = mne.read_forward_solution(fname.fwd_true)
+    fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
+    src_true = fwd_true['src']
+    er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
+    labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
 
-epochs = create_epochs(raw, config.trial_length, config.n_trials,
-                       fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
+    raw, stc_signal = simulate_raw(info, src_true, fwd_true, config.vertex, config.signal_hemi,
+                                   config.signal_freq, config.trial_length, config.n_trials,
+                                   config.noise, config.random, labels, er_raw, fn_stc_signal=fn_stc_signal,
+                                   fn_simulated_raw=fn_simulated_raw, fn_report_h5=fn_report_h5)
+
+    del info, fwd_true, src_true, er_raw, labels
+
+    epochs = create_epochs(raw, config.trial_length, config.n_trials,
+                           fn_simulated_epochs=fn_simulated_epochs,
+                           fn_report_h5=fn_report_h5)
 
 ###############################################################################
 # Compute DICS beamformer results
 ###############################################################################
 
 # Read in the manually created forward solution
-fwd_man = mne.read_forward_solution(fname.fwd)
+fwd_man = mne.read_forward_solution(fname.fwd_man)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
