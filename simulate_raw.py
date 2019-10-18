@@ -18,13 +18,14 @@ src = fwd['src']
 labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
 
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
+fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex)
 fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex)
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 
 
 def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
                  trial_length, n_trials, noise_multiplier, random_state, labels,
-                 er_raw, fn_simulated_raw=None, fn_report_h5=None):
+                 er_raw, fn_stc_signal=None, fn_simulated_raw=None, fn_report_h5=None):
     """
     Simulate raw time courses for a single dipole with frequency
     given by signal_freq. In each label a noise dipole is placed.
@@ -58,8 +59,10 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
         The labels. The default is None, otherwise its size must be n_dipoles.
     er_raw : instance of Raw
         Empty room measurement to be used as sensor noise.
+    fn_stc_signal : None | string
+        Path where the signal source time courses are to be saved. If None the file is not saved.
     fn_simulated_raw : None | string
-        Path where the raw file is to be saved. If None the file is not saved.
+        Path where the raw data is to be saved. If None the file is not saved.
     fn_report_h5 : None | string
         Path where the .h5 file for the report is to be saved.
 
@@ -67,6 +70,8 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
     --------
     raw : instance of Raw
         Simulated raw file.
+    stc_signal : instance of SourceEstimate
+        Source time courses of the signal.
     """
 
     n_noise_dipoles = len(labels)
@@ -82,7 +87,8 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
     vertices[signal_hemi] = np.array([signal_vertex])
     stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,
                                     tstep=1 / info['sfreq'], subject='sample')
-    stc_signal.save(fname.stc_signal(noise=noise_multiplier, vertex=signal_vertex))
+    if fn_stc_signal is not None:
+        stc_signal.save(fn_stc_signal)
 
     ###############################################################################
     # Create trials of simulated data
@@ -135,10 +141,11 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
                                        replace=True)
             report.save(fn_report_html, overwrite=True, open_browser=False)
 
-    return raw
+    return raw, stc_signal
 
 
 simulate_raw(info, src, fwd, config.vertex, config.signal_hemi,
              config.signal_freq, config.trial_length, config.n_trials,
              config.noise, config.random, labels, er_raw,
-             fn_simulated_raw=fn_simulated_raw, fn_report_h5=fn_report_h5)
+             fn_stc_signal=fn_stc_signal, fn_simulated_raw=fn_simulated_raw,
+             fn_report_h5=fn_report_h5)
