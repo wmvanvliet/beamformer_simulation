@@ -9,13 +9,41 @@ import config
 from config import fname
 from utils import make_dipole, evaluate_stc
 
-# Read in the simulated data
-stc_signal = mne.read_source_estimate(fname.stc_signal(noise=config.noise, vertex=config.vertex))
-epochs = mne.read_epochs(fname.simulated_epochs(noise=config.noise, vertex=config.vertex))
-fwd = mne.read_forward_solution(fname.fwd)
+from simulate_raw import simulate_raw
+from create_epochs import create_epochs
 
+fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
+
+###############################################################################
+# Simulate raw data and create epochs
+###############################################################################
+
+info = mne.io.read_info(fname.sample_raw)
+info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
+fwd_true = mne.read_forward_solution(fname.fwd_true)
+fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
+src_true = fwd_true['src']
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
+labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
+
+raw, stc_signal = simulate_raw(info, src_true, fwd_true, config.vertex, config.signal_hemi,
+                               config.signal_freq, config.trial_length, config.n_trials,
+                               config.noise, config.random, labels, er_raw, fn_stc_signal=None,
+                               fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+
+del info, fwd_true, src_true, er_raw, labels
+
+epochs = create_epochs(raw, config.trial_length, config.n_trials,
+                       fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
+
+###############################################################################
+# Compute DICS beamformer results
+###############################################################################
+
+# Read in the manually created forward solution
+fwd_man = mne.read_forward_solution(fname.fwd)
 # For pick_ori='normal', the fwd needs to be in surface orientation
-fwd = mne.convert_forward_solution(fwd, surf_ori=True)
+fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
 # The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
@@ -49,15 +77,15 @@ for setting in settings:
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
-        filters = make_dics(info, fwd, csd, reg=reg, pick_ori=pick_ori,
+        filters = make_dics(info, fwd_man, csd, reg=reg, pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
                             normalize_fwd=normalize_fwd,
                             real_filter=real_filter)
         stc, freqs = apply_dics_csd(csd, filters)
 
         # Compute distance between true and estimated source
-        dip_true = make_dipole(stc_signal, fwd['src'])
-        dip_est = make_dipole(stc, fwd['src'])
+        dip_true = make_dipole(stc_signal, fwd_man['src'])
+        dip_est = make_dipole(stc, fwd_man['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
 
         # Fancy evaluation metric
