@@ -102,7 +102,6 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
                                bem=None, forward=fwd, cov=None,
-                               random_state=random_state,
                                duration=trial_length)
 
         raw_list.append(raw)

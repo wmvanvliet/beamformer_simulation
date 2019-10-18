@@ -4,6 +4,7 @@ from scipy.signal import butter, filtfilt
 
 import config
 
+
 def generate_signal(times, freq=10., n_trial=2, phase_lock=False):
     """Simulate a time series.
 
