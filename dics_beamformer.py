@@ -9,8 +9,11 @@ import config
 from config import fname
 from utils import make_dipole, evaluate_stc
 
-from simulate_raw import simulate_raw
-from create_epochs import create_epochs
+from time_series import simulate_raw, create_epochs
+
+fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex)
+fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex)
+fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.vertex)
 
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 

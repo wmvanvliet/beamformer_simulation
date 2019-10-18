@@ -8,8 +8,11 @@ import config
 from config import fname
 from utils import make_dipole, evaluate_stc
 
-from simulate_raw import simulate_raw
-from create_epochs import create_epochs
+from time_series import simulate_raw, create_epochs
+
+fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex)
+fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex)
+fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.vertex)
 
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 
@@ -40,7 +43,7 @@ epochs = create_epochs(raw, config.trial_length, config.n_trials,
 ###############################################################################
 
 # Read in the manually created forward solution
-fwd_man = mne.read_forward_solution(fname.fwd)
+fwd_man = mne.read_forward_solution(fname.fwd_man)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
