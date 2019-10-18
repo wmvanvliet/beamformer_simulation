@@ -6,11 +6,12 @@ import surfer
 from mayavi import mlab
 mlab.options.offscreen = True
 from itertools import product
+from utils import set_directory
 
 import config
 from config import fname
 
-fwd = mne.read_forward_solution(fname.fwd) 
+fwd = mne.read_forward_solution(fname.fwd_man)
 
 dfs = []
 for vertex in tqdm(range(3765), total=3765):
@@ -118,6 +119,7 @@ for i, setting in enumerate(settings):
         html_table += '<td colspan="2">%s</td>' % str(e)
     html_table += '</tr>'
 
+    set_directory('html')
     with open('html/dics.html', 'w') as f:
         f.write(html_header)
         f.write(html_table)

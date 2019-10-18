@@ -17,9 +17,8 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 info = mne.io.read_info(vfname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(vfname.fwd)
+fwd = mne.read_forward_solution(vfname.fwd_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
-
 
 vsrc = fwd['src']
 vertno = vsrc[0]['vertno']
