@@ -62,8 +62,9 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make cov matrix
-cov = mne.compute_covariance(epochs)
-noise_cov = mne.compute_covariance(epochs, (None, 0.3))
+# TODO: decide on covariance computation method
+cov = mne.compute_covariance(epochs, method='shrunk')
+noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='shrunk')
 
 evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()

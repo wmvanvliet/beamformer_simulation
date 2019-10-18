@@ -18,7 +18,7 @@ src_true_mri = mne.read_source_spaces(fname.src)
 bem = mne.read_bem_solution(fname.bem)
 
 fwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=src_true_mri,
-                                    bem=bem, meg=True, eeg=False, mindist=5.0, n_jobs=2)
+                                    bem=bem, meg=True, eeg=False, mindist=5.0)
 mne.write_forward_solution(fname.fwd_man, fwd_man, overwrite=True)
 
 # create forward solution for volume source space
