@@ -1,6 +1,5 @@
 import mne
 import numpy as np
-from tqdm import tqdm
 
 from mne.simulation import simulate_sparse_stc
 from mne.simulation import simulate_raw as simulate_raw_mne
@@ -13,7 +12,7 @@ from config import fname
 
 info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-fwd = mne.read_forward_solution(fname.fwd)
+fwd = mne.read_forward_solution(fname.fwd_true)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 src = fwd['src']
 labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
@@ -78,7 +77,7 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
     ###############################################################################
 
     signal_vertex = src[signal_hemi]['vertno'][signal_vertex]
-    data = np.array([generate_signal(times, freq=signal_freq)])
+    data = np.asarray([generate_signal(times, freq=signal_freq)])
     vertices = [np.asarray([], dtype=np.int64), np.array([], dtype=np.int64)]
     vertices[signal_hemi] = np.array([signal_vertex])
     stc_signal = mne.SourceEstimate(data=data, vertices=vertices, tmin=0,

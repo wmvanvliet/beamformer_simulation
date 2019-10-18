@@ -65,6 +65,11 @@ fname.add('sample_raw', '{sample_folder}/sample_audvis_raw.fif')
 fname.add('ernoise', '{sample_folder}/ernoise_raw.fif')
 fname.add('bem', '{bem_folder}/sample-5120-5120-5120-bem-sol.fif')
 fname.add('src', '{bem_folder}/sample-oct-6-orig-src.fif')
+fname.add('fwd_true', '{sample_folder}/sample_audvis-meg-eeg-oct-6-fwd.fif')
+fname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
+
+# Files from manual coregistration
+# TODO: adjust file names
 fname.add('fwd', '{sample_folder}/sample_audvis-meg-eeg-oct-6-fwd.fif')
 fname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
 
@@ -95,9 +100,14 @@ vfname.add('bem', '{bem_folder}/sample-5120-5120-5120-bem-sol.fif')
 vfname.add('sample_folder', '{data_path}/MEG/sample')
 vfname.add('sample_raw', '{sample_folder}/sample_audvis_raw.fif')
 vfname.add('ernoise', '{sample_folder}/ernoise_raw.fif')
+vfname.add('aseg', '{data_path}/subjects/sample/mri/aseg.mgz')
+vfname.add('fwd_true', '{data_path}/MEG/sample/sample_audvis-meg-vol-7-fwd.fif')
+vfname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
+
+# Files from manual coregistration
+# TODO: adjust file names
 vfname.add('fwd', '{data_path}/MEG/sample/sample_audvis-meg-vol-7-fwd.fif')
 vfname.add('trans', '{sample_folder}/sample_audvis_raw-trans.fif')
-vfname.add('aseg', '{data_path}/subjects/sample/mri/aseg.mgz')
 
 # Files produced by volume simulation code
 vfname.add('target_path', target_path)  # Where to put everything
