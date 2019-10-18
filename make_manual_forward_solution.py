@@ -17,17 +17,17 @@ trans_true_head_to_mri = mne.read_trans(fname.trans_true)
 src_true_mri = mne.read_source_spaces(fname.src)
 bem = mne.read_bem_solution(fname.bem)
 
-fwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=src_true_mri, bem=bem,
-                                    meg=True, eeg=False, mindist=5.0, n_jobs=2)
-mne.write_forward_solution(fname.fwd_man, fwd_man)
+fwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=src_true_mri,
+                                    bem=bem, meg=True, eeg=False, mindist=5.0, n_jobs=2)
+mne.write_forward_solution(fname.fwd_man, fwd_man, overwrite=True)
 
 # create forward solution for volume source space
-vsrc_true_head = mne.read_forward_solution(vfname.fwd_true)['src']
+vsrc_true_mri = mne.read_source_spaces(vfname.src)
 vbem = mne.read_bem_solution(vfname.bem)
 
-vfwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=vsrc_true_head, bem=vbem,
-                                     meg=True, eeg=False)
-mne.write_forward_solution(vfname.fwd_man, vfwd_man)
+vfwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=vsrc_true_mri,
+                                     bem=vbem, meg=True, eeg=False)
+mne.write_forward_solution(vfname.fwd_man, vfwd_man, overwrite=True)
 
 ###############################################################################
 # Check coregistration error
@@ -47,11 +47,10 @@ for hemi in range(2):
 
     print(distances.mean())
 
-# Since we are loading the source file from the volume forward solution, it is already in head coordinates
-vrr_true_mri_to_head = vsrc_true_head[0]['rr'][vsrc_true_head[0]['vertno']]
-# Undo transformation from mri to head space with true trans file
-vrr_true_mri = mne.transforms.apply_trans(trans_true_head_to_mri, vrr_true_mri_to_head)
-# Transform head source space to mri space with inverse of manually created trans file
+vrr_true_mri = vsrc_true_mri[0]['rr'][vsrc_true_mri[0]['vertno']]
+# Transform the source space from mri to head space with true trans file
+vrr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, vrr_true_mri)
+# Transform the source space from mri space back to head space with inverse manual trans file
 vrr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_true_mri_to_head)
 
 distances = np.linalg.norm(vrr_true_mri_to_head_to_mri - vrr_true_mri, axis=1)
