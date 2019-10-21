@@ -88,7 +88,7 @@ fname.add('mne_results', '{target_path}/mne_results-noise{noise:.1f}-vertex{vert
 
 # volume source space specific things
 
-n_noise_dipoles_vol = 150 # number of noise_dipoles in volume source space
+n_noise_dipoles_vol = 150  # number of noise_dipoles in volume source space
 
 # Filenames for various volume source space related things
 vfname = FileNames()
@@ -112,7 +112,8 @@ vfname.add('trans_man', '{sample_folder}/sample_coregerror-trans.fif')
 
 # Files produced by volume simulation code
 vfname.add('target_path', target_path)  # Where to put everything
-vfname.add('fwd_discrete', '{target_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
+vfname.add('fwd_discrete_true', '{target_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
+vfname.add('fwd_discrete_man', '{target_path}/sample_coregerror-meg-vol-7-discrete-fwd.fif')
 vfname.add('simulated_raw', '{target_path}/volume_simulated-noise{noise}-vertex{vertex:04d}-raw.fif')
 vfname.add('stc_signal', '{target_path}/volume_stc_signal-noise{noise}-vertex{vertex:04d}-vl.stc')
 vfname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
