@@ -37,11 +37,11 @@ mne.write_forward_solution(vfname.fwd_man, vfwd_man, overwrite=True)
 # Construct forward solutions for discrete source spaces
 ###############################################################################
 
-rr = vsrc_true_mri[0]['rr']
+vrr = vsrc_true_mri[0]['rr']
 
-vfwd_disc_true, vfwd_disc_man = make_discrete_forward_solutions(info, rr, vbem, trans_true_head_to_mri,
-                                                                trans_man_head_to_mri, vfname.fwd_discrete_true,
-                                                                vfname.fwd_discrete_man)
+vfwd_disc_true, vfwd_disc_man = make_discrete_forward_solutions(info, vrr, vbem, trans_true_head_to_mri,
+                                                                trans_man_head_to_mri, vfname.subjects_dir,
+                                                                vfname.fwd_discrete_true, vfname.fwd_discrete_man)
 
 ###############################################################################
 # Check coregistration error
@@ -62,17 +62,17 @@ for hemi in range(2):
     print(distances.mean())
 
 vrr_true_mri = vsrc_true_mri[0]['rr'][vsrc_true_mri[0]['vertno']]
-vrr_man_head = vfwd_disc_man['src'][0]['rr']
-
 # Transform the source space from mri to head space with true trans file
 vrr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, vrr_true_mri)
-# Transform the source space from mri space back to head space with inverse manual trans file
+# Transform the source space from head space back to mri space with inverse manual trans file
 vrr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_true_mri_to_head)
-vrr_man_head_to_mri = mne.transforms.apply(trans_man_head_to_mri, vrr_man_head)
 
 distances = np.linalg.norm(vrr_true_mri_to_head_to_mri - vrr_true_mri, axis=1)
 print(distances.mean())
 
-# TODO test if similar results.
-distances2 = np.linalg.norm(vrr_man_head_to_mri - vrr_true_mri, axis=1)
-print(distances2.mean())
+vrr_disc_true_mri = vsrc_true_mri[0]['rr'][vfwd_disc_man['src'][0]['vertno']]
+vrr_disc_true_head = vfwd_disc_true['src'][0]['rr'][vfwd_disc_true['src'][0]['vertno']]
+# Transform the source space from head space back to mri space with inverse manual trans file
+vrr_disc_true_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_true_head)
+distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri - vrr_disc_true_mri, axis=1)
+print(distances_disc.mean())
