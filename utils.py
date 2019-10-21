@@ -293,7 +293,7 @@ def make_discrete_fwd_solution(info, vsrc_disc, vbem, trans, fn_fwd_disc=None):
         The head<->MRI transform.
     fn_vfwd_disc : None | str
         File name to save the forward solution to. It should end with -fwd.fif
-        or -fwd.fif.gz.
+        or -fwd.fif.gz. If None the fwd solution will not be written to disk.
 
     Returns:
     --------
@@ -307,7 +307,8 @@ def make_discrete_fwd_solution(info, vsrc_disc, vbem, trans, fn_fwd_disc=None):
     fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
                                             force_fixed=True)
 
-    mne.write_forward_solution(fn_fwd_disc, fwd_disc, overwrite=True)
+    if fn_fwd_disc is not None:
+        mne.write_forward_solution(fn_fwd_disc, fwd_disc, overwrite=True)
 
     return fwd_disc
 
@@ -336,10 +337,12 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man,
         The manually created head<->MRI transform.
     fn_fwd_disc_true : None | str
         Path where the forward solution corresponding to the true
-        transformation is to be saved.
+        transformation is to be saved. If None the fwd solution
+        will not be written to disk.
     fn_fwd_disc_man : None | str
         Path where the forward solution corresponding to the manually
-        created transformation is to be saved.
+        created transformation is to be saved. If None the fwd solution
+        will not be written to disk.
 
     Returns:
     --------
