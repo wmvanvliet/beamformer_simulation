@@ -23,12 +23,7 @@ bem_fname = vfname.bem
 bem = mne.read_bem_surfaces(bem_fname)
 trans = mne.read_trans(vfname.trans)
 
-rng = config.random
-
 times = np.arange(0, config.trial_length * info['sfreq']) / info['sfreq']
-
-# there is only one volume source space
-vertno = src[0]['vertno']
 
 ###############################################################################
 # Construct source space normals as random tangential vectors
@@ -95,18 +90,13 @@ else:
 # Create trials of simulated data
 ###############################################################################
 
-volume_labels = mne.get_volume_labels_from_aseg(vfname.aseg)
 n_noise_dipoles = config.n_noise_dipoles_vol
 
 # select n_noise_dipoles entries from rr and their corresponding entries from nn
-poss_indices = np.arange(rr.shape[0])
-
 raw_list = []
 
 for i in range(config.n_trials):
-    ###########################################################################
     # Simulate random noise dipoles
-    ###########################################################################
     stc_noise = simulate_sparse_stc(
         src,
         n_noise_dipoles,
@@ -116,10 +106,7 @@ for i in range(config.n_trials):
         labels=None
     )
 
-    ###########################################################################
     # Project to sensor space
-    ###########################################################################
-
     stc = add_volume_stcs(stc_signal, config.noise * stc_noise)
 
     raw = simulate_raw(
@@ -129,9 +116,7 @@ for i in range(config.n_trials):
         src=None,
         bem=None,
         forward=fwd_disc,
-        cov=None,
-        random_state=rng,
-        duration=config.trial_length,
+        cov=None
     )
 
     raw_list.append(raw)
