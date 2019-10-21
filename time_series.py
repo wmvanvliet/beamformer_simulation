@@ -244,10 +244,11 @@ def create_epochs(raw, trial_length, n_trials, fn_simulated_epochs=None, fn_repo
     return epochs
 
 
-def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
-                    trial_length, n_trials, noise_multiplier, random_state, n_noise_dipoles,
-                    er_raw, fn_fwd_discrete, fn_stc_signal=None, fn_simulated_raw=None,
-                    fn_report_h5=None):
+def simulate_raw_vol(info, fwd_disc_true, signal_vertex, signal_freq,
+                     trial_length, n_trials, noise_multiplier,
+                     random_state, n_noise_dipoles, er_raw,
+                     fn_stc_signal=None, fn_simulated_raw=None,
+                     fn_report_h5=None):
     """
     Simulate raw time courses for a single dipole with frequency
     given by signal_freq. In each label a noise dipole is placed.
@@ -256,14 +257,11 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
     -----------
     info : instance of Info | instance of Raw
         The channel information to use for simulation.
-    src : instance of mne.SourceSpaces
-        The source space for which the raw instance is computed.
-    forward : instance of mne.Forward
-        The forward operator to use.
+    fwd_disc_true : instance of mne.Forward
+        The forward operator for the discrete source space created with
+        the true transformation file.
     signal_vertex : int
         The vertex where signal dipole is placed.
-    signal_hemi : 0 or 1
-        The signal dipole is placed in the left (0) or right (1) hemisphere.
     signal_freq : float
         The frequency of the signal.
     trial_length : float
@@ -277,8 +275,8 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
         If random_state is an int, it will be used as a seed for RandomState.
         If None, the seed will be obtained from the operating system (see
         RandomState for details). Default is None.
-    labels : None | list of Label
-        The labels. The default is None, otherwise its size must be n_dipoles.
+    n_noise_dipoles : int
+        The number of noise dipoles to place within the volume.
     er_raw : instance of Raw
         Empty room measurement to be used as sensor noise.
     fn_stc_signal : None | string
@@ -297,27 +295,13 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
     """
 
     times = np.arange(0, trial_length * info['sfreq']) / info['sfreq']
-    # there is only one volume source space
-    vertno = src[0]['vertno']
-
-    ###############################################################################
-    # Construct source space normals as random tangential vectors
-    ###############################################################################
-
-    rr = src[0]['rr']
-    com = rr.mean(axis=0)  # center of mass
-
-    # get vectors pointing from center of mass to voxels
-    radial = rr - com
-    rnd_vectors = np.array([random_three_vector() for i in range(rr.shape[0])])
-    tangential = np.cross(radial, rnd_vectors)
-    # normalize to unit length
-    nn = (tangential.T * (1. / np.linalg.norm(tangential, axis=1))).T
 
     ###############################################################################
     # Simulate a single signal dipole source as signal
     ###############################################################################
 
+    # TODO: I think a discrete source space was used because mne.simulate_raw did not take volume source spaces -> test
+    src = fwd_disc_true['src']
     signal_vert = src[0]['vertno'][signal_vertex]
     data = np.asarray([generate_signal(times, freq=signal_freq)])
     vertices = np.array([signal_vert])
@@ -328,43 +312,10 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
         stc_signal.save(fn_stc_signal)
 
     ###############################################################################
-    # Create discrete source space based on voxels in volume source space
-    ###############################################################################
-
-    if not op.exists(fn_fwd_discrete):
-
-        pos = {'rr': rr, 'nn': nn}
-
-        # make discrete source space
-        src_disc = mne.setup_volume_source_space(subject='sample', pos=pos,
-                                                 mri=None, bem=bem)
-
-        # setup_volume_source_space sets coordinate frame to MRI
-        # but coordinates we supplied are in head frame -> set correctly
-        src_disc[0]['coord_frame'] = fwd['src'][0]['coord_frame']
-
-        # np.array_equal(fwd_sel['src'][0]['rr'], fwd['src'][0]['rr'][stc.vertices]) is True
-        # np.isclose(fwd_sel['src'][0]['nn'], fwd['src'][0]['nn'][stc.vertices]) is True for all entries
-
-        # TODO: test if bem=bem works or if it has to be bem=bem_fname
-        fwd_disc = mne.make_forward_solution(info, trans=trans, src=src_disc,
-                                             bem=bem, meg=True, eeg=False)
-
-        fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
-                                                force_fixed=True)
-
-        mne.write_forward_solution(fn_fwd_discrete, fwd_disc, overwrite=False)
-
-    else:
-        fwd_disc = mne.read_forward_solution(fn_fwd_discrete)
-
-    ###############################################################################
     # Create trials of simulated data
     ###############################################################################
 
     # select n_noise_dipoles entries from rr and their corresponding entries from nn
-    poss_indices = np.arange(rr.shape[0])
-
     raw_list = []
 
     for i in range(n_trials):
@@ -378,7 +329,7 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
         stc = add_volume_stcs(stc_signal, noise_multiplier * stc_noise)
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
-                               bem=None, forward=fwd_disc, cov=None)
+                               bem=None, forward=fwd_disc_true, cov=None)
 
         raw_list.append(raw)
         print('%02d/%02d' % (i + 1, n_trials))
@@ -408,8 +359,8 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
             fig = plt.figure()
             plt.plot(times, generate_signal(times, freq=10))
             plt.xlabel('Time (s)')
-            ax = fig.axes[0]
 
+            ax = fig.axes[0]
             add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
             report.add_figs_to_section(fig, now.strftime('Signal time course'),
@@ -419,7 +370,6 @@ def simulate_raw_vol(info, src, fwd, bem, trans, signal_vertex, signal_freq,
 
             # axis 1 contains the xlabel
             ax = fig.axes[1]
-
             add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
             report.add_figs_to_section(fig, now.strftime('Simulated raw'),
