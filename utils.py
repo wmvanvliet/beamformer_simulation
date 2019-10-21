@@ -274,46 +274,7 @@ def set_directory(path=None):
         os.makedirs(path)
 
 
-def make_discrete_fwd_solution(info, vsrc_disc, vbem, trans, fn_fwd_disc=None):
-    """
-    Create a forward solution based on the discrete volume
-    source space and the trans file provided.
-
-    Parameters:
-    -----------
-    info : instance of mne.Info | str
-        If str, then it should be a filename to a Raw, Epochs, or Evoked
-        file with measurement information. If dict, should be an info
-        dict (such as one from Raw, Epochs, or Evoked).
-    vsrc_disc : instance of SourceSpaces
-        The discrete source space for which a forward solution is to be created.
-    vbem : dict | str
-        Filename of the volume BEM (e.g., "sample-5120-bem-sol.fif") to
-    trans : str
-        The head<->MRI transform.
-    fn_vfwd_disc : None | str
-        File name to save the forward solution to. It should end with -fwd.fif
-        or -fwd.fif.gz. If None the fwd solution will not be written to disk.
-
-    Returns:
-    --------
-    fwd_disc : instace of mne.Forward
-        The discrete forward solution.
-    """
-
-    fwd_disc = mne.make_forward_solution(info, trans=trans, src=vsrc_disc,
-                                         bem=vbem, meg=True, eeg=False)
-
-    fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
-                                            force_fixed=True)
-
-    if fn_fwd_disc is not None:
-        mne.write_forward_solution(fn_fwd_disc, fwd_disc, overwrite=True)
-
-    return fwd_disc
-
-
-def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man,
+def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subjects_dir,
                                     fn_fwd_disc_true=None, fn_fwd_disc_man=None):
     """
     Create a discrete source space based on the rr coordinates and
@@ -337,12 +298,14 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man,
         The manually created head<->MRI transform.
     fn_fwd_disc_true : None | str
         Path where the forward solution corresponding to the true
-        transformation is to be saved. If None the fwd solution
-        will not be written to disk.
+        transformation is to be saved. It should end with -fwd.fif
+        or -fwd.fif.gz. If None the fwd solution will not be written
+        to disk.
     fn_fwd_disc_man : None | str
         Path where the forward solution corresponding to the manually
-        created transformation is to be saved. If None the fwd solution
-        will not be written to disk.
+        created transformation is to be saved. It should end with
+        -fwd.fif or -fwd.fif.gz.If None the fwd solution will not be
+        written to disk.
 
     Returns:
     --------
@@ -373,12 +336,19 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man,
 
     # setup_volume_source_space sets coordinate frame to MRI
     vsrc_disc_mri = mne.setup_volume_source_space(subject='sample', pos=pos,
-                                                  mri=None, bem=vbem)
+                                                  mri=None, bem=vbem,
+                                                  subjects_dir=subjects_dir)
 
-    fwd_disc_true = make_discrete_fwd_solution(info, vsrc_disc_mri, vbem,
-                                               trans_true, fn_fwd_disc_true)
+    # create forward solution for true trans file
+    fwd_disc_true = mne.make_forward_solution(info, trans=trans_true, src=vsrc_disc_mri,
+                                              bem=vbem, meg=True, eeg=False)
+    if fn_fwd_disc_true is not None:
+        mne.write_forward_solution(fn_fwd_disc_true, fwd_disc_true, overwrite=True)
 
-    fwd_disc_man = make_discrete_fwd_solution(info, vsrc_disc_mri, vbem,
-                                              trans_man, fn_fwd_disc_man)
+    # create forward solution for manually created trans file
+    fwd_disc_man = mne.make_forward_solution(info, trans=trans_man, src=vsrc_disc_mri,
+                                             bem=vbem, meg=True, eeg=False)
+    if fn_fwd_disc_man is not None:
+        mne.write_forward_solution(fn_fwd_disc_man, fwd_disc_man, overwrite=True)
 
     return fwd_disc_true, fwd_disc_man
