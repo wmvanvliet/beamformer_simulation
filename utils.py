@@ -272,3 +272,110 @@ def set_directory(path=None):
     exists = os.path.exists(path)
     if not exists:
         os.makedirs(path)
+
+
+def make_discrete_fwd_solution(info, vsrc_disc, vbem, trans, fn_fwd_disc=None):
+    """
+    Create a forward solution based on the discrete volume
+    source space and the trans file provided.
+
+    Parameters:
+    -----------
+    info : instance of mne.Info | str
+        If str, then it should be a filename to a Raw, Epochs, or Evoked
+        file with measurement information. If dict, should be an info
+        dict (such as one from Raw, Epochs, or Evoked).
+    vsrc_disc : instance of SourceSpaces
+        The discrete source space for which a forward solution is to be created.
+    vbem : dict | str
+        Filename of the volume BEM (e.g., "sample-5120-bem-sol.fif") to
+    trans : str
+        The head<->MRI transform.
+    fn_vfwd_disc : None | str
+        File name to save the forward solution to. It should end with -fwd.fif
+        or -fwd.fif.gz.
+
+    Returns:
+    --------
+    fwd_disc : instace of mne.Forward
+        The discrete forward solution.
+    """
+
+    fwd_disc = mne.make_forward_solution(info, trans=trans, src=vsrc_disc,
+                                         bem=vbem, meg=True, eeg=False)
+
+    fwd_disc = mne.convert_forward_solution(fwd_disc, surf_ori=True,
+                                            force_fixed=True)
+
+    mne.write_forward_solution(fn_fwd_disc, fwd_disc, overwrite=True)
+
+    return fwd_disc
+
+
+def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man,
+                                    fn_fwd_disc_true=None, fn_fwd_disc_man=None):
+    """
+    Create a discrete source space based on the rr coordinates and
+    make one forward solution for the true trans file and one for
+    the manually created trans file.
+
+    Parameters:
+    -----------
+    info : instance of mne.Info | str
+        If str, then it should be a filename to a Raw, Epochs, or Evoked
+        file with measurement information. If dict, should be an info
+        dict (such as one from Raw, Epochs, or Evoked).
+    rr : np.array of shape (n_vertices, 3)
+        The coordinates of the volume source space.
+    vbem : dict | str
+        Filename of the volume BEM (e.g., "sample-5120-bem-sol.fif") to
+        use, or a loaded sphere model (dict).
+    trans_true : str
+        The true head<->MRI transform.
+    trans_man : str
+        The manually created head<->MRI transform.
+    fn_fwd_disc_true : None | str
+        Path where the forward solution corresponding to the true
+        transformation is to be saved.
+    fn_fwd_disc_man : None | str
+        Path where the forward solution corresponding to the manually
+        created transformation is to be saved.
+
+    Returns:
+    --------
+    fwd_disc_true : instance of mne.Forward
+        The discrete forward solution created with the true trans file.
+    fwd_disc_man : instance of mne.Forward
+        The discrete forward solution created with the manual trans file.
+    """
+
+    ###########################################################################
+    # Construct source space normals as random tangential vectors
+    ###########################################################################
+
+    com = rr.mean(axis=0)  # center of mass
+
+    # get vectors pointing from center of mass to voxels
+    radial = rr - com
+    rnd_vectors = np.array([random_three_vector() for i in range(rr.shape[0])])
+    tangential = np.cross(radial, rnd_vectors)
+    # normalize to unit length
+    nn = (tangential.T * (1. / np.linalg.norm(tangential, axis=1))).T
+
+    pos = {'rr': rr, 'nn': nn}
+
+    ###########################################################################
+    # make discrete source space
+    ###########################################################################
+
+    # setup_volume_source_space sets coordinate frame to MRI
+    vsrc_disc_mri = mne.setup_volume_source_space(subject='sample', pos=pos,
+                                                  mri=None, bem=vbem)
+
+    fwd_disc_true = make_discrete_fwd_solution(info, vsrc_disc_mri, vbem,
+                                               trans_true, fn_fwd_disc_true)
+
+    fwd_disc_man = make_discrete_fwd_solution(info, vsrc_disc_mri, vbem,
+                                              trans_man, fn_fwd_disc_man)
+
+    return fwd_disc_true, fwd_disc_man
