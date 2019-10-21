@@ -54,7 +54,6 @@ fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
 
-# The LCMV beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
