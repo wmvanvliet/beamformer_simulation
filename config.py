@@ -69,14 +69,13 @@ fname.add('fwd_true', '{sample_folder}/sample_audvis-meg-eeg-oct-6-fwd.fif')
 fname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files from manual coregistration
-# TODO: adjust file names
 fname.add('fwd_man', '{sample_folder}/sample_coregerror-meg-eeg-oct-6-fwd.fif')
 fname.add('trans_man', '{sample_folder}/sample_coregerror-trans.fif')
 
 # Files produced by the simulation code
 fname.add('target_path', target_path)  # Where to put everything
 fname.add('stc_signal', '{target_path}/stc_signal-noise{noise:.1f}-vertex{vertex:04d}')
-fname.add('simulated_raw', '{target_path}/simulated-noise{noise:.1f}-vertex{vertex:04d}-raw.fif')
+fname.add('simulated_raw', '{target_path}/simulated-raw-noise{noise:.1f}-vertex{vertex:04d}-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise:.1f}-vertex{vertex:04d}-epo.fif')
 fname.add('report', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}.h5')
@@ -106,15 +105,14 @@ vfname.add('fwd_true', '{data_path}/MEG/sample/sample_audvis-meg-vol-7-fwd.fif')
 vfname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files from manual coregistration
-# TODO: adjust file names
 vfname.add('fwd_man', '{data_path}/MEG/sample/sample_coregerror-meg-vol-7-fwd.fif')
 vfname.add('trans_man', '{sample_folder}/sample_coregerror-trans.fif')
 
 # Files produced by volume simulation code
 vfname.add('target_path', target_path)  # Where to put everything
-vfname.add('fwd_discrete_true', '{target_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
-vfname.add('fwd_discrete_man', '{target_path}/sample_coregerror-meg-vol-7-discrete-fwd.fif')
-vfname.add('simulated_raw', '{target_path}/volume_simulated-noise{noise}-vertex{vertex:04d}-raw.fif')
+vfname.add('fwd_discrete_true', '{data_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
+vfname.add('fwd_discrete_man', '{data_path}/sample_coregerror-meg-vol-7-discrete-fwd.fif')
+vfname.add('simulated_raw', '{target_path}/volume_simulated-raw-noise{noise}-vertex{vertex:04d}-raw.fif')
 vfname.add('stc_signal', '{target_path}/volume_stc_signal-noise{noise}-vertex{vertex:04d}-vl.stc')
 vfname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
 vfname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-noise{noise}-vertex{vertex:04d}-epo.fif')
