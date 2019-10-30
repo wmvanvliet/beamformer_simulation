@@ -16,6 +16,7 @@ Parameters:
  - Vector vs Scalar beamformer (single, matrix)
  - For DICS: real values only
  - Noise covariance whitening (needs to be implemented for DICS)
+ - One filter for both baseline and post-event parts, or separate filters for separate time periods?
 
 Tests:
  - Simulation
