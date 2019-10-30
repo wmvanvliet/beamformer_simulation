@@ -59,7 +59,7 @@ for hemi in range(2):
 
     distances = np.linalg.norm(rr_true_mri_to_head_to_mri - rr_true_mri, axis=1)
 
-    print(distances.mean())
+    print('Surface hemi %d: avg. distance' % hemi, distances.mean())
 
 vrr_true_mri = vsrc_true_mri[0]['rr'][vsrc_true_mri[0]['vertno']]
 # Transform the source space from mri to head space with true trans file
@@ -68,11 +68,11 @@ vrr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, vrr_tr
 vrr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_true_mri_to_head)
 
 distances = np.linalg.norm(vrr_true_mri_to_head_to_mri - vrr_true_mri, axis=1)
-print(distances.mean())
+print('Volume: avg. distance', distances.mean())
 
 vrr_disc_true_mri = vsrc_true_mri[0]['rr'][vfwd_disc_man['src'][0]['vertno']]
 vrr_disc_true_head = vfwd_disc_true['src'][0]['rr'][vfwd_disc_true['src'][0]['vertno']]
 # Transform the source space from head space back to mri space with inverse manual trans file
 vrr_disc_true_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_true_head)
 distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri - vrr_disc_true_mri, axis=1)
-print(distances_disc.mean())
+print('Discrete volume: avg. distance', distances_disc.mean())
