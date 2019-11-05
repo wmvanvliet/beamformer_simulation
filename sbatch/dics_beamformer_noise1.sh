@@ -6,7 +6,7 @@
 #SBATCH -n 1
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-3765
+#SBATCH --array=0-4097
 
 # Location to write the logfile to
 LOG_FILE=logs/dics_beamformer-$SLURM_ARRAY_TASK_ID.log
