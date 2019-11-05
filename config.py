@@ -51,7 +51,7 @@ noise = args.noise  # Multiplier for the noise dipoles
 vertex = args.vertex
 signal_hemi = 1
 
-random = np.random.RandomState(42)  # Random seed for everything
+random = np.random.RandomState(vertex)  # Random seed for everything
 
 # Filenames for various things
 fname = FileNames()

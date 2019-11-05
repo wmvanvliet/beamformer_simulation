@@ -22,10 +22,6 @@ fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 # Simulate raw data and create epochs
 ###############################################################################
 
-# TODO:
-#   Should the epochs be the same for LCMV and DICS
-#   Are the dipole locations always the same or should they be randomized?
-
 if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
     print('load stc_signal')
     stc_signal = mne.read_source_estimate(fn_stc_signal)
