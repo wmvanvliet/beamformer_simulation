@@ -12,11 +12,11 @@ from utils import make_dipole, evaluate_stc
 
 from time_series import simulate_raw, create_epochs
 
-fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex)
-fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex)
-fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.vertex)
+fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
+fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
+fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 
-fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
+fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 
 ###############################################################################
 # Simulate raw data and create epochs
@@ -118,4 +118,4 @@ df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'normalize_fwd', 'real_filter'])
 df['dist'] = dists
 df['eval'] = evals
-df.to_csv(fname.dics_results(noise=config.noise, vertex=config.vertex))
+df.to_csv(fname.dics_results(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))

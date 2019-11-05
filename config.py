@@ -75,15 +75,15 @@ fname.add('trans_man_bw', 'sample_manual_bw-trans.fif')
 
 # Files produced by the simulation code
 fname.add('target_path', target_path)  # Where to put everything
-fname.add('stc_signal', '{target_path}/stc_signal-noise{noise:.1f}-vertex{vertex:04d}')
-fname.add('simulated_raw', '{target_path}/simulated-raw-noise{noise:.1f}-vertex{vertex:04d}-raw.fif')
+fname.add('stc_signal', '{target_path}/stc_signal-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}')
+fname.add('simulated_raw', '{target_path}/simulated-raw-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}-raw.fif')
 fname.add('simulated_events', '{target_path}/simulated-eve.fif')
-fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise:.1f}-vertex{vertex:04d}-epo.fif')
-fname.add('report', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}.h5')
-fname.add('report_html', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}.html')
-fname.add('dics_results', '{target_path}/dics_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
-fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
-fname.add('mne_results', '{target_path}/mne_results-noise{noise:.1f}-vertex{vertex:04d}.csv')
+fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}-epo.fif')
+fname.add('report', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.h5')
+fname.add('report_html', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.html')
+fname.add('dics_results', '{target_path}/dics_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
+fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
+fname.add('mne_results', '{target_path}/mne_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
 
 
 # volume source space specific things
