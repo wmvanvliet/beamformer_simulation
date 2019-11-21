@@ -44,6 +44,7 @@ trial_length = 2.0  # Length of a trial in seconds
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10  # Frequency at which to simulate the signal timecourse
+signal_freq2 = 30  # Frequency at which to simulate the second signal timecourse
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
 noise = args.noise  # Multiplier for the noise dipoles
 
