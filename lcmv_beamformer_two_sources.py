@@ -1,5 +1,4 @@
 import mne
-import os.path as op
 from mne.beamformer import make_lcmv, apply_lcmv
 import numpy as np
 from itertools import product
@@ -9,7 +8,7 @@ import config
 from config import fname
 from utils import make_dipole, evaluate_fancy_metric
 
-from time_series import simulate_raw, create_epochs
+from time_series import simulate_raw_two_sources, create_epochs
 
 fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
@@ -21,32 +20,71 @@ fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=confi
 # Simulate raw data and create epochs
 ###############################################################################
 
-if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
-    print('load stc_signal')
-    stc_signal = mne.read_source_estimate(fn_stc_signal)
-    print('load epochs')
-    epochs = mne.read_epochs(fn_simulated_epochs)
+print('simulate data')
+info = mne.io.read_info(fname.sample_raw)
+info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
+fwd_true = mne.read_forward_solution(fname.fwd_true)
+fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
+src_true = fwd_true['src']
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
+labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
 
-else:
-    print('simulate data')
-    info = mne.io.read_info(fname.sample_raw)
-    info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-    fwd_true = mne.read_forward_solution(fname.fwd_true)
-    fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
-    src_true = fwd_true['src']
-    er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
-    labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
+connectivity = mne.spatial_src_connectivity(src_true)
+connectivity_full = connectivity.toarray()
 
-    raw, stc_signal = simulate_raw(info, src_true, fwd_true, config.vertex, config.signal_hemi,
-                                   config.signal_freq, config.trial_length, config.n_trials,
-                                   config.noise, config.random, labels, er_raw, fn_stc_signal=fn_stc_signal,
-                                   fn_simulated_raw=fn_simulated_raw, fn_report_h5=fn_report_h5)
+signal_vertex2 = None
+signal_hemi2 = config.signal_hemi
+signal_freq2 = config.signal_freq2
 
-    del info, fwd_true, src_true, er_raw, labels
 
-    epochs = create_epochs(raw, config.trial_length, config.n_trials,
-                           fn_simulated_epochs=fn_simulated_epochs,
-                           fn_report_h5=fn_report_h5)
+def get_nearest_neighbors(signal_vertex, signal_hemi, src):
+    """
+    Returns a list with the nearest neighbors sorted by distances
+    and the distances.
+
+    Parameters:
+    -----------
+    signal_vertex : int
+        The vertex where the signal dipole is placed.
+    signal_hemi : 0 or 1
+        The signal vertex is in the left (0) or right (1) hemisphere.
+    src : mne.SourceSpaces
+        The source space.
+
+    Returns:
+    --------
+    nearest_neighbors : np.array of shape (n_neighbors, )
+        The list of neighbors starting with the nearest and
+        ending with the vertex the furthest apart.
+    distances : np.array of shape (n_neighbors, )
+        The distances corresponding to the neighbors.
+    """
+
+    rr = src[signal_hemi]['rr'][np.where(src[signal_hemi]['inuse'])]
+
+    rr_dist = np.linalg.norm(rr - rr[signal_vertex], axis=1)
+
+    nearest_neighbors = np.argsort(rr_dist)
+    distances = rr_dist[nearest_neighbors]
+
+    return nearest_neighbors[1:], distances[1:]
+
+
+raw, stc_signal1, stc_signal2 = simulate_raw_two_sources(info, src=src_true, fwd=fwd_true,
+                                                         signal_vertex1=config.vertex, signal_hemi1=config.signal_hemi,
+                                                         signal_freq1=config.signal_freq, signal_vertex2=signal_vertex2,
+                                                         signal_hemi2=signal_hemi2, signal_freq2=signal_freq2,
+                                                         trial_length=config.trial_length, n_trials=config.n_trials,
+                                                         noise_multiplier=config.noise, random_state=config.random,
+                                                         labels=labels, er_raw=er_raw, fn_stc_signal1=None,
+                                                         fn_stc_signal2=None, fn_simulated_raw=None,
+                                                         fn_report_h5=fn_report_h5)
+
+del info, fwd_true, src_true, er_raw, labels
+
+epochs = create_epochs(raw, config.trial_length, config.n_trials,
+                       fn_simulated_epochs=fn_simulated_epochs,
+                       fn_report_h5=fn_report_h5)
 
 ###############################################################################
 # Compute LCMV beamformer results
