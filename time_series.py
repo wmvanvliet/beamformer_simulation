@@ -671,7 +671,7 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
             ax = fig.axes[0]
             add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
-            report.add_figs_to_section(fig, now.strftime('Signal time course'),
+            report.add_figs_to_section(fig, now.strftime('Signal time course for two orthogonal sources'),
                                        section='Sensor-level', replace=True)
 
             fig = raw.plot()
@@ -680,7 +680,7 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
             ax = fig.axes[1]
             add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
 
-            report.add_figs_to_section(fig, now.strftime('Simulated raw'),
+            report.add_figs_to_section(fig, now.strftime('Simulated raw with two orthogonal sources'),
                                        section='Sensor-level', replace=True)
             report.save(fn_report_html, overwrite=True, open_browser=False)
 
