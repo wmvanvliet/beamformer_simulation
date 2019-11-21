@@ -31,9 +31,9 @@ def generate_signal(times, freq=10., n_trial=2, phase_lock=False):
         envelope = np.exp(50. * -(times - 0.5 - trial) ** 2.)
         if phase_lock is False:
             phase = config.random.rand() * 2 * np.pi
-            signal += np.sin(phase + freq * 2 * np.pi * times) * envelope
+            signal += np.cos(phase + freq * 2 * np.pi * times) * envelope
         else:
-            signal += np.sin(freq * 2 * np.pi * times) * envelope
+            signal += np.cos(freq * 2 * np.pi * times) * envelope
     return signal * 1e-7
 
 
