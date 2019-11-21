@@ -9,7 +9,7 @@ import pandas as pd
 
 import config
 from config import vfname
-from utils import make_dipole_volume, evaluate_stc_volume
+from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 from time_series import simulate_raw_vol, create_epochs
 
@@ -101,7 +101,7 @@ for setting in settings:
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
 
         # Fancy evaluation metric
-        ev = evaluate_stc_volume(stc, stc_signal)
+        ev = evaluate_fancy_metric_volume(stc, stc_signal)
     except Exception as e:
         print(e)
         dist = np.nan

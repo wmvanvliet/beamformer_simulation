@@ -115,7 +115,7 @@ def make_dipole_volume(stc, src):
     return dip
 
 
-def evaluate_stc(stc_est, stc_signal):
+def evaluate_fancy_metric(stc_est, stc_signal):
     # Find the estimated source distribution at peak activity
     peak_time = stc_est.get_peak(time_as_index=True)[1]
     estimate = abs(stc_est).data[:, peak_time]
@@ -130,7 +130,7 @@ def evaluate_stc(stc_est, stc_signal):
     return estimate[true_vert_idx][0]
 
 
-def evaluate_stc_volume(stc_est, stc_signal):
+def evaluate_fancy_metric_volume(stc_est, stc_signal):
     # Find the estimated source distribution at peak activity
     peak_time = stc_est.get_peak(time_as_index=True)[1]
     estimate = abs(stc_est).data[:, peak_time]
