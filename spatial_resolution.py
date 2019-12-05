@@ -1,5 +1,5 @@
 import numpy as np
-from mne.beamformer import make_lcmv, apply_lcmv
+from mne.beamformer import make_lcmv, apply_lcmv, make_dics, apply_dics_csd
 
 from scipy.stats import pearsonr
 
@@ -23,6 +23,30 @@ def compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov,
                             depth=depth)
 
         stc = apply_lcmv(evoked, filters)
+
+        corr = correlation(stc, signal_vertex1, signal_vertex2, signal_hemi)
+
+    except Exception as e:
+        print(e)
+        corr = np.nan
+
+    print(setting, corr)
+
+    return corr
+
+
+def compute_dics_beamformer_results_two_sources(setting, info, csd, fwd_man, signal_vertex1,
+                                                signal_vertex2, signal_hemi):
+
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter = setting
+    try:
+
+        filters = make_dics(info, fwd_man, csd, reg=reg, pick_ori=pick_ori,
+                            inversion=inversion, weight_norm=weight_norm,
+                            normalize_fwd=normalize_fwd,
+                            real_filter=real_filter)
+
+        stc, freqs = apply_dics_csd(csd, filters)
 
         corr = correlation(stc, signal_vertex1, signal_vertex2, signal_hemi)
 

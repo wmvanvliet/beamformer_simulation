@@ -1,71 +1,22 @@
-import os.path as op
 from itertools import product
 
 import mne
 import numpy as np
 import pandas as pd
-from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
 
 import config
 from config import fname
-from time_series import simulate_raw, create_epochs
-from utils import make_dipole, evaluate_fancy_metric
-
-fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
-fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
-fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
+from spatial_resolution import compute_dics_beamformer_results_two_sources
+from spatial_resolution import get_nearest_neighbors
+from time_series import simulate_raw_two_sources, create_epochs
 
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 
 ###############################################################################
-# Simulate raw data and create epochs
-###############################################################################
-
-if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
-    print('load stc_signal')
-    stc_signal = mne.read_source_estimate(fn_stc_signal)
-    print('load epochs')
-    epochs = mne.read_epochs(fn_simulated_epochs)
-
-else:
-    print('simulate data')
-    info = mne.io.read_info(fname.sample_raw)
-    info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-    fwd_true = mne.read_forward_solution(fname.fwd_true)
-    fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
-    src_true = fwd_true['src']
-    er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
-    labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
-
-    raw, stc_signal = simulate_raw(info, src_true, fwd_true, config.vertex, config.signal_hemi,
-                                   config.signal_freq, config.trial_length, config.n_trials,
-                                   config.noise, config.random, labels, er_raw, fn_stc_signal=fn_stc_signal,
-                                   fn_simulated_raw=fn_simulated_raw, fn_report_h5=fn_report_h5)
-
-    del info, fwd_true, src_true, er_raw, labels
-
-    epochs = create_epochs(raw, config.trial_length, config.n_trials,
-                           fn_simulated_epochs=fn_simulated_epochs,
-                           fn_report_h5=fn_report_h5)
-
-###############################################################################
-# Compute DICS beamformer results
-###############################################################################
-
-# Read in the manually created forward solution
-fwd_man = mne.read_forward_solution(fname.fwd_man)
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
-
-# The DICS beamformer currently only uses one sensor type
-epochs_grad = epochs.copy().pick_types(meg='grad')
-epochs_mag = epochs.copy().pick_types(meg='mag')
-
-# Make CSD matrix
-csd = csd_morlet(epochs, [config.signal_freq])
-
 # Compute the settings grid
+###############################################################################
+
 regs = [0.05, 0.1, 0.5]
 sensor_types = ['grad', 'mag']
 pick_oris = [None, 'normal', 'max-power']
@@ -73,49 +24,117 @@ inversions = ['single', 'matrix']
 weight_norms = ['unit-noise-gain', 'nai', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
+
 settings = list(product(regs, sensor_types, pick_oris, inversions,
                         weight_norms, normalize_fwds, real_filters))
 
-# Compute DICS beamformer with all possible settings
-dists = []
-evals = []
-for setting in settings:
-    (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
-     real_filter) = setting
-    try:
-        if sensor_type == 'grad':
-            info = epochs_grad.info
-        elif sensor_type == 'mag':
-            info = epochs_mag.info
-        else:
-            raise ValueError('Invalid sensor type: %s', sensor_type)
+###############################################################################
+# Load data
+###############################################################################
 
-        filters = make_dics(info, fwd_man, csd, reg=reg, pick_ori=pick_ori,
-                            inversion=inversion, weight_norm=weight_norm,
-                            normalize_fwd=normalize_fwd,
-                            real_filter=real_filter)
-        stc, freqs = apply_dics_csd(csd, filters)
+print('simulate data')
+info = mne.io.read_info(fname.sample_raw)
+info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
+fwd_true = mne.read_forward_solution(fname.fwd_true)
+fwd_true = mne.pick_types_forward(fwd_true, meg=True, eeg=False)
+src_true = fwd_true['src']
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
+labels = mne.read_labels_from_annot(subject='sample', parc='aparc.a2009s')
 
-        # Compute distance between true and estimated source
-        dip_true = make_dipole(stc_signal, fwd_man['src'])
-        dip_est = make_dipole(stc, fwd_man['src'])
-        dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+# Read in the manually created forward solution
+fwd_man = mne.read_forward_solution(fname.fwd_man)
+# For pick_ori='normal', the fwd needs to be in surface orientation
+fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
-        # Fancy evaluation metric
-        ev = evaluate_fancy_metric(stc, stc_signal)
-    except Exception as e:
-        print(e)
-        dist = np.nan
-        ev = np.nan
-    print(setting, dist, ev)
+###############################################################################
+# Get nearest neighbors
+###############################################################################
 
-    dists.append(dist)
-    evals.append(ev)
+nearest_neighbors, distances = get_nearest_neighbors(config.vertex, config.signal_hemi, src_true)
 
+corrs = []
+
+for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
+
+    # after column_stack nb_vertex is float
+    nb_vertex = int(nb_vertex)
+
+    ###############################################################################
+    # Simulate raw data
+    ###############################################################################
+
+    raw, stc_signal1, stc_signal2 = simulate_raw_two_sources(info, src=src_true, fwd=fwd_true,
+                                                             signal_vertex1=config.vertex,
+                                                             signal_hemi1=config.signal_hemi,
+                                                             signal_freq1=config.signal_freq,
+                                                             signal_vertex2=nb_vertex,
+                                                             signal_hemi2=config.signal_hemi,
+                                                             signal_freq2=config.signal_freq2,
+                                                             trial_length=config.trial_length,
+                                                             n_trials=config.n_trials,
+                                                             noise_multiplier=config.noise,
+                                                             random_state=config.random,
+                                                             labels=labels, er_raw=er_raw,
+                                                             fn_stc_signal1=None, fn_stc_signal2=None,
+                                                             fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+
+    ###############################################################################
+    # Create epochs
+    ###############################################################################
+
+    title = 'Simulated evoked for two signal vertices'
+    epochs = create_epochs(raw, config.trial_length, config.n_trials, title=title,
+                           fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
+
+    # The DICS beamformer currently only uses one sensor type
+    epochs_grad = epochs.copy().pick_types(meg='grad')
+    epochs_mag = epochs.copy().pick_types(meg='mag')
+
+    # Make cov matrix
+    cov = mne.compute_covariance(epochs, method='empirical')
+    noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='empirical')
+
+    evoked_grad = epochs_grad.average()
+    evoked_mag = epochs_mag.average()
+
+    ###############################################################################
+    # Compute DICS beamformer results
+    ###############################################################################
+
+    epochs_grad = epochs.copy().pick_types(meg='grad')
+    epochs_mag = epochs.copy().pick_types(meg='mag')
+
+    # Make CSD matrix
+    # TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
+    csd = csd_morlet(epochs, [config.signal_freq])
+
+    # Compute DICS beamformer with all possible settings
+    for setting in settings:
+        (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
+         real_filter) = setting
+        try:
+            if sensor_type == 'grad':
+                info = epochs_grad.info
+            elif sensor_type == 'mag':
+                info = epochs_mag.info
+            else:
+                raise ValueError('Invalid sensor type: %s', sensor_type)
+
+            corr = compute_dics_beamformer_results_two_sources(setting, info, csd, fwd_man,
+                                                               signal_vertex1=config.vertex,
+                                                               signal_vertex2=nb_vertex,
+                                                               signal_hemi=config.signal_hemi)
+
+        except Exception as e:
+            print(e)
+            corrs.append([setting, nb_vertex, nb_dist, np.nan])
+
+###############################################################################
 # Save everything to a pandas dataframe
-df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
-                                     'inversion', 'weight_norm',
-                                     'normalize_fwd', 'real_filter'])
-df['dist'] = dists
-df['eval'] = evals
-df.to_csv(fname.dics_results(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
+###############################################################################
+
+df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                                  'weight_norm', 'normalize_fwd', 'real_filter',
+                                  'nb_vertex', 'nb_dist', 'corr'])
+
+df.to_csv(fname.dics_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
