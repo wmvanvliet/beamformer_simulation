@@ -61,20 +61,14 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Simulate raw data
     ###############################################################################
 
-    raw, stc_signal1, stc_signal2 = simulate_raw_two_sources(info, src=src_true, fwd=fwd_true,
-                                                             signal_vertex1=config.vertex,
-                                                             signal_hemi1=config.signal_hemi,
-                                                             signal_freq1=config.signal_freq,
-                                                             signal_vertex2=nb_vertex,
-                                                             signal_hemi2=config.signal_hemi,
-                                                             signal_freq2=config.signal_freq2,
-                                                             trial_length=config.trial_length,
-                                                             n_trials=config.n_trials,
-                                                             noise_multiplier=config.noise,
-                                                             random_state=config.random,
-                                                             labels=labels, er_raw=er_raw,
-                                                             fn_stc_signal1=None, fn_stc_signal2=None,
-                                                             fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+    raw, _, _ = simulate_raw_two_sources(info, src=src_true, fwd=fwd_true, signal_vertex1=config.vertex,
+                                         signal_hemi1=config.signal_hemi, signal_freq1=config.signal_freq,
+                                         signal_vertex2=nb_vertex, signal_hemi2=config.signal_hemi,
+                                         signal_freq2=config.signal_freq2, trial_length=config.trial_length,
+                                         n_trials=config.n_trials, noise_multiplier=config.noise,
+                                         random_state=config.random, labels=labels, er_raw=er_raw,
+                                         fn_stc_signal1=None, fn_stc_signal2=None, fn_simulated_raw=None,
+                                         fn_report_h5=fn_report_h5)
 
     ###############################################################################
     # Create epochs
