@@ -1,10 +1,12 @@
+import argparse
 import os
 from socket import getfqdn
-from fnames import FileNames
+
+import numpy as np
 from mne.datasets import sample
 from mne.datasets.brainstorm import bst_phantom_ctf
-import numpy as np
-import argparse
+
+from fnames import FileNames
 
 user = os.environ['USER']  # Username of the user running the scripts
 host = getfqdn()  # Hostname of the machine running the scripts
@@ -84,7 +86,9 @@ fname.add('simulated_epochs', '{target_path}/simulated-epochs-noise{noise:.1f}-v
 fname.add('report', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.h5')
 fname.add('report_html', '{target_path}/report-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.html')
 fname.add('dics_results', '{target_path}/dics_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
+fname.add('dics_results_2s', '{target_path}/dics_results_2sources-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
 fname.add('lcmv_results', '{target_path}/lcmv_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
+fname.add('lcmv_results_2s', '{target_path}/lcmv_results_2sources-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
 fname.add('mne_results', '{target_path}/mne_results-noise{noise:.1f}-vertex{vertex:04d}-hemi{hemi:d}.csv')
 
 

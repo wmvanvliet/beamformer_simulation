@@ -1,17 +1,16 @@
+from itertools import product
+
 import mne
 import numpy as np
-from itertools import product
+import pandas as pd
 
 import config
 from config import fname
-from utils import add_stcs
-
-from time_series import simulate_raw_two_sources, create_epochs
 from spatial_resolution import compute_lcmv_beamformer_results_two_sources, get_nearest_neighbors
+from time_series import simulate_raw_two_sources, create_epochs
 
 # TODO: maybe create a second separate report or make sure that nothing gets overwritten
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
-fn_report_h5 = None
 
 ###############################################################################
 # Compute the settings grid
@@ -51,7 +50,7 @@ fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
 
 nearest_neighbors, distances = get_nearest_neighbors(config.vertex, config.signal_hemi, src_true)
 
-corr_list = []
+corrs = []
 
 for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
 
@@ -77,15 +76,12 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
                                                              fn_stc_signal1=None, fn_stc_signal2=None,
                                                              fn_simulated_raw=None, fn_report_h5=fn_report_h5)
 
-    # TODO: delete if not needed
-    stc_signal = add_stcs(stc_signal1, stc_signal2)
-
     ###############################################################################
     # Create epochs
     ###############################################################################
 
-    # TODO: make sure nothing important is overwritten in report
-    epochs = create_epochs(raw, config.trial_length, config.n_trials,
+    title = 'Simulated evoked for two signal vertices'
+    epochs = create_epochs(raw, config.trial_length, config.n_trials, title=title,
                            fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
 
     epochs_grad = epochs.copy().pick_types(meg='grad')
@@ -93,7 +89,6 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     epochs_joint = epochs.copy().pick_types(meg=True)
 
     # Make cov matrix
-    # TODO: would it not be better to compute cov
     cov = mne.compute_covariance(epochs, method='empirical')
     noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='empirical')
 
@@ -105,8 +100,6 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Compute LCMV beamformer results
     ###############################################################################
 
-    # TODO: better organization of results
-    corrs = []
     for setting in settings:
         reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
         try:
@@ -119,11 +112,22 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
+            # TODO: some break condition should be implemented, i.e., if previous corr for these settings
+            #   was smaller than 2 ** -0.5 no need to compute correlation for more distant sources
+
             corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_man,
                                                                signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
-            corrs.append([setting, corr])
+            corrs.append([setting, nb_vertex, nb_dist, corr])
 
-    corr_list.append([nb_dist, corrs])
+        except Exception as e:
+            print(e)
+            corrs.append([setting, nb_vertex, nb_dist, np.nan])
 
-# TODO: save results in report
+###############################################################################
+# Save everything to a pandas dataframe
+###############################################################################
+
+df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
+                                  'nb_vertex', 'nb_dist', 'corr'])
+df.to_csv(fname.lcmv_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
