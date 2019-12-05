@@ -56,7 +56,6 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # after column_stack nb_vertex is float
     nb_vertex = int(nb_vertex)
 
-
     ###############################################################################
     # Simulate raw data
     ###############################################################################
