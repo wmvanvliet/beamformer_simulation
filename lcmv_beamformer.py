@@ -70,18 +70,13 @@ evoked_mag = epochs_mag.average()
 evoked_joint = epochs_joint.average()
 
 # Compute the settings grid
-# regs = [0.05, 0.1, 0.5]
-# sensor_types = ['joint', 'grad', 'mag']
-# pick_oris = [None, 'normal', 'max-power']
-# weight_norms = ['unit-noise-gain', 'nai', None]
-# use_noise_covs = [True, False]
-# depths = [True, False]
-regs = [0.05]
-sensor_types = ['joint']
-pick_oris = ['max-power']
-weight_norms = [None]
-use_noise_covs = [True]
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'normal', 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
 depths = [True, False]
+
 settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
 
