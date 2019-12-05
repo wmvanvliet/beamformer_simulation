@@ -1,16 +1,15 @@
-import mne
 import os.path as op
+from datetime import datetime
+
+import mne
 import numpy as np
 from matplotlib import pyplot as plt
 from mne.simulation import simulate_sparse_stc, simulate_raw as simulate_raw_mne
 from scipy.signal import butter, filtfilt
-from matplotlib import pyplot as plt
 
 import config
 from utils import add_stcs, add_volume_stcs, set_directory
-from utils import add_text_next_to_xlabel, random_three_vector
-
-from datetime import datetime
+from utils import add_text_next_to_xlabel
 
 
 def generate_signal(times, freq=10., n_trial=2, phase_lock=False):
@@ -334,7 +333,8 @@ def simulate_raw_two_sources(info, src, fwd, signal_vertex1, signal_hemi1, signa
     return raw, stc_signal1, stc_signal2
 
 
-def create_epochs(raw, trial_length, n_trials, fn_simulated_epochs=None, fn_report_h5=None):
+def create_epochs(raw, trial_length, n_trials, title='Simulated evoked',
+                  fn_simulated_epochs=None, fn_report_h5=None):
     """
     Create epochs based on the raw object with the baseline
     going from 0 to 0.3 s.
@@ -386,8 +386,7 @@ def create_epochs(raw, trial_length, n_trials, fn_simulated_epochs=None, fn_repo
         with mne.open_report(fn_report_h5) as report:
 
             fig = epochs.average().plot_joint(picks='mag', show=False)
-            report.add_figs_to_section(fig, 'Simulated evoked',
-                                       section='Sensor-level', replace=True)
+            report.add_figs_to_section(fig, title, section='Sensor-level', replace=True)
             report.save(fn_report_html, overwrite=True, open_browser=False)
 
     return epochs

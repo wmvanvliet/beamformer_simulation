@@ -1,6 +1,4 @@
-import mne
 import numpy as np
-from itertools import product
 from mne.beamformer import make_lcmv, apply_lcmv
 
 from scipy.stats import pearsonr
