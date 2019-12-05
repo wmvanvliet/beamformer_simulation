@@ -1,4 +1,3 @@
-import os.path as op
 from itertools import product
 
 import mne
@@ -18,54 +17,8 @@ fn_simulated_epochs = vfname.simulated_epochs(noise=config.noise, vertex=config.
 fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
 
 ###############################################################################
-# Simulate raw data and create epochs
+# Compute the settings grid
 ###############################################################################
-
-if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
-    print('load stc_signal')
-    stc_signal = mne.read_source_estimate(fn_stc_signal)
-    print('load epochs')
-    epochs = mne.read_epochs(fn_simulated_epochs)
-
-else:
-    print('simulate data')
-    info = mne.io.read_info(vfname.sample_raw)
-    info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-    fwd_disc_true = mne.read_forward_solution(vfname.fwd_discrete_true)
-    fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
-    er_raw = mne.io.read_raw_fif(vfname.ernoise, preload=True)
-
-    raw, stc_signal = simulate_raw_vol(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
-                                       signal_freq=config.signal_freq, trial_length=config.trial_length,
-                                       n_trials=config.n_trials, noise_multiplier=config.noise,
-                                       random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                       er_raw=er_raw, fn_stc_signal=fn_stc_signal, fn_simulated_raw=fn_simulated_raw,
-                                       fn_report_h5=fn_report_h5)
-
-    del info, fwd_disc_true, er_raw
-
-    epochs = create_epochs(raw, config.trial_length, config.n_trials,
-                           fn_simulated_epochs=fn_simulated_epochs,
-                           fn_report_h5=fn_report_h5)
-
-fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
-
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
-
-epochs_grad = epochs.copy().pick_types(meg='grad')
-epochs_mag = epochs.copy().pick_types(meg='mag')
-epochs_joint = epochs.copy().pick_types(meg=True)
-
-# Make cov matrix
-cov = mne.compute_covariance(epochs, method='shrunk')
-# TODO: using 0.7 - 1.3 here but 0 to 0.3 for surface
-noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='shrunk')
-
-evoked_grad = epochs_grad.average()
-evoked_mag = epochs_mag.average()
-evoked_joint = epochs_joint.average()
 
 # Compare
 #   - vector vs. scalar (max-power orientation)
@@ -76,7 +29,6 @@ evoked_joint = epochs_joint.average()
 #   - different sensor types
 #   - what changes with condition contrasting
 
-# Compute the settings grid
 regs = [0.05, 0.1, 0.5]
 sensor_types = ['joint', 'grad', 'mag']
 pick_oris = [None, 'max-power']
@@ -85,6 +37,56 @@ use_noise_covs = [True, False]
 depths = [True, False]
 settings = list(product(regs, sensor_types, pick_oris, weight_norms,
                         use_noise_covs, depths))
+
+###############################################################################
+# Load data
+###############################################################################
+
+print('simulate data')
+info = mne.io.read_info(vfname.sample_raw)
+info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
+fwd_disc_true = mne.read_forward_solution(vfname.fwd_discrete_true)
+fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
+er_raw = mne.io.read_raw_fif(vfname.ernoise, preload=True)
+
+# Read in the manually created discrete forward solution
+fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
+# TODO: test if this is actually necessary for a discrete volume source space
+# For pick_ori='normal', the fwd needs to be in surface orientation
+fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
+
+###############################################################################
+# Simulate raw data and create epochs
+###############################################################################
+
+
+print('simulate data')
+
+raw, stc_signal = simulate_raw_vol(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
+                                   signal_freq=config.signal_freq, trial_length=config.trial_length,
+                                   n_trials=config.n_trials, noise_multiplier=config.noise,
+                                   random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
+                                   er_raw=er_raw, fn_stc_signal=fn_stc_signal, fn_simulated_raw=fn_simulated_raw,
+                                   fn_report_h5=fn_report_h5)
+
+del info, fwd_disc_true, er_raw
+
+epochs = create_epochs(raw, config.trial_length, config.n_trials,
+                       fn_simulated_epochs=fn_simulated_epochs,
+                       fn_report_h5=fn_report_h5)
+
+
+epochs_grad = epochs.copy().pick_types(meg='grad')
+epochs_mag = epochs.copy().pick_types(meg='mag')
+epochs_joint = epochs.copy().pick_types(meg=True)
+
+# Make cov matrix
+cov = mne.compute_covariance(epochs, method='shrunk')
+noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='shrunk')
+
+evoked_grad = epochs_grad.average()
+evoked_mag = epochs_mag.average()
+evoked_joint = epochs_joint.average()
 
 # Compute LCMV beamformer with all possible settings
 dists = []
