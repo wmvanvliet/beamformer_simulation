@@ -90,25 +90,13 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     epochs_grad = epochs.copy().pick_types(meg='grad')
     epochs_mag = epochs.copy().pick_types(meg='mag')
 
-    # Make cov matrix
-    cov = mne.compute_covariance(epochs, method='empirical')
-    noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='empirical')
-
-    evoked_grad = epochs_grad.average()
-    evoked_mag = epochs_mag.average()
-
-    ###############################################################################
-    # Compute DICS beamformer results
-    ###############################################################################
-
-    epochs_grad = epochs.copy().pick_types(meg='grad')
-    epochs_mag = epochs.copy().pick_types(meg='mag')
-
     # Make CSD matrix
     # TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
     csd = csd_morlet(epochs, [config.signal_freq])
+    ###############################################################################
+    # Compute DICS beamformer results with all possible settings
+    ###############################################################################
 
-    # Compute DICS beamformer with all possible settings
     for setting in settings:
         (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
          real_filter) = setting
