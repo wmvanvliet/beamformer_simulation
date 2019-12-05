@@ -3,10 +3,11 @@ from itertools import product
 import mne
 import numpy as np
 import pandas as pd
+from mne.time_frequency import csd_morlet
 
 import config
 from config import vfname
-from spatial_resolution import get_nearest_neighbors, compute_lcmv_beamformer_results_two_sources
+from spatial_resolution import get_nearest_neighbors, compute_dics_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
 fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
@@ -15,23 +16,15 @@ fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
 # Compute the settings grid
 ###############################################################################
 
-# Compare
-#   - vector vs. scalar (max-power orientation)
-#   - Array-gain BF (leadfield normalization)
-#   - Unit-gain BF ('vanilla' LCMV)
-#   - Unit-noise-gain BF (weight normalization)
-#   - pre-whitening (noise-covariance)
-#   - different sensor types
-#   - what changes with condition contrasting
-
 regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
+sensor_types = ['grad', 'mag']
 pick_oris = [None, 'max-power']
+inversions = ['single', 'matrix']
 weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
+normalize_fwds = [True, False]
+real_filters = [True, False]
+settings = list(product(regs, sensor_types, pick_oris, inversions,
+                        weight_norms, normalize_fwds, real_filters))
 
 ###############################################################################
 # Load data
@@ -63,6 +56,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # after column_stack nb_vertex is float
     nb_vertex = int(nb_vertex)
 
+
     ###############################################################################
     # Simulate raw data
     ###############################################################################
@@ -85,37 +79,29 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
     epochs_grad = epochs.copy().pick_types(meg='grad')
     epochs_mag = epochs.copy().pick_types(meg='mag')
-    epochs_joint = epochs.copy().pick_types(meg=True)
 
-    # Make cov matrix
-    cov = mne.compute_covariance(epochs, method='empirical')
-    noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
-
-    evoked_grad = epochs_grad.average()
-    evoked_mag = epochs_mag.average()
-    evoked_joint = epochs_joint.average()
+    # Make CSD matrix
+    csd = csd_morlet(epochs, [config.signal_freq])
 
     ###############################################################################
-    # Compute LCMV beamformer results
+    # Compute DICS beamformer results
     ###############################################################################
 
     for setting in settings:
-        reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
+        (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
+         real_filter) = setting
         try:
             if sensor_type == 'grad':
-                evoked = evoked_grad
+                info = epochs_grad.info
             elif sensor_type == 'mag':
-                evoked = evoked_mag
-            elif sensor_type == 'joint':
-                evoked = evoked_joint
+                info = epochs_mag.info
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_disc_man,
-                                                               signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
+            corr = compute_dics_beamformer_results_two_sources(setting, info, csd, fwd_disc_man,
+                                                               signal_vertex1=config.vertex,
+                                                               signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
-
-            corrs.append([setting, nb_vertex, nb_dist, corr])
 
         except Exception as e:
             print(e)
@@ -127,4 +113,4 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
                                   'nb_vertex', 'nb_dist', 'corr'])
-df.to_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
+df.to_csv(vfname.dics_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
