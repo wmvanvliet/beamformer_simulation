@@ -102,13 +102,13 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
          real_filter) = setting
         try:
             if sensor_type == 'grad':
-                info = epochs_grad.info
+                epo_info = epochs_grad.info
             elif sensor_type == 'mag':
-                info = epochs_mag.info
+                epo_info = epochs_mag.info
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            corr = compute_dics_beamformer_results_two_sources(setting, info, csd, fwd_man,
+            corr = compute_dics_beamformer_results_two_sources(setting, epo_info, csd, fwd_man,
                                                                signal_vertex1=config.vertex,
                                                                signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
