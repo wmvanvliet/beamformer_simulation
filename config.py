@@ -126,7 +126,9 @@ vfname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-noise{nois
 vfname.add('report', '{target_path}/volume_report-noise{noise}-vertex{vertex:04d}.h5')
 vfname.add('report_html', '{target_path}/volume_report-noise{noise}-vertex{vertex:04d}.html')
 vfname.add('dics_results', '{target_path}/volume_dics_results-noise{noise}-vertex{vertex:04d}.csv')
+vfname.add('dics_results_2s', '{target_path}/volume_dics_results_2sources-noise{noise}-vertex{vertex:04d}.csv')
 vfname.add('lcmv_results', '{target_path}/volume_lcmv_results-noise{noise}-vertex{vertex:04d}.csv')
+vfname.add('lcmv_results_2s', '{target_path}/volume_lcmv_results_2sources-noise{noise}-vertex{vertex:04d}.csv')
 vfname.add('mne_results', '{target_path}/volume_mne_results-noise{noise}-vertex{vertex:04d}.csv')
 
 # Brainstorm phantom data

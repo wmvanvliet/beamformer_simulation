@@ -606,7 +606,6 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
     # Simulate a single signal dipole source as signal at vertex 2
     ###############################################################################
 
-    # TODO: I think a discrete source space was used because mne.simulate_raw did not take volume source spaces -> test
     signal_vert2 = src[0]['vertno'][signal_vertex2]
     data = np.asarray([generate_signal(times, freq=signal_freq2)])
     vertices = np.array([signal_vert2])
@@ -683,4 +682,4 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
                                        section='Sensor-level', replace=True)
             report.save(fn_report_html, overwrite=True, open_browser=False)
 
-    return raw, stc_signal
+    return raw, stc_signal1, stc_signal2
