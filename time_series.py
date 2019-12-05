@@ -622,7 +622,7 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
     # select n_noise_dipoles entries from rr and their corresponding entries from nn
     raw_list = []
 
-    stc_signal = add_stcs(stc_signal1, stc_signal2)
+    stc_signal = add_volume_stcs(stc_signal1, stc_signal2)
 
     for i in range(n_trials):
         # Simulate random noise dipoles
