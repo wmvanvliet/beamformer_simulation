@@ -90,7 +90,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
     # Make cov matrix
     cov = mne.compute_covariance(epochs, method='empirical')
-    noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='empirical')
+    noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
 
     evoked_grad = epochs_grad.average()
     evoked_mag = epochs_mag.average()

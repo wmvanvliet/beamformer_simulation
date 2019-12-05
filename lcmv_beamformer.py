@@ -1,15 +1,15 @@
-import mne
 import os.path as op
-from mne.beamformer import make_lcmv, apply_lcmv
-import numpy as np
 from itertools import product
+
+import mne
+import numpy as np
 import pandas as pd
+from mne.beamformer import make_lcmv, apply_lcmv
 
 import config
 from config import fname
-from utils import make_dipole, evaluate_fancy_metric
-
 from time_series import simulate_raw, create_epochs
+from utils import make_dipole, evaluate_fancy_metric
 
 fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
@@ -63,7 +63,7 @@ epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make cov matrix
 cov = mne.compute_covariance(epochs, method='empirical')
-noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0.3, method='empirical')
+noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
 
 evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()
