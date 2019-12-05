@@ -1,16 +1,16 @@
-import mne
 import os.path as op
-from mne.time_frequency import csd_morlet
-from mne.beamformer import make_dics, apply_dics_csd
-import numpy as np
 from itertools import product
+
+import mne
+import numpy as np
 import pandas as pd
+from mne.beamformer import make_dics, apply_dics_csd
+from mne.time_frequency import csd_morlet
 
 import config
 from config import fname
-from utils import make_dipole, evaluate_fancy_metric
-
 from time_series import simulate_raw, create_epochs
+from utils import make_dipole, evaluate_fancy_metric
 
 fn_stc_signal = fname.stc_signal(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 fn_simulated_raw = fname.simulated_raw(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
@@ -19,7 +19,22 @@ fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.v
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 
 ###############################################################################
-# Simulate raw data and create epochs
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['grad', 'mag']
+pick_oris = [None, 'normal', 'max-power']
+inversions = ['single', 'matrix']
+weight_norms = ['unit-noise-gain', 'nai', None]
+normalize_fwds = [True, False]
+real_filters = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, inversions,
+                        weight_norms, normalize_fwds, real_filters))
+
+###############################################################################
+# Simulate raw data and create epochs object
 ###############################################################################
 
 if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
@@ -50,13 +65,16 @@ else:
                            fn_report_h5=fn_report_h5)
 
 ###############################################################################
-# Compute DICS beamformer results
+# Read in the manually created forward solution
 ###############################################################################
 
-# Read in the manually created forward solution
 fwd_man = mne.read_forward_solution(fname.fwd_man)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
+
+###############################################################################
+# Create epochs for for different sensors
+###############################################################################
 
 # The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
@@ -65,20 +83,13 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 # Make CSD matrix
 csd = csd_morlet(epochs, [config.signal_freq])
 
-# Compute the settings grid
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = [None, 'normal', 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
-normalize_fwds = [True, False]
-real_filters = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
+###############################################################################
+# Compute DICS beamformer results
+###############################################################################
 
-# Compute DICS beamformer with all possible settings
 dists = []
 evals = []
+
 for setting in settings:
     (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
      real_filter) = setting
@@ -112,7 +123,10 @@ for setting in settings:
     dists.append(dist)
     evals.append(ev)
 
+###############################################################################
 # Save everything to a pandas dataframe
+###############################################################################
+
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'inversion', 'weight_norm',
                                      'normalize_fwd', 'real_filter'])

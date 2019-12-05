@@ -18,7 +18,21 @@ fn_simulated_epochs = fname.simulated_epochs(noise=config.noise, vertex=config.v
 fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi)
 
 ###############################################################################
-# Simulate raw data and create epochs
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'normal', 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
+depths = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, weight_norms,
+                        use_noise_covs, depths))
+
+###############################################################################
+# Simulate raw data and create epochs object
 ###############################################################################
 
 if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
@@ -49,13 +63,16 @@ else:
                            fn_report_h5=fn_report_h5)
 
 ###############################################################################
-# Compute LCMV beamformer results
+# Read in the manually created forward solution
 ###############################################################################
 
-# Read in the manually created forward solution
 fwd_man = mne.read_forward_solution(fname.fwd_man)
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_man = mne.convert_forward_solution(fwd_man, surf_ori=True)
+
+###############################################################################
+# Create epochs for for different sensors
+###############################################################################
 
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
@@ -69,20 +86,13 @@ evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()
 evoked_joint = epochs_joint.average()
 
-# Compute the settings grid
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'normal', 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
+###############################################################################
+# Compute LCMV beamformer results
+###############################################################################
 
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
-
-# Compute LCMV beamformer with all possible settings
 dists = []
 evals = []
+
 for setting in settings:
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
     try:
@@ -118,7 +128,10 @@ for setting in settings:
     dists.append(dist)
     evals.append(ev)
 
+###############################################################################
 # Save everything to a pandas dataframe
+###############################################################################
+
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'weight_norm', 'use_noise_cov', 'depth'])
 df['dist'] = dists
