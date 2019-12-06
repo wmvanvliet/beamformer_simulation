@@ -1,9 +1,9 @@
-import pandas as pd
-from matplotlib import pyplot as plt
-from tqdm import tqdm
 import mne
+import pandas as pd
 import surfer
 from mayavi import mlab
+from tqdm import tqdm
+
 mlab.options.offscreen = True
 from itertools import product
 from utils import set_directory
@@ -79,9 +79,9 @@ for i, setting in enumerate(settings):
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filters = setting
 
     # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and normalize_fwd == True:
+    if weight_norm == 'unit-noise-gain' and normalize_fwd is True:
         continue
-    if weight_norm == 'none' and normalize_fwd == False:
+    if weight_norm == 'none' and normalize_fwd is False:
         continue
 
     # Add row to the HTML table

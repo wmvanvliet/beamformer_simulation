@@ -114,9 +114,9 @@ for i, setting in enumerate(settings):
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filters = setting
 
     # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and normalize_fwd == True:
+    if weight_norm == 'unit-noise-gain' and normalize_fwd is True:
         continue
-    if weight_norm == 'none' and normalize_fwd == False:
+    if weight_norm == 'none' and normalize_fwd is False:
         continue
 
     ###############################################################################

@@ -1,8 +1,9 @@
-import pandas as pd
-from tqdm import tqdm
 import mne
+import pandas as pd
 import surfer
 from mayavi import mlab
+from tqdm import tqdm
+
 mlab.options.offscreen = True
 from itertools import product
 from utils import set_directory
@@ -76,11 +77,11 @@ for i, setting in enumerate(settings):
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
 
     # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and depth == True:
+    if weight_norm == 'unit-noise-gain' and depth is True:
         continue
-    if weight_norm == 'none' and depth == False:
+    if weight_norm == 'none' and depth is False:
         continue
-    if sensor_type == 'joint' and use_noise_cov == False:
+    if sensor_type == 'joint' and use_noise_cov is False:
         continue
 
     # Add row to the HTML table

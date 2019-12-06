@@ -126,6 +126,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             print(e)
             corrs.append([setting, nb_vertex, nb_dist, np.nan])
 
+    # TODO: maybe include that connections should be calculated for at least closest 44 neighbors
     if count == len(settings):
         # for all settings the shared variance between neighbors is less than 1/sqrt(2)
         # no need to compute correlation for neighbors further away
