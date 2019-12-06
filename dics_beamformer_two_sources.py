@@ -93,9 +93,12 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Make CSD matrix
     # TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
     csd = csd_morlet(epochs, [config.signal_freq])
+
     ###############################################################################
     # Compute DICS beamformer results with all possible settings
     ###############################################################################
+
+    count = 0
 
     for setting in settings:
         (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
@@ -113,9 +116,19 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
                                                                signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
 
+            corrs.append([setting, nb_vertex, nb_dist, corr])
+
+            if corr < 2 ** -0.5:
+                count += 1
+
         except Exception as e:
             print(e)
             corrs.append([setting, nb_vertex, nb_dist, np.nan])
+
+    if count == len(settings):
+        # for all settings the shared variance between neighbors is less than 1/sqrt(2)
+        # no need to compute correlation for neighbors further away
+        break
 
 ###############################################################################
 # Save everything to a pandas dataframe

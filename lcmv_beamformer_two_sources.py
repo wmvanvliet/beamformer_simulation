@@ -94,6 +94,8 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Compute LCMV beamformer results
     ###############################################################################
 
+    count = 0
+
     for setting in settings:
         reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
         try:
@@ -112,11 +114,20 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_man,
                                                                signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
+
             corrs.append([setting, nb_vertex, nb_dist, corr])
+
+            if corr < 2 ** -0.5:
+                count += 1
 
         except Exception as e:
             print(e)
             corrs.append([setting, nb_vertex, nb_dist, np.nan])
+
+    if count == len(settings):
+        # for all settings the shared variance between neighbors is less than 1/sqrt(2)
+        # no need to compute correlation for neighbors further away
+        break
 
 ###############################################################################
 # Save everything to a pandas dataframe
