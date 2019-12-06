@@ -11,6 +11,20 @@ from config import vfname
 from utils import set_directory
 
 ###############################################################################
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
+depths = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, weight_norms,
+                        use_noise_covs, depths))
+
+###############################################################################
 # Load volume source space
 ###############################################################################
 
@@ -34,7 +48,7 @@ if vsrc[0]['subject_his_id'] is None:
 dfs = []
 for vertex in tqdm(range(3765), total=3765):
     try:
-        df = pd.read_csv(vfname.lcmv_results(noise=config.noise, vertex=vertex))
+        df = pd.read_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=vertex))
         df['vertex'] = vertex
         df['noise'] = config.noise
         dfs.append(df)
@@ -48,17 +62,8 @@ cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
 cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
 
 ###############################################################################
-# Construct lcmv settings list
+# HTML settings
 ###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = ['none', 'normal', 'max-power']
-weight_norms = ['unit-noise-gain', 'none']
-use_noise_covs = [True, False]
-depths = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
 
 html_header = '''
     <html>
@@ -123,32 +128,32 @@ for i, setting in enumerate(settings):
     ###############################################################################
 
     vert_sel = sel['vertex'].get_values()
-    data_dist_sel = sel['dist'].get_values()
-    data_eval_sel = sel['eval'].get_values()
-
-    data_dist = np.zeros(shape=(vertno.shape[0], 1))
+    data_nb_dist_sel = sel['nb_dist'].get_values()
+    data_corr_sel = sel['corr'].get_values()
 
     # do I want to add small value for thresholding in the plot, e.g., 0.001
     # -> causes points with localization error equal to zero to be black in the plot
-    data_dist[vert_sel, 0] = data_dist_sel + 0.001
+    offset = 0.001
+    data_dist = np.zeros(shape=(vertno.shape[0], 1)) + offset
+
+    # TODO: get for each vertex the neighbor with the smallest pairwise distance where corr < 0.5 ** 0.5
+    # TODO: check if this really works, did not have pre_computed data
+    for vert in np.unique(vert_sel):
+        dist_to_nbs = data_nb_dist_sel[np.where(vert_sel == vert)]
+        corr_with_nbs = data_corr_sel[np.where(vert_sel == vert)]
+
+        distance = dist_to_nbs[np.where(corr_with_nbs < 0.5 ** 0.5)].min()
+
+        data_dist[vert][0] = distance + offset
 
     vstc_dist = mne.VolSourceEstimate(data=data_dist, vertices=vertno, tmin=0,
-                                      tstep=1 / info['sfreq'], subject='sample')
-
-    data_eval = np.zeros(shape=(vertno.shape[0], 1))
-
-    # do I want to add small value for thresholding in the plot, e.g., 0.001
-    # -> causes points with localization error equal to zero to be black in the plot
-    data_eval[vert_sel, 0] = data_eval_sel + 0.001
-
-    vstc_eval = mne.VolSourceEstimate(data=data_eval, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
 
     ###############################################################################
     # Plot
     ###############################################################################
 
-    fn_image = 'html/lcmv/%03d_dist_ortho.png' % i
+    fn_image = 'html/lcmv/%03d_dist_2sources_ortho.png' % i
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=vfname.subjects_dir,
@@ -159,24 +164,12 @@ for i, setting in enumerate(settings):
                          cbar_range=cbar_range_dist,
                          save=True, fname_save=fn_image)
 
-    fn_image = 'html/lcmv/%03d_eval_ortho.png' % i
-
-    plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
-                         subjects_dir=vfname.subjects_dir,
-                         time=vstc_eval.tmin, cut_coords=(0, 0, 0),
-                         display_mode='ortho', figure=None,
-                         axes=None, colorbar=True, cmap='magma',
-                         symmetric_cbar='auto', threshold=0,
-                         cbar_range=cbar_range_eval,
-                         save=True, fname_save=fn_image)
-
     ###############################################################################
     # Plot
     ###############################################################################
 
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="lcmv/%03d_dist_ortho.png"></td>' % i
-    html_table += '<td><img src="lcmv/%03d_eval_ortho.png"></td>' % i
+    html_table += '<td><img src="lcmv/%03d_dist_2sources_ortho.png"></td>' % i
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
