@@ -81,6 +81,7 @@ epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 
 # Make CSD matrix
+# TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
 csd = csd_morlet(epochs, [config.signal_freq])
 
 ###############################################################################

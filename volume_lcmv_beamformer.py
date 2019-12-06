@@ -1,21 +1,35 @@
-import mne
 import os.path as op
-from mne.beamformer import make_lcmv, apply_lcmv
-import numpy as np
 from itertools import product
+
+import mne
+import numpy as np
 import pandas as pd
+from mne.beamformer import make_lcmv, apply_lcmv
 
 import config
 from config import vfname
-from utils import make_dipole_volume, evaluate_fancy_metric_volume
-
 from time_series import simulate_raw_vol, create_epochs
+from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 fn_stc_signal = vfname.stc_signal(noise=config.noise, vertex=config.vertex)
 fn_simulated_raw = vfname.simulated_raw(noise=config.noise, vertex=config.vertex)
 fn_simulated_epochs = vfname.simulated_epochs(noise=config.noise, vertex=config.vertex)
 
 fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+
+###############################################################################
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
+depths = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, weight_norms,
+                        use_noise_covs, depths))
 
 ###############################################################################
 # Simulate raw data and create epochs
@@ -48,11 +62,19 @@ else:
                            fn_simulated_epochs=fn_simulated_epochs,
                            fn_report_h5=fn_report_h5)
 
+###############################################################################
+# Read in the manually created forward solution
+###############################################################################
+
 fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
 
 # TODO: test if this is actually necessary for a discrete volume source space
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
+
+###############################################################################
+# Create epochs for for different sensors
+###############################################################################
 
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
@@ -60,35 +82,19 @@ epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make cov matrix
 cov = mne.compute_covariance(epochs, method='shrunk')
-# TODO: using 0.7 - 1.3 here but 0 to 0.3 for surface
 noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='shrunk')
 
 evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()
 evoked_joint = epochs_joint.average()
 
-# Compare
-#   - vector vs. scalar (max-power orientation)
-#   - Array-gain BF (leadfield normalization)
-#   - Unit-gain BF ('vanilla' LCMV)
-#   - Unit-noise-gain BF (weight normalization)
-#   - pre-whitening (noise-covariance)
-#   - different sensor types
-#   - what changes with condition contrasting
+###############################################################################
+# Compute LCMV beamformer results
+###############################################################################
 
-# Compute the settings grid
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
-
-# Compute LCMV beamformer with all possible settings
 dists = []
 evals = []
+
 for setting in settings:
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
     try:
@@ -124,7 +130,10 @@ for setting in settings:
     dists.append(dist)
     evals.append(ev)
 
+###############################################################################
 # Save everything to a pandas dataframe
+###############################################################################
+
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'weight_norm', 'use_noise_cov', 'depth'])
 df['dist'] = dists

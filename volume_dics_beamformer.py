@@ -1,23 +1,37 @@
-import mne
 import os.path as op
-
-from mne.time_frequency import csd_morlet
-from mne.beamformer import make_dics, apply_dics_csd
-import numpy as np
 from itertools import product
+
+import mne
+import numpy as np
 import pandas as pd
+from mne.beamformer import make_dics, apply_dics_csd
+from mne.time_frequency import csd_morlet
 
 import config
 from config import vfname
-from utils import make_dipole_volume, evaluate_fancy_metric_volume
-
 from time_series import simulate_raw_vol, create_epochs
+from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 fn_stc_signal = vfname.stc_signal(noise=config.noise, vertex=config.vertex)
 fn_simulated_raw = vfname.simulated_raw(noise=config.noise, vertex=config.vertex)
 fn_simulated_epochs = vfname.simulated_epochs(noise=config.noise, vertex=config.vertex)
 
 fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+
+###############################################################################
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['grad', 'mag']
+pick_oris = [None, 'max-power']
+inversions = ['single', 'matrix']
+weight_norms = ['unit-noise-gain', 'nai', None]
+normalize_fwds = [True, False]
+real_filters = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, inversions,
+                        weight_norms, normalize_fwds, real_filters))
 
 ###############################################################################
 # Simulate raw data and create epochs
@@ -50,33 +64,35 @@ else:
                            fn_simulated_epochs=fn_simulated_epochs,
                            fn_report_h5=fn_report_h5)
 
+###############################################################################
+# Read in the manually created forward solution
+###############################################################################
+
 fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
 
 # TODO: test if this is actually necessary for a discrete volume source space
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
 
+###############################################################################
+# Create epochs for for different sensors
+###############################################################################
+
 # The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 
 # Make CSD matrix
+# TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
 csd = csd_morlet(epochs, [config.signal_freq])
 
-# Compute the settings grid
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = [None, 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
-normalize_fwds = [True, False]
-real_filters = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
+###############################################################################
+# Compute DICS beamformer results
+###############################################################################
 
-# Compute DICS beamformer with all possible settings
 dists = []
 evals = []
+
 for setting in settings:
     (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
      real_filter) = setting
@@ -111,7 +127,10 @@ for setting in settings:
     dists.append(dist)
     evals.append(ev)
 
+###############################################################################
 # Save everything to a pandas dataframe
+###############################################################################
+
 df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'inversion', 'weight_norm',
                                      'normalize_fwd', 'real_filter'])
