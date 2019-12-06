@@ -1,6 +1,7 @@
-from config import fname, vfname
 import mne
 import numpy as np
+
+from config import fname, vfname
 from utils import make_discrete_forward_solutions
 
 ###############################################################################
@@ -38,6 +39,8 @@ mne.write_forward_solution(vfname.fwd_man, vfwd_man, overwrite=True)
 ###############################################################################
 
 vrr = vsrc_true_mri[0]['rr']
+# use only vertices inuse to construct vrr
+vrr = vrr[vsrc_true_mri[0]['inuse'] == 1]
 
 vfwd_disc_true, vfwd_disc_man = make_discrete_forward_solutions(info, vrr, vbem, trans_true_head_to_mri,
                                                                 trans_man_head_to_mri, vfname.subjects_dir,
@@ -74,9 +77,14 @@ vrr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, 
 distances = np.linalg.norm(vrr_true_mri_to_head_to_mri - vrr_true_mri, axis=1)
 print('Volume: avg. distance %.4f, n_vertno %d' % (distances.mean(), len(vrr_true_mri)))
 
-vrr_disc_true_mri = vsrc_true_mri[0]['rr'][vfwd_disc_man['src'][0]['vertno']]
-vrr_disc_true_head = vfwd_disc_true['src'][0]['rr'][vfwd_disc_true['src'][0]['vertno']]
-# Transform the source space from head space back to mri space with inverse manual trans file
-vrr_disc_true_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_true_head)
-distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri - vrr_disc_true_mri, axis=1)
+vsrc_disc_true = vfwd_disc_true['src']
+vrr_disc_true_head = vsrc_disc_true[0]['rr']
+# true source space in head coordinates transformed to mri coordinates using manually created trans file
+vrr_disc_true_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_true_head)
+
+vsrc_disc_man = vfwd_disc_man['src']
+vrr_disc_man_head = vsrc_disc_man[0]['rr']
+# manually created source space in head coordinates transformed to mri coordinates using manually created trans file
+vrr_disc_man_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_man_head)
+distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri_man - vrr_disc_man_head_to_mri_man, axis=1)
 print('Discrete volume: avg. distance %.4f, n_vertno %d' % (distances_disc.mean(), len(vrr_disc_true_mri)))
