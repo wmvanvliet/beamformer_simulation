@@ -1,14 +1,14 @@
+from itertools import product
+
 import mne
 import numpy as np
+import pandas as pd
+from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
+from tqdm import tqdm
+
 import config
 from config import vfname
-import pandas as pd
-
-from tqdm import tqdm
-from itertools import product
 from utils import set_directory
-from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
-
 
 ###############################################################################
 # Load volume source space
@@ -17,7 +17,7 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 info = mne.io.read_info(vfname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(vfname.fwd_man)
+fwd = mne.read_forward_solution(vfname.fwd_discrete_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
 vsrc = fwd['src']
