@@ -97,8 +97,6 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Compute LCMV beamformer results
     ###############################################################################
 
-    count = 0
-
     for idx_setting, setting in enumerate(settings):
         reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
         try:
@@ -111,8 +109,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            # TODO: some break condition should be implemented, i.e., if previous corr for these settings
-            #   was smaller than 2 ** -0.5 no need to compute correlation for more distant sources
+            # TODO: maybe calculate only if do_break[idx_setting] is False
 
             corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_man,
                                                                signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
