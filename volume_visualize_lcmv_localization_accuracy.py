@@ -11,6 +11,20 @@ from config import vfname
 from utils import set_directory
 
 ###############################################################################
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
+depths = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, weight_norms,
+                        use_noise_covs, depths))
+
+###############################################################################
 # Load volume source space
 ###############################################################################
 
@@ -48,17 +62,8 @@ cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
 cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
 
 ###############################################################################
-# Construct lcmv settings list
+# HTML settings
 ###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = ['none', 'normal', 'max-power']
-weight_norms = ['unit-noise-gain', 'none']
-use_noise_covs = [True, False]
-depths = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
 
 html_header = '''
     <html>
