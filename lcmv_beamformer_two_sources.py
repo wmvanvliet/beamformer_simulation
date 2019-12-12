@@ -52,6 +52,9 @@ nearest_neighbors, distances = get_nearest_neighbors(config.vertex, config.signa
 
 corrs = []
 
+n_settings = len(settings)
+do_break = np.zeros(shape=n_settings, dtype=bool)
+
 for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
 
     # after column_stack nb_vertex is float
@@ -96,7 +99,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
     count = 0
 
-    for setting in settings:
+    for idx_setting, setting in enumerate(settings):
         reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
         try:
             if sensor_type == 'grad':
@@ -118,13 +121,13 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             corrs.append([setting, nb_vertex, nb_dist, corr])
 
             if corr < 2 ** -0.5:
-                count += 1
+                do_break[idx_setting] = True
 
         except Exception as e:
             print(e)
             corrs.append([setting, nb_vertex, nb_dist, np.nan])
 
-    if count == len(settings):
+    if do_break.all():
         # for all settings the shared variance between neighbors is less than 1/sqrt(2)
         # no need to compute correlation for neighbors further away
         break
