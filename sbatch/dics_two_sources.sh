@@ -5,6 +5,9 @@
 #SBATCH --mem-per-cpu=2G
 #SBATCH -n 1
 
+# A name for the job
+#SBATCH --job-name dics_2s
+
 # Do the analysis for each vertex.
 #SBATCH --array=0-4367
 
