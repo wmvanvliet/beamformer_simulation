@@ -1,4 +1,6 @@
 from itertools import product
+import tables
+from time import sleep
 
 import mne
 import numpy as np
@@ -6,11 +8,12 @@ import pandas as pd
 from mne.time_frequency import csd_morlet
 
 import config
-from config import vfname
+from config import fname
 from spatial_resolution import get_nearest_neighbors, compute_dics_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
-fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+#fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
+fn_report_h5 = None  # Don't produce a report
 
 ###############################################################################
 # Compute the settings grid
@@ -31,14 +34,14 @@ settings = list(product(regs, sensor_types, pick_oris, inversions,
 ###############################################################################
 
 print('simulate data')
-info = mne.io.read_info(vfname.sample_raw)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-fwd_disc_true = mne.read_forward_solution(vfname.fwd_discrete_true)
+fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
-er_raw = mne.io.read_raw_fif(vfname.ernoise, preload=True)
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
 # Read in the manually created discrete forward solution
-fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 # TODO: test if this is actually necessary for a discrete volume source space
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
@@ -125,4 +128,18 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
                                   'nb_vertex', 'nb_dist', 'corr'])
-df.to_csv(vfname.dics_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
+df.to_csv(v, hemi=config.signal_hemi))
+
+for _ in range(100):
+    try:
+        with pd.HDFStore(fname.dics_results_2s) as store:
+            store[f'vertex_{config.vertex:04d}'] = df
+            store.flush()
+            print('OK!')
+            break
+    except tables.exceptions.HDF5ExtError:
+        print('Something went wrong?')
+        sleep(1)
+        # Try again
+else:
+    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')

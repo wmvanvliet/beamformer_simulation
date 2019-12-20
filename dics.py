@@ -1,5 +1,7 @@
 import os.path as op
 from itertools import product
+import tables
+from time import sleep
 
 import mne
 import numpy as np
@@ -8,15 +10,16 @@ from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
 
 import config
-from config import vfname
+from config import fname
 from time_series import simulate_raw_vol, create_epochs
 from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
-fn_stc_signal = vfname.stc_signal(noise=config.noise, vertex=config.vertex)
-fn_simulated_raw = vfname.simulated_raw(noise=config.noise, vertex=config.vertex)
-fn_simulated_epochs = vfname.simulated_epochs(noise=config.noise, vertex=config.vertex)
+fn_stc_signal = fname.stc_signal(vertex=config.vertex)
+fn_simulated_raw = fname.simulated_raw(vertex=config.vertex)
+fn_simulated_epochs = fname.simulated_epochs(vertex=config.vertex)
 
-fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+#fn_report_h5 = fname.report(vertex=config.vertex)
+fn_report_h5 = None  # Don't produce a report
 
 ###############################################################################
 # Compute the settings grid
@@ -45,11 +48,11 @@ if op.exists(fn_stc_signal + '-lh.stc') and op.exists(fn_simulated_epochs):
 
 else:
     print('simulate data')
-    info = mne.io.read_info(vfname.sample_raw)
+    info = mne.io.read_info(fname.sample_raw)
     info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-    fwd_disc_true = mne.read_forward_solution(vfname.fwd_discrete_true)
+    fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
     fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
-    er_raw = mne.io.read_raw_fif(vfname.ernoise, preload=True)
+    er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
     raw, stc_signal = simulate_raw_vol(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
                                        signal_freq=config.signal_freq, trial_length=config.trial_length,
@@ -68,7 +71,7 @@ else:
 # Read in the manually created forward solution
 ###############################################################################
 
-fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 # TODO: test if this is actually necessary for a discrete volume source space
 # For pick_ori='normal', the fwd needs to be in surface orientation
@@ -83,7 +86,6 @@ epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 
 # Make CSD matrix
-# TODO: do we calculate the csd matrix for epochs_grad and epochs_mag separately?
 csd = csd_morlet(epochs, [config.signal_freq])
 
 ###############################################################################
@@ -136,4 +138,17 @@ df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
                                      'normalize_fwd', 'real_filter'])
 df['dist'] = dists
 df['eval'] = evals
-df.to_csv(vfname.dics_results(noise=config.noise, vertex=config.vertex))
+
+for _ in range(100):
+    try:
+        with pd.HDFStore(fname.dics_results_2s) as store:
+            store[f'vertex_{config.vertex:04d}'] = df
+            store.flush()
+            print('OK!')
+            break
+    except tables.exceptions.HDF5ExtError:
+        print('Something went wrong?')
+        sleep(1)
+        # Try again
+else:
+    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')

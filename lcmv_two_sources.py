@@ -8,11 +8,11 @@ import tables
 import warnings
 
 import config
-from config import vfname, vertex
+from config import fname, vertex
 from spatial_resolution import get_nearest_neighbors, compute_lcmv_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
-#fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+#fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't make reports.
 
 ###############################################################################
@@ -42,14 +42,14 @@ settings = list(product(regs, sensor_types, pick_oris, weight_norms,
 ###############################################################################
 
 print('simulate data')
-info = mne.io.read_info(vfname.sample_raw)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
-fwd_disc_true = mne.read_forward_solution(vfname.fwd_discrete_true)
+fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
-er_raw = mne.io.read_raw_fif(vfname.ernoise, preload=True)
+er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
 # Read in the manually created discrete forward solution
-fwd_disc_man = mne.read_forward_solution(vfname.fwd_discrete_man)
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 # TODO: test if this is actually necessary for a discrete volume source space
 # For pick_ori='normal', the fwd needs to be in surface orientation
 fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
@@ -148,8 +148,8 @@ df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm
                                   'nb_vertex', 'nb_dist', 'corr'])
 for _ in range(100):
     try:
-        with pd.HDFStore('results.h5') as store:
-            store[f'vertex_{vertex:05d}'] = df
+        with pd.HDFStore(fname.dics_results_2s) as store:
+            store[f'vertex_{config.vertex:04d}'] = df
             store.flush()
             print('OK!')
             break
@@ -157,4 +157,5 @@ for _ in range(100):
         print('Something went wrong?')
         sleep(1)
         # Try again
-#df.to_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=config.vertex, hemi=0))
+else:
+    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')

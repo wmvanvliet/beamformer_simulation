@@ -7,7 +7,7 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from tqdm import tqdm
 
 import config
-from config import vfname
+from config import fname
 from utils import set_directory
 
 ###############################################################################
@@ -28,10 +28,10 @@ settings = list(product(regs, sensor_types, pick_oris, weight_norms,
 # Load volume source space
 ###############################################################################
 
-info = mne.io.read_info(vfname.sample_raw)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(vfname.fwd_discrete_man)
+fwd = mne.read_forward_solution(fname.fwd_discrete_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
 vsrc = fwd['src']
@@ -46,14 +46,15 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-for vertex in tqdm(range(3765), total=3765):
-    try:
-        df = pd.read_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=vertex))
-        df['vertex'] = vertex
-        df['noise'] = config.noise
-        dfs.append(df)
-    except Exception as e:
-        print(e)
+with pd.HDFStore(fname.lcmv_results_2d) as store:
+    for vertex in tqdm(range(3765), total=3765):
+        try:
+            df = store['vertex_{vertex:05d}']
+            df['vertex'] = vertex
+            df['noise'] = config.noise
+            dfs.append(df)
+        except Exception as e:
+            print(e)
 lcmv = pd.concat(dfs, ignore_index=True)
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
@@ -156,7 +157,7 @@ for i, setting in enumerate(settings):
     fn_image = 'html/lcmv/%03d_dist_2sources_ortho.png' % i
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
-                         subjects_dir=vfname.subjects_dir,
+                         subjects_dir=fname.subjects_dir,
                          time=vstc_dist.tmin, cut_coords=(0, 0, 0),
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
