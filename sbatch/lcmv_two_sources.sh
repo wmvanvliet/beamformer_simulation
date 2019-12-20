@@ -6,10 +6,10 @@
 #SBATCH -n 1
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-4367
+#SBATCH --array=0-4637
 
 # Location to write the logfile to
-LOG_FILE=logs/volume_dics_beamformer-$SLURM_ARRAY_TASK_ID.log
+LOG_FILE=logs/lcmv_two_sources-$SLURM_ARRAY_TASK_ID.log
 
 # Load the python environment
 module load anaconda3
@@ -23,4 +23,4 @@ Xvfb :99 -screen 0 1400x900x24 -ac +extension GLX +render -noreset &
 export DISPLAY=:99.0
 
 # Run the script
-srun -o $LOG_FILE python ../volume_dics_beamformer.py -v $SLURM_ARRAY_TASK_ID -n 0.1
+srun -o $LOG_FILE python ../lcmv_two_sources.py -v $SLURM_ARRAY_TASK_ID -n 0.1

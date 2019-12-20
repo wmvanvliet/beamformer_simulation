@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Make sure to request only the resources you really need to avoid cueing
-#SBATCH -t 1:00
+#SBATCH -t 15:00
 #SBATCH --mem-per-cpu=2G
 #SBATCH -n 1
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-3756
+#SBATCH --array=0-4367
 
 # Location to write the logfile to
-LOG_FILE=logs/volume_create_epochs-$SLURM_ARRAY_TASK_ID.log
+LOG_FILE=logs/dics-$SLURM_ARRAY_TASK_ID.log
 
 # Load the python environment
 module load anaconda3
@@ -23,4 +23,4 @@ Xvfb :99 -screen 0 1400x900x24 -ac +extension GLX +render -noreset &
 export DISPLAY=:99.0
 
 # Run the script
-srun -o $LOG_FILE python ../volume_create_epochs.py -v $SLURM_ARRAY_TASK_ID -n 0.1
+srun -o $LOG_FILE python ../dics.py -v $SLURM_ARRAY_TASK_ID -n 0.1
