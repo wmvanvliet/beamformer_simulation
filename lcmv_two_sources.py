@@ -79,8 +79,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
                                              signal_freq2=config.signal_freq2, trial_length=config.trial_length,
                                              n_trials=config.n_trials, noise_multiplier=config.noise,
                                              random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                             er_raw=er_raw, fn_stc_signal1=None, fn_stc_signal2=None,
-                                             fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+                                             er_raw=er_raw)
 
     ###############################################################################
     # Create epochs

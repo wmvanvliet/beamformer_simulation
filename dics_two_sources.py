@@ -71,8 +71,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
                                              signal_freq2=config.signal_freq2, trial_length=config.trial_length,
                                              n_trials=config.n_trials, noise_multiplier=config.noise,
                                              random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                             er_raw=er_raw, fn_stc_signal1=None, fn_stc_signal2=None,
-                                             fn_simulated_raw=None, fn_report_h5=fn_report_h5)
+                                             er_raw=er_raw)
 
     ###############################################################################
     # Create epochs
@@ -106,7 +105,7 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             corr = compute_dics_beamformer_results_two_sources(setting, epo_info, csd, fwd_disc_man,
                                                                signal_vertex1=config.vertex,
                                                                signal_vertex2=nb_vertex,
-                                                               signal_hemi=config.signal_hemi)
+                                                               signal_hemi=0)
 
             corrs.append([setting, nb_vertex, nb_dist, corr])
 
@@ -128,7 +127,6 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
                                   'nb_vertex', 'nb_dist', 'corr'])
-df.to_csv(v, hemi=config.signal_hemi))
 
 for _ in range(100):
     try:
