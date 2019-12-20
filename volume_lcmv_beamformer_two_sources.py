@@ -3,13 +3,17 @@ from itertools import product
 import mne
 import numpy as np
 import pandas as pd
+from time import sleep
+import tables
+import warnings
 
 import config
-from config import vfname
+from config import vfname, vertex
 from spatial_resolution import get_nearest_neighbors, compute_lcmv_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
-fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+#fn_report_h5 = vfname.report(noise=config.noise, vertex=config.vertex)
+fn_report_h5 = None  # Don't make reports.
 
 ###############################################################################
 # Compute the settings grid
@@ -116,22 +120,25 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
             corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_disc_man,
                                                                signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
-                                                               signal_hemi=config.signal_hemi)
+                                                               signal_hemi=0)
 
-            corrs.append([setting, nb_vertex, nb_dist, corr])
+            corrs.append([*setting, nb_vertex, nb_dist, corr])
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
 
         except Exception as e:
             print(e)
-            corrs.append([setting, nb_vertex, nb_dist, np.nan])
+            corrs.append([*setting, nb_vertex, nb_dist, np.nan])
 
     # TODO: maybe include that connections should be calculated for at least closest 44 neighbors
     if do_break.all():
         # for all settings the shared variance between neighbors is less than 1/sqrt(2)
         # no need to compute correlation for neighbors further away
         break
+else:
+    warnings.warn('Reached max number of sources, but still some parameter combinations have large correlations.')
+    
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -139,4 +146,15 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
                                   'nb_vertex', 'nb_dist', 'corr'])
-df.to_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=config.vertex, hemi=config.signal_hemi))
+for _ in range(100):
+    try:
+        with pd.HDFStore('results.h5') as store:
+            store[f'vertex_{vertex:05d}'] = df
+            store.flush()
+            print('OK!')
+            break
+    except tables.exceptions.HDF5ExtError:
+        print('Something went wrong?')
+        sleep(1)
+        # Try again
+#df.to_csv(vfname.lcmv_results_2s(noise=config.noise, vertex=config.vertex, hemi=0))

@@ -5,7 +5,6 @@ import numpy as np
 from mne.simulation import simulate_sparse_stc, simulate_raw
 from time_series import generate_signal, generate_random
 from utils import add_volume_stcs, add_text_next_to_xlabel, random_three_vector
-from matplotlib import pyplot as plt
 
 import config
 from config import vfname
@@ -143,26 +142,27 @@ raw.save(vfname.simulated_raw(noise=config.noise, vertex=config.vertex), overwri
 # Plot it!
 ###############################################################################
 
-now = datetime.now()
-with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as report:
-    fig = plt.figure()
-    plt.plot(times, generate_signal(times, freq=10))
-    plt.xlabel('Time (s)')
-    ax = fig.axes[0]
-
-    add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
-
-    report.add_figs_to_section(fig, now.strftime('Signal time course'),
-                               section='Sensor-level', replace=True)
-
-    fig = raw.plot()
-
-    # axis 1 contains the xlabel
-    ax = fig.axes[1]
-
-    add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
-
-    report.add_figs_to_section(fig, now.strftime('Simulated raw'),
-                               section='Sensor-level', replace=True)
-    report.save(vfname.report_html(noise=config.noise, vertex=config.vertex),
-                overwrite=True, open_browser=False)
+# from matplotlib import pyplot as plt
+# now = datetime.now()
+# with mne.open_report(vfname.report(noise=config.noise, vertex=config.vertex)) as report:
+#     fig = plt.figure()
+#     plt.plot(times, generate_signal(times, freq=10))
+#     plt.xlabel('Time (s)')
+#     ax = fig.axes[0]
+# 
+#     add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+# 
+#     report.add_figs_to_section(fig, now.strftime('Signal time course'),
+#                                section='Sensor-level', replace=True)
+# 
+#     fig = raw.plot()
+# 
+#     # axis 1 contains the xlabel
+#     ax = fig.axes[1]
+# 
+#     add_text_next_to_xlabel(fig, ax, now.strftime('%m/%d/%Y, %H:%M:%S'))
+# 
+#     report.add_figs_to_section(fig, now.strftime('Simulated raw'),
+#                                section='Sensor-level', replace=True)
+#     report.save(vfname.report_html(noise=config.noise, vertex=config.vertex),
+#                 overwrite=True, open_browser=False)

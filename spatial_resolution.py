@@ -17,16 +17,12 @@ def compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov,
 
     reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
     try:
-
         filters = make_lcmv(evoked.info, fwd_man, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             noise_cov=noise_cov if use_noise_cov else None,
                             depth=depth)
-
         stc = apply_lcmv(evoked, filters)
-
         corr = correlation(stc, signal_vertex1, signal_vertex2, signal_hemi)
-
     except Exception as e:
         print(e)
         corr = np.nan

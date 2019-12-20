@@ -3,7 +3,6 @@ from datetime import datetime
 
 import mne
 import numpy as np
-from matplotlib import pyplot as plt
 from mne.simulation import simulate_sparse_stc, simulate_raw as simulate_raw_mne
 from scipy.signal import butter, filtfilt
 
@@ -145,7 +144,7 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
         stc = add_stcs(stc_signal, noise_multiplier * stc_noise)
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
-                               bem=None, forward=fwd, cov=None)
+                               bem=None, forward=fwd)
 
         raw_list.append(raw)
         print('%02d/%02d' % (i + 1, n_trials))
@@ -167,6 +166,7 @@ def simulate_raw(info, src, fwd, signal_vertex, signal_hemi, signal_freq,
 
     # Plot the simulated raw data in the report
     if fn_report_h5 is not None:
+        from matplotlib import pyplot as plt
         set_directory(op.dirname(fn_report_h5))
         fn_report_html = fn_report_h5.rsplit('.h5')[0] + '.html'
         with mne.open_report(fn_report_h5) as report:
@@ -294,7 +294,7 @@ def simulate_raw_two_sources(info, src, fwd, signal_vertex1, signal_hemi1, signa
         stc = add_stcs(stc_signal, noise_multiplier * stc_noise)
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
-                               bem=None, forward=fwd, cov=None)
+                               bem=None, forward=fwd)
 
         raw_list.append(raw)
         print('%02d/%02d' % (i + 1, n_trials))
@@ -316,6 +316,7 @@ def simulate_raw_two_sources(info, src, fwd, signal_vertex1, signal_hemi1, signa
 
     # Plot the simulated raw data in the report
     if fn_report_h5 is not None:
+        from matplotlib import pyplot as plt
         set_directory(op.dirname(fn_report_h5))
         fn_report_html = fn_report_h5.rsplit('.h5')[0] + '.html'
         with mne.open_report(fn_report_h5) as report:
@@ -478,7 +479,7 @@ def simulate_raw_vol(info, fwd_disc_true, signal_vertex, signal_freq,
         stc = add_volume_stcs(stc_signal, noise_multiplier * stc_noise)
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
-                               bem=None, forward=fwd_disc_true, cov=None)
+                               bem=None, forward=fwd_disc_true)
 
         raw_list.append(raw)
         print('%02d/%02d' % (i + 1, n_trials))
@@ -500,6 +501,7 @@ def simulate_raw_vol(info, fwd_disc_true, signal_vertex, signal_freq,
 
     # Plot the simulated raw data in the report
     if fn_report_h5 is not None:
+        from matplotlib import pyplot as plt
         set_directory(op.dirname(fn_report_h5))
         fn_report_html = fn_report_h5.rsplit('.h5')[0] + '.html'
 
@@ -635,7 +637,7 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
         stc = add_volume_stcs(stc_signal, noise_multiplier * stc_noise)
 
         raw = simulate_raw_mne(info, stc, trans=None, src=None,
-                               bem=None, forward=fwd_disc_true, cov=None)
+                               bem=None, forward=fwd_disc_true)
 
         raw_list.append(raw)
         print('%02d/%02d' % (i + 1, n_trials))
@@ -657,6 +659,7 @@ def simulate_raw_vol_two_sources(info, fwd_disc_true, signal_vertex1, signal_fre
 
     # Plot the simulated raw data in the report
     if fn_report_h5 is not None:
+        from matplotlib import pyplot as plt
         set_directory(op.dirname(fn_report_h5))
         fn_report_html = fn_report_h5.rsplit('.h5')[0] + '.html'
 

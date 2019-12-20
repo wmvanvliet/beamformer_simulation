@@ -87,4 +87,4 @@ vrr_disc_man_head = vsrc_disc_man[0]['rr']
 # manually created source space in head coordinates transformed to mri coordinates using manually created trans file
 vrr_disc_man_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_man_head)
 distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri_man - vrr_disc_man_head_to_mri_man, axis=1)
-print('Discrete volume: avg. distance %.4f, n_vertno %d' % (distances_disc.mean(), len(vrr_disc_true_mri)))
+print('Discrete volume: avg. distance %.4f, n_vertno %d' % (distances_disc.mean(), len(vrr_disc_true_head)))
