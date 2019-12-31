@@ -134,13 +134,11 @@ df['eval'] = evals
 
 for _ in range(100):
     try:
-        with pd.HDFStore(fname.lcmv_results) as store:
-            store[f'vertex_{config.vertex:04d}'] = df
-            store.flush()
-            print('OK!')
-            break
-    except tables.exceptions.HDF5ExtError:
-        print('Something went wrong?')
+        df.to_hdf(fname.lcmv_results, f'vertex_{config.vertex:04d}')
+        print('OK!')
+        break
+    except tables.exceptions.HDF5ExtError as e:
+        print(f'Something went wrong? {e}')
         sleep(1)
         # Try again
 else:
