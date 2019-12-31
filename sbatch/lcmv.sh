@@ -15,8 +15,8 @@
 LOG_FILE=logs/lcmv-$SLURM_ARRAY_TASK_ID.log
 
 # Load the python environment
-module load anaconda3
 module load mesa
+module load anaconda3
 
 # Tell BLAS to only use a single thread
 export OMP_NUM_THREADS=1
