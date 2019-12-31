@@ -1,6 +1,7 @@
 from itertools import product
 import tables
 from time import sleep
+import random
 
 import mne
 import numpy as np
@@ -135,7 +136,7 @@ for _ in range(100):
         break
     except tables.exceptions.HDF5ExtError as e:
         print(f'Something went wrong? {e}')
-        sleep(1)
+        sleep(random.uniform(1, 10))
         # Try again
 else:
     raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')
