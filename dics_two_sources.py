@@ -127,15 +127,5 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter',
                                   'nb_vertex', 'nb_dist', 'corr'])
-
-for _ in range(100):
-    try:
-        df.to_hdf(fname.dics_results_2s, f'vertex_{config.vertex:04d}')
-        print('OK!')
-        break
-    except tables.exceptions.HDF5ExtError as e:
-        print(f'Something went wrong? {e}')
-        sleep(1)
-        # Try again
-else:
-    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')
+df.to_csv(fname.dics_results_2s(vertex=config.vertex))
+print('OK!')

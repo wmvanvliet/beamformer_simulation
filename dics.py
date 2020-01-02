@@ -129,14 +129,5 @@ df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
 df['dist'] = dists
 df['eval'] = evals
 
-for _ in range(100):
-    try:
-        df.to_hdf(fname.dics_results, f'vertex_{config.vertex:04d}')
-        print('OK!')
-        break
-    except tables.exceptions.HDF5ExtError as e:
-        print(f'Something went wrong? {e}')
-        sleep(1)
-        # Try again
-else:
-    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')
+df.to_csv(fname.dics_results(vertex=config.vertex))
+print('OK!')

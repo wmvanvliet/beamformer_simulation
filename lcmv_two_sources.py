@@ -145,14 +145,5 @@ else:
 
 df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
                                   'nb_vertex', 'nb_dist', 'corr'])
-for _ in range(100):
-    try:
-        df.to_hdf(fname.lcmv_results_2s, f'vertex_{config.vertex:04d}')
-        print('OK!')
-        break
-    except tables.exceptions.HDF5ExtError as e:
-        print(f'Something went wrong? {e}')
-        sleep(1)
-        # Try again
-else:
-    raise RuntimeError('Tried to write result HDF5 file 100 times and failed.')
+df.to_csv(fname.lcmv_results_2s(vertex=config.vertex))
+print('OK!')
