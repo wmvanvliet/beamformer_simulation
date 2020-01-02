@@ -9,7 +9,7 @@
 #SBATCH --job-name dics_2s
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-4367
+#SBATCH --array=0-3765
 
 #SBATCH --output=dics_two_sources.out --open-mode=append
 

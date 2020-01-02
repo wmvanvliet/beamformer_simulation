@@ -9,7 +9,7 @@
 #SBATCH --job-name lcmv
 
 # Do the analysis for each vertex.
-#SBATCH --array=0-4637
+#SBATCH --array=0-3765
 
 #SBATCH --output=lcmv.out --open-mode=append
 

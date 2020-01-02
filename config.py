@@ -55,6 +55,7 @@ noise = args.noise  # Multiplier for the noise dipoles
 # Position of the signal
 vertex = args.vertex
 signal_hemi = 1
+n_vertices = 3765  # Number of dipoles in the source space
 
 random = np.random.RandomState(vertex)  # Random seed for everything
 
