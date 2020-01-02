@@ -30,4 +30,4 @@ Xvfb :99 -screen 0 1400x900x24 -ac +extension GLX +render -noreset &
 export DISPLAY=:99.0
 
 # Run the script
-srun python ../dics.py -v $SLURM_ARRAY_TASK_ID -n 0.1 | sed -e "s/^/$VERTEX_NUMBER:  /" >> $LOG_FILE
+srun python ../dics.py -v $SLURM_ARRAY_TASK_ID -n 0.1 2>&1 | sed -e "s/^/$VERTEX_NUMBER:  /" >> $LOG_FILE

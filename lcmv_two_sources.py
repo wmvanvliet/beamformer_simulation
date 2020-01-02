@@ -4,13 +4,15 @@ import mne
 import numpy as np
 import pandas as pd
 from time import sleep
-import tables
 import warnings
 
 import config
 from config import fname, vertex
 from spatial_resolution import get_nearest_neighbors, compute_lcmv_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
+
+# Don't be verbose
+mne.set_log_level(False)
 
 #fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't make reports.

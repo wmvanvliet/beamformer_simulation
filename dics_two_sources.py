@@ -1,5 +1,4 @@
 from itertools import product
-import tables
 from time import sleep
 
 import mne
@@ -11,6 +10,9 @@ import config
 from config import fname
 from spatial_resolution import get_nearest_neighbors, compute_dics_beamformer_results_two_sources
 from time_series import simulate_raw_vol_two_sources, create_epochs
+
+# Don't be verbose
+mne.set_log_level(False)
 
 #fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report

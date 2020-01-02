@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure to request only the resources you really need to avoid cueing
-#SBATCH -t 15:00
+#SBATCH -t 5:00:00
 #SBATCH --mem-per-cpu=2G
 #SBATCH -n 1
 
@@ -30,4 +30,4 @@ Xvfb :99 -screen 0 1400x900x24 -ac +extension GLX +render -noreset &
 export DISPLAY=:99.0
 
 # Run the script
-srun python ../dics_two_sources.py -v $SLURM_ARRAY_TASK_ID -n 0.1 | sed -e "s/^/$VERTEX_NUMBER:  /" >> $LOG_FILE
+srun python ../dics_two_sources.py -v $SLURM_ARRAY_TASK_ID -n 0.1 2>&1 | sed -e "s/^/$VERTEX_NUMBER:  /" >> $LOG_FILE
