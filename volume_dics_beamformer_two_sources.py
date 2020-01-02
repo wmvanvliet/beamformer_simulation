@@ -105,14 +105,14 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
                                                                signal_vertex2=nb_vertex,
                                                                signal_hemi=config.signal_hemi)
 
-            corrs.append([setting, nb_vertex, nb_dist, corr])
+            corrs.append(list(setting) + [nb_vertex, nb_dist, corr])
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
 
         except Exception as e:
             print(e)
-            corrs.append([setting, nb_vertex, nb_dist, np.nan])
+            corrs.append(list(setting) + [nb_vertex, nb_dist, np.nan])
 
         if do_break.all():
             # for all settings the shared variance between neighbors is less than 1/sqrt(2)
