@@ -1,25 +1,38 @@
+from itertools import product
+
 import mne
 import numpy as np
-import config
-from config import vfname
 import pandas as pd
-
-from tqdm import tqdm
-from itertools import product
-from utils import set_directory
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
+from tqdm import tqdm
 
+import config
+from config import fname
+from utils import set_directory
+
+###############################################################################
+# Compute the settings grid
+###############################################################################
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['joint', 'grad', 'mag']
+pick_oris = [None, 'max-power']
+weight_norms = ['unit-noise-gain', 'nai', None]
+use_noise_covs = [True, False]
+depths = [True, False]
+
+settings = list(product(regs, sensor_types, pick_oris, weight_norms,
+                        use_noise_covs, depths))
 
 ###############################################################################
 # Load volume source space
 ###############################################################################
 
-info = mne.io.read_info(vfname.sample_raw)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(vfname.fwd)
+fwd = mne.read_forward_solution(fname.fwd_discrete_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
-
 
 vsrc = fwd['src']
 vertno = vsrc[0]['vertno']
@@ -33,34 +46,25 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-for vertex in tqdm(range(3765), total=3765):
-    try:
-        df = pd.read_csv(vfname.dics_results(noise=config.noise, vertex=vertex))
-        df['vertex'] = vertex
-        df['noise'] = config.noise
-        dfs.append(df)
-    except Exception as e:
-        print(e)
-dics = pd.concat(dfs, ignore_index=True)
-dics['pick_ori'].fillna('none', inplace=True)
-dics['weight_norm'].fillna('none', inplace=True)
+with pd.HDFStore(fname.lcmv_results) as store:
+    for vertex in tqdm(range(3765), total=3765):
+        try:
+            df = store['vertex_{vertex:05d}']
+            df['vertex'] = vertex
+            df['noise'] = config.noise
+            dfs.append(df)
+        except Exception as e:
+            print(e)
+lcmv = pd.concat(dfs, ignore_index=True)
+lcmv['pick_ori'].fillna('none', inplace=True)
+lcmv['weight_norm'].fillna('none', inplace=True)
 
-cbar_range_dist = [0, dics['dist'].dropna().get_values().max()]
-cbar_range_eval = [0, dics['eval'].dropna().get_values().max()]
+cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
+cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
 
 ###############################################################################
-# Construct dics settings list
+# HTML settings
 ###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = ['none', 'normal', 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'none']
-normalize_fwds = [True, False]
-real_filters = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
 
 html_header = '''
     <html>
@@ -74,10 +78,9 @@ html_header = '''
         <th>reg</th>
         <th>sensor type</th>
         <th>pick_ori</th>
-        <th>inversion</th>
         <th>weight_norm</th>
-        <th>normalize_fwd</th>
-        <th>real_filter</th>
+        <th>use_noise_cov</th>
+        <th>depth</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
     </tr>
@@ -85,10 +88,9 @@ html_header = '''
         <td><input type="text" onkeyup="filter(0, this)" placeholder="reg"></td>
         <td><input type="text" onkeyup="filter(1, this)" placeholder="sensor type"></td>
         <td><input type="text" onkeyup="filter(2, this)" placeholder="pick_ori"></td>
-        <td><input type="text" onkeyup="filter(3, this)" placeholder="inversion"></td>
-        <td><input type="text" onkeyup="filter(4, this)" placeholder="weight_norm"></td>
-        <td><input type="text" onkeyup="filter(5, this)" placeholder="normalize_fwd"></td>
-        <td><input type="text" onkeyup="filter(6, this)" placeholder="real_filter"></td>
+        <td><input type="text" onkeyup="filter(3, this)" placeholder="weight_norm"></td>
+        <td><input type="text" onkeyup="filter(4, this)" placeholder="use_noise_doc"></td>
+        <td><input type="text" onkeyup="filter(5, this)" placeholder="depth"></td>
         <td></td>
         <td></td>
     </tr>
@@ -98,26 +100,28 @@ html_footer = '</body></table>'
 
 html_table = ''
 
-set_directory('html/dics')
+set_directory('html/lcmv')
 
 for i, setting in enumerate(settings):
     # construct query
     q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and "
-         "inversion=='%s' and weight_norm=='%s' and normalize_fwd==%s and real_filter==%s" % setting)
+         "weight_norm=='%s' and use_noise_cov==%s and depth==%s" % setting)
 
     print(q)
 
-    sel = dics.query(q).dropna()
+    sel = lcmv.query(q).dropna()
 
     if len(sel) < 1000:
         continue
 
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filters = setting
+    reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
 
     # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and normalize_fwd == True:
+    if weight_norm == 'unit-noise-gain' and depth is True:
         continue
-    if weight_norm == 'none' and normalize_fwd == False:
+    if weight_norm == 'none' and depth is False:
+        continue
+    if sensor_type == 'joint' and use_noise_cov is False:
         continue
 
     ###############################################################################
@@ -150,10 +154,10 @@ for i, setting in enumerate(settings):
     # Plot
     ###############################################################################
 
-    fn_image = 'html/dics/%03d_dist_ortho.png' % i
+    fn_image = 'html/lcmv/%03d_dist_ortho.png' % i
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
-                         subjects_dir=vfname.subjects_dir,
+                         subjects_dir=fname.subjects_dir,
                          time=vstc_dist.tmin, cut_coords=(0, 0, 0),
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
@@ -161,10 +165,10 @@ for i, setting in enumerate(settings):
                          cbar_range=cbar_range_dist,
                          save=True, fname_save=fn_image)
 
-    fn_image = 'html/dics/%03d_eval_ortho.png' % i
+    fn_image = 'html/lcmv/%03d_eval_ortho.png' % i
 
     plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
-                         subjects_dir=vfname.subjects_dir,
+                         subjects_dir=fname.subjects_dir,
                          time=vstc_eval.tmin, cut_coords=(0, 0, 0),
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
@@ -177,10 +181,10 @@ for i, setting in enumerate(settings):
     ###############################################################################
 
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="dics/%03d_dist_ortho.png"></td>' % i
-    html_table += '<td><img src="dics/%03d_eval_ortho.png"></td>' % i
+    html_table += '<td><img src="lcmv/%03d_dist_ortho.png"></td>' % i
+    html_table += '<td><img src="lcmv/%03d_eval_ortho.png"></td>' % i
 
-    with open('html/dics_vol.html', 'w') as f:
+    with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
         f.write(html_table)
         f.write(html_footer)
