@@ -9,18 +9,19 @@ Goals:
 Parameters:
  - Regularization
  - Reduce rank
- - Orientation picking (pool, normal, max-power, vector)
+ - Orientation picking (pool, max-power)
  - Weight normalization (unit-noise-gain, nai, none)
  - Depth weighting
  - Leadfield normalization
  - Vector vs Scalar beamformer (single, matrix)
  - For DICS: real values only
- - Noise covariance whitening (needs to be implemented for DICS)
  - One filter for both baseline and post-event parts, or separate filters for separate time periods?
+ - Sensor type (grad/mag/combined)
+ - Noise covariance whitening (implemented in this PR: https://github.com/mne-tools/mne-python/pull/7021)
 
 Tests:
  - Simulation
-   Sources all over the cortex. Not exactly on grid points! Avoid forward model "crime": add localization error
+   Sources all over the cortex. Avoid forward model "crime": add localization error
  - Real data    
    1. Head cast data with median nerve stimulation. One subject. Around 300 trials.
    2. MNE-Python somato dataset as publically available data set
@@ -28,18 +29,17 @@ Tests:
 Metrics:
  - Localization accuracy
  - Point Spread (Fancy Method (tm))
- - Output SNR (crosstalk?)
- - Move two sources together (different, orthogonal time courses at each source), evaluate signal correlation at each distance: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0157655 page 16
+ - Output SNR (crosstalk?) Compare reconstructed timecourse against true simulated timecourse. Compute SNR.
+ - Move two sources together (different, orthogonal time courses at each source), evaluate signal correlation at each distance: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0157655 - page 16
 
 Tasks:
-1) Finish data analysis --- deadline 1st Nov
-- Britta: real data analysis (data from Aarhus + MNE-Python sample data)
-- Marijn: MNE-Python somato dataset (publically available)
-- Marijn: Get noise covariance (CSD) matrix whitening for DICS - PR should involve Eric
-- Chris: Update simulation code (generate sources exactly on gridpoints, use different forward model for simulation and source localization)
-  Britta has done a manual co-registration on mne-sample in order to create a new. -trans file. Compute difference with original trans file. Error should be in the order of 5mm (coregistration error).
-- Chris: Update "grid-search" script that runs beamformer with all parameters and runs evaluation metrics
-
+1) Finish data analysis
+- Britta: real data analysis (data from Aarhus + MNE-Python sample data) (in progress - find MRI :/  )
+- Marijn: MNE-Python somato dataset (publically available). Ask Lauri for raw data. On volume space.
+- Chris+Marijn: Update "grid-search" script that runs beamformer with all parameters and runs evaluation metrics
+- Marijn: put whitening somato example code on a GitHub PR
+- Marijn & Britta: get median nerve stimulation motor cortex activation point identified by experts.
+    
 2) Get figures
 - Marijn: make web-interface to browse through results
 - Britta: make comparable figures for the real data results, merging headcast and somato results
@@ -49,3 +49,16 @@ Tasks:
 
 Meetings:
 - Tuesday, 5th Nov, 9:00 CPH and 10:00 HEL time
+=======
+- Monday, 11th Nov, same time 
+- Monday, 25th Nov, same time
+
+Done tasks:
+
+- Chris: Update simulation code (generate sources exactly on gridpoints, use different forward model for simulation and source localization). Done!
+- Britta has done a manual co-registration on mne-sample in order to create a new. -trans file. Compute difference with original trans file. Error should be in the order of 5mm (coregistration error). Done!
+- Everyone: Implement performance metrics: get ideas from:
+    https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0157655#sec014
+    https://link.springer.com/article/10.1007/s10548-018-0656-5
+- Marijn: Get noise covariance (CSD) matrix whitening for DICS - Only whiten covariance matrix
+- Marijn: get simulation code to run on Triton cluster

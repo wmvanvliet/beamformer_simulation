@@ -1,6 +1,4 @@
-import os.path as op
 from itertools import product
-from time import sleep
 
 import mne
 import numpy as np
