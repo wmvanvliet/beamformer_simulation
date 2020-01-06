@@ -36,8 +36,6 @@ Tasks:
 1) Finish data analysis
 - Britta: real data analysis (data from Aarhus + MNE-Python sample data) (in progress - find MRI :/  )
 - Marijn: MNE-Python somato dataset (publically available). Ask Lauri for raw data. On volume space.
-- Chris+Marijn: Update "grid-search" script that runs beamformer with all parameters and runs evaluation metrics
-- Marijn: put whitening somato example code on a GitHub PR
 - Marijn & Britta: get median nerve stimulation motor cortex activation point identified by experts.
     
 2) Get figures
@@ -62,3 +60,5 @@ Done tasks:
     https://link.springer.com/article/10.1007/s10548-018-0656-5
 - Marijn: Get noise covariance (CSD) matrix whitening for DICS - Only whiten covariance matrix
 - Marijn: get simulation code to run on Triton cluster
+- Chris+Marijn: Update "grid-search" script that runs beamformer with all parameters and runs evaluation metrics
+- Marijn: put whitening somato example code on a GitHub PR
