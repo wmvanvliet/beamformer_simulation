@@ -30,7 +30,7 @@ report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Ev
 report.add_figs_to_section(epochs_clean.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after ICA (grads)', 'Evokeds after ICA (mags)'], 'Sensor level', replace=True)
 
 # Create longer epochs for rhythmic analysis
-epochs_long = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-1, tmax=2.5, reject=None, baseline=None, preload=True)
+epochs_long = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-1.5, tmax=2, reject=None, baseline=None, preload=True)
 epochs_long = ica.apply(epochs_long)
 epochs_long.save(fname.epochs_long, overwrite=True)
 
