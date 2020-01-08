@@ -1,14 +1,12 @@
-from itertools import product
-
 import mne
 import numpy as np
 import pandas as pd
-from time import sleep
 import warnings
+from mne.beamformer import make_lcmv, apply_lcmv
 
 import config
-from config import fname, vertex
-from spatial_resolution import get_nearest_neighbors, compute_lcmv_beamformer_results_two_sources
+from config import fname, lcmv_settings
+from spatial_resolution import get_nearest_neighbors, correlation
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
 # Don't be verbose
@@ -17,27 +15,6 @@ mne.set_log_level(False)
 #fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't make reports.
 
-###############################################################################
-# Compute the settings grid
-###############################################################################
-
-# Compare
-#   - vector vs. scalar (max-power orientation)
-#   - Array-gain BF (leadfield normalization)
-#   - Unit-gain BF ('vanilla' LCMV)
-#   - Unit-noise-gain BF (weight normalization)
-#   - pre-whitening (noise-covariance)
-#   - different sensor types
-#   - what changes with condition contrasting
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
 
 ###############################################################################
 # Load data
@@ -52,9 +29,6 @@ er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
 # Read in the manually created discrete forward solution
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
 
 ###############################################################################
 # Get nearest neighbors
@@ -64,7 +38,7 @@ nearest_neighbors, distances = get_nearest_neighbors(config.vertex, signal_hemi=
 
 corrs = []
 
-n_settings = len(settings)
+n_settings = len(lcmv_settings)
 do_break = np.zeros(shape=n_settings, dtype=bool)
 
 for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
@@ -107,8 +81,8 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     # Compute LCMV beamformer results
     ###############################################################################
 
-    for idx_setting, setting in enumerate(settings):
-        reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
+    for idx_setting, setting in enumerate(lcmv_settings):
+        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
         try:
             if sensor_type == 'grad':
                 evoked = evoked_grad
@@ -119,11 +93,16 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            corr = compute_lcmv_beamformer_results_two_sources(setting, evoked, cov, noise_cov, fwd_disc_man,
-                                                               signal_vertex1=config.vertex, signal_vertex2=nb_vertex,
-                                                               signal_hemi=0)
-
+            filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
+                                pick_ori=pick_ori, weight_norm=weight_norm,
+                                normalize_fwd=normalize_fwd, inversion=inversion,
+                                noise_cov=noise_cov if use_noise_cov else None)
+            stc = apply_lcmv(evoked, filters)
+            corr = correlation(stc, signal_vertex1=config.vertex,
+                               signal_vertex2=nb_vertex, signal_hemi=0)
             corrs.append(list(setting) + [nb_vertex, nb_dist, corr])
+
+            print(setting, nb_dist, corr)
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
@@ -144,7 +123,9 @@ else:
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'weight_norm', 'use_noise_cov', 'depth',
-                                  'nb_vertex', 'nb_dist', 'corr'])
+df = pd.DataFrame(corrs,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                           'nb_vertex', 'nb_dist', 'corr'])
 df.to_csv(fname.lcmv_results_2s(vertex=config.vertex))
 print('OK!')

@@ -8,7 +8,7 @@ import pandas as pd
 from mne.beamformer import make_lcmv, apply_lcmv
 
 import config
-from config import fname
+from config import fname, lcmv_settings
 from time_series import simulate_raw_vol, create_epochs
 from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
@@ -21,20 +21,6 @@ fn_simulated_epochs = fname.simulated_epochs( vertex=config.vertex)
 
 #fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
-
-###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
 
 ###############################################################################
 # Simulate raw data and create epochs
@@ -58,27 +44,18 @@ del info, fwd_disc_true, er_raw
 epochs = create_epochs(raw, config.trial_length, config.n_trials)
 
 ###############################################################################
-# Read in the manually created forward solution
-###############################################################################
-
-fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
-
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
-
-###############################################################################
-# Create epochs for for different sensors
+# Sensor-level analysis
 ###############################################################################
 
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
-# Make cov matrix
-cov = mne.compute_covariance(epochs, method='shrunk')
-noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='shrunk')
+# Make cov matrices
+cov = mne.compute_covariance(epochs, method='empirical')
+noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
 
+# Compute evokeds
 evoked_grad = epochs_grad.average()
 evoked_mag = epochs_mag.average()
 evoked_joint = epochs_joint.average()
@@ -87,11 +64,13 @@ evoked_joint = epochs_joint.average()
 # Compute LCMV beamformer results
 ###############################################################################
 
+# Read in forward solution
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
+
 dists = []
 evals = []
-
-for setting in settings:
-    reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
+for setting in lcmv_settings:
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -104,8 +83,8 @@ for setting in settings:
 
         filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
-                            noise_cov=noise_cov if use_noise_cov else None,
-                            depth=depth)
+                            inversion=inversion, normalize_fwd=normalize_fwd,
+                            noise_cov=noise_cov if use_noise_cov else None)
 
         stc = apply_lcmv(evoked, filters)
 
@@ -129,8 +108,9 @@ for setting in settings:
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
-                                     'weight_norm', 'use_noise_cov', 'depth'])
+df = pd.DataFrame(lcmv_settings,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov'])
 df['dist'] = dists
 df['eval'] = evals
 

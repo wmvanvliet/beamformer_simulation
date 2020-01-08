@@ -1,13 +1,12 @@
-from itertools import product
-
 import mne
 import numpy as np
 import pandas as pd
 from mne.time_frequency import csd_morlet
+from mne.beamformer import make_dics, apply_dics_csd
 
 import config
-from config import fname
-from spatial_resolution import get_nearest_neighbors, compute_dics_beamformer_results_two_sources
+from config import fname, dics_settings
+from spatial_resolution import get_nearest_neighbors, correlation
 from time_series import simulate_raw_vol_two_sources, create_epochs
 
 # Don't be verbose
@@ -15,20 +14,6 @@ mne.set_log_level(False)
 
 #fn_report_h5 = fname.report(noise=config.noise, vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
-
-###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = [None, 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
-normalize_fwds = [True, False]
-real_filters = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
 
 ###############################################################################
 # Load data
@@ -43,9 +28,6 @@ er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
 # Read in the manually created discrete forward solution
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
 
 ###############################################################################
 # Get nearest neighbors
@@ -55,7 +37,7 @@ nearest_neighbors, distances = get_nearest_neighbors(config.vertex, signal_hemi=
 
 corrs = []
 
-n_settings = len(settings)
+n_settings = len(dics_settings)
 do_break = np.zeros(shape=n_settings, dtype=bool)
 
 for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
@@ -84,37 +66,46 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 
     epochs_grad = epochs.copy().pick_types(meg='grad')
     epochs_mag = epochs.copy().pick_types(meg='mag')
+    epochs_joint = epochs.copy().pick_types(meg=True)
 
     # Make CSD matrix
     csd = csd_morlet(epochs, [config.signal_freq])
+    noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=0.7, tmax=1.3)
 
     ###############################################################################
     # Compute DICS beamformer results
     ###############################################################################
 
-    for idx_setting, setting in enumerate(settings):
-        (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
-         real_filter) = setting
+    for idx_setting, setting in enumerate(dics_settings):
+        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
         try:
             if sensor_type == 'grad':
                 epo_info = epochs_grad.info
             elif sensor_type == 'mag':
                 epo_info = epochs_mag.info
+            elif sensor_type == 'joint':
+                info = epochs_joint.info
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            corr = compute_dics_beamformer_results_two_sources(setting, epo_info, csd, fwd_disc_man,
-                                                               signal_vertex1=config.vertex,
-                                                               signal_vertex2=nb_vertex,
-                                                               signal_hemi=0)
-
+            filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
+                                inversion=inversion, weight_norm=weight_norm,
+                                normalize_fwd=normalize_fwd,
+                                noise_csd=noise_csd if use_noise_cov else None,
+                                real_filter=real_filter)
+            stc, freqs = apply_dics_csd(csd, filters)
+            corr = correlation(stc, signal_vertex1=config.vertex,
+                               signal_vertex2=nb_vertex, signal_hemi=0)
             corrs.append([*setting, nb_vertex, nb_dist, corr])
+
+            print(setting, nb_dist, corr)
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
 
         except Exception as e:
             print(e)
+            raise(e)
             corrs.append([*setting, nb_vertex, nb_dist, np.nan])
 
         if do_break.all():
@@ -126,7 +117,9 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(corrs, columns=['reg', 'sensor_type', 'pick_ori', 'inversion', 'weight_norm', 'normalize_fwd', 'real_filter',
-                                  'nb_vertex', 'nb_dist', 'corr'])
+df = pd.DataFrame(corrs,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'real_filter',
+                           'use_noise_cov', 'nb_vertex', 'nb_dist', 'corr'])
 df.to_csv(fname.dics_results_2s(vertex=config.vertex))
 print('OK!')

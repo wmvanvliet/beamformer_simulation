@@ -1,5 +1,3 @@
-from itertools import product
-
 import mne
 import numpy as np
 import pandas as pd
@@ -7,7 +5,7 @@ from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
 
 import config
-from config import fname
+from config import fname, dics_settings
 from time_series import simulate_raw_vol, create_epochs
 from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
@@ -20,21 +18,6 @@ fn_simulated_epochs = fname.simulated_epochs(vertex=config.vertex)
 
 #fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
-
-###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = [None, 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
-normalize_fwds = [True, False]
-real_filters = [True, False]
-
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
 
 ###############################################################################
 # Simulate raw data and create epochs
@@ -58,46 +41,42 @@ del info, fwd_disc_true, er_raw
 epochs = create_epochs(raw, config.trial_length, config.n_trials)
 
 ###############################################################################
-# Read in the manually created forward solution
+# Sensor level analysis
 ###############################################################################
 
-fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
-
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
-
-###############################################################################
-# Create epochs for for different sensors
-###############################################################################
-
-# The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
+epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make CSD matrix
 csd = csd_morlet(epochs, [config.signal_freq])
+noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=0.7, tmax=1.3)
 
 ###############################################################################
 # Compute DICS beamformer results
 ###############################################################################
 
+# Read in forward solution
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
+
 dists = []
 evals = []
 
-for setting in settings:
-    (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
-     real_filter) = setting
+for setting in dics_settings:
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info
         elif sensor_type == 'mag':
             info = epochs_mag.info
+        elif sensor_type == 'joint':
+            info = epochs_joint.info
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
         filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
+                            noise_csd=noise_csd if use_noise_cov else None,
                             normalize_fwd=normalize_fwd,
                             real_filter=real_filter)
 
@@ -123,9 +102,10 @@ for setting in settings:
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
-                                     'inversion', 'weight_norm',
-                                     'normalize_fwd', 'real_filter'])
+df = pd.DataFrame(dics_settings,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'real_filter',
+                           'use_noise_cov'])
 df['dist'] = dists
 df['eval'] = evals
 

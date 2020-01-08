@@ -1,6 +1,7 @@
 import argparse
 import os
 from socket import getfqdn
+from itertools import product
 
 import numpy as np
 from mne.datasets import sample
@@ -33,7 +34,6 @@ else:
                        'should be stored and the n_jobs variable to the '
                        'number of CPU cores the analysis is allowed to use.')
 
-
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Beamformer simulator')
 parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
@@ -42,13 +42,17 @@ parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
 args = parser.parse_args()
 
+###############################################################################
+# Settings related to the simulation
+###############################################################################
+
 trial_length = 2.0  # Length of a trial in seconds
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 10  # Frequency at which to simulate the signal timecourse
 signal_freq2 = 30  # Frequency at which to simulate the second signal timecourse
-n_neighbors_max = 1000  # maximum number of nearest neighbors being considered
-#n_neighbors_max = 1  # maximum number of nearest neighbors being considered
+#n_neighbors_max = 1000  # maximum number of nearest neighbors being considered
+n_neighbors_max = 1  # maximum number of nearest neighbors being considered
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
 noise = args.noise  # Multiplier for the noise dipoles
 
@@ -59,7 +63,41 @@ n_vertices = 3765  # Number of dipoles in the source space
 
 random = np.random.RandomState(vertex)  # Random seed for everything
 
+###############################################################################
+# Settings grid for beamformers
+###############################################################################
+
+# Compare
+#   - vector vs. scalar (max-power orientation)
+#   - Array-gain BF (leadfield normalization)
+#   - Unit-gain BF ('vanilla' LCMV)
+#   - Unit-noise-gain BF (weight normalization)
+#   - pre-whitening (noise-covariance)
+#   - different sensor types
+#   - what changes with condition contrasting
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['grad', 'mag', 'joint']
+pick_oris = [None, 'max-power']
+inversions = ['single', 'matrix']
+weight_norms = ['unit-noise-gain', 'nai', None]
+normalize_fwds = [True, False]
+real_filters = [True, False]
+use_noise_covs = [True, False]
+
+dics_settings = list(product(
+    regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
+    real_filters, use_noise_covs,
+))
+
+lcmv_settings = list(product(
+    regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
+    use_noise_covs,
+))
+
+###############################################################################
 # Filenames for various things
+###############################################################################
 fname = FileNames()
 
 n_noise_dipoles_vol = 150  # number of noise_dipoles in volume source space
