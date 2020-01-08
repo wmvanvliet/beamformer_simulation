@@ -4,7 +4,7 @@ from socket import getfqdn
 from itertools import product
 
 import numpy as np
-from mne.datasets import sample
+from mne.datasets import sample, somato
 from mne.datasets.brainstorm import bst_phantom_ctf
 
 from fnames import FileNames
@@ -96,6 +96,13 @@ lcmv_settings = list(product(
 ))
 
 ###############################################################################
+# True source locations for real datasets
+###############################################################################
+
+# FIXME replace with actual value determined by Hanna Renvall
+somato_true_pos = [0.042, 0.009, 0.105]  # In head space, in meters
+
+###############################################################################
 # Filenames for various things
 ###############################################################################
 fname = FileNames()
@@ -141,6 +148,17 @@ phantom_fname = FileNames()
 phantom_fname.add('data_path', bst_phantom_ctf.data_path()) 
 phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
 phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
+
+# MNE-Somato data set
+fname.add('somato_path', somato.data_path())
+fname.add('somato_derivatives', '{somato_path}/derivatives/sub-01')
+fname.add('somato_subjects', '{somato_path}/derivatives/freesurfer/subjects')
+fname.add('somato_src', '{somato_derivatives}/sub-01_task-somato_vol-src.fif')
+fname.add('somato_fwd', '{somato_derivatives}/sub-01_task-somato_vol-fwd.fif')
+fname.add('somato_epochs', '{somato_derivatives}/sub-01_task-somato_epo.fif')
+fname.add('somato_epochs_long', '{somato_derivatives}/sub-01_task-somato_long_epo.fif')
+fname.add('lcmv_somato_results', '{target_path}/lcmv_results-somato.csv')
+fname.add('dics_somato_results', '{target_path}/dics_results-somato.csv')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
