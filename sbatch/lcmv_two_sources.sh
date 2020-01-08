@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure to request only the resources you really need to avoid cueing
-#SBATCH -t 5:00:00
+#SBATCH -t 24:00:00
 #SBATCH --mem-per-cpu=2G
 #SBATCH -n 1
 
