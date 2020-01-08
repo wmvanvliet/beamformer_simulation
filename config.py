@@ -36,7 +36,7 @@ else:
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Beamformer simulator')
-parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
+parser.add_argument('-n', '--noise', type=float, metavar='float', default=0.1,
                     help='Amount of noise to add')
 parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')

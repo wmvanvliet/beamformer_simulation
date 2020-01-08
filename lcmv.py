@@ -1,11 +1,8 @@
-import os.path as op
-from itertools import product
-from time import sleep
-
 import mne
 import numpy as np
 import pandas as pd
 from mne.beamformer import make_lcmv, apply_lcmv
+from scipy.stats import pearsonr
 
 import config
 from config import fname, lcmv_settings
@@ -69,6 +66,7 @@ fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 dists = []
 evals = []
+corrs = []
 for setting in lcmv_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
     try:
@@ -95,14 +93,23 @@ for setting in lcmv_settings:
 
         # Fancy evaluation metric
         ev = evaluate_fancy_metric_volume(stc, stc_signal)
+
+        # Correlation between true and reconstructed timecourse
+        time_idx_min = np.searchsorted(stc_signal.times, epochs.times[0])
+        time_idx_max = np.searchsorted(stc_signal.times, epochs.times[-1])
+        true_time_course = stc_signal.data[0, time_idx_min:time_idx_max+1]
+        peak_vertex = abs(stc).mean().get_peak(vert_as_index=True)[0]
+        estimated_time_course = np.abs(stc.data[peak_vertex])
+        corr = pearsonr(np.abs(true_time_course), np.abs(stc.data[0]))[0]
     except Exception as e:
         print(e)
         dist = np.nan
         ev = np.nan
-    print(setting, dist, ev)
+    print(setting, dist, ev, corr)
 
     dists.append(dist)
     evals.append(ev)
+    corrs.append(corr)
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -113,6 +120,7 @@ df = pd.DataFrame(lcmv_settings,
                            'weight_norm', 'normalize_fwd', 'use_noise_cov'])
 df['dist'] = dists
 df['eval'] = evals
+df['corr'] = corrs
 
 df.to_csv(fname.lcmv_results(vertex=config.vertex))
 print('OK!')
