@@ -27,10 +27,12 @@ fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
-raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
-                               signal_freq=config.signal_freq, trial_length=config.trial_length,
-                               n_trials=config.n_trials, noise_multiplier=config.noise,
-                               random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
+raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true,
+                               signal_vertex=config.vertex,
+                               signal_freq=config.signal_freq,
+                               trial_length=config.trial_length,
+                               n_trials=config.n_trials, noise_multiplier=0,
+                               random_state=config.random, n_noise_dipoles=0,
                                er_raw=er_raw)
 
 del info, er_raw
@@ -90,6 +92,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
 
     for idx_setting, setting in enumerate(lcmv_settings):
         if do_break[idx_setting]:
+            print(setting, '(skip)')
             continue
 
         reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
