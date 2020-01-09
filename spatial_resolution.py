@@ -4,11 +4,10 @@ from scipy.stats import pearsonr
 
 
 def correlation(stc, signal_vertex1, signal_vertex2, signal_hemi):
-
+    """Compute absolute correlation between two signals"""
     vertex1 = signal_vertex1 if signal_hemi == 0 else signal_vertex1 + stc.vertices[0].shape[0]
     vertex2 = signal_vertex2 if signal_hemi == 0 else signal_vertex2 + stc.vertices[0].shape[0]
-
-    return pearsonr(stc.data[vertex1], stc.data[vertex2])[0]
+    return abs(pearsonr(stc.data[vertex1], stc.data[vertex2])[0])
 
 
 def get_nearest_neighbors(signal_vertex, signal_hemi, src):

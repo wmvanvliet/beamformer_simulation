@@ -69,6 +69,9 @@ evals = []
 corrs = []
 for setting in lcmv_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+    if sensor_type == 'joint' and not use_noise_cov:
+        # Invalid combination of parameters
+        continue
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad

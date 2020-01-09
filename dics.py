@@ -64,6 +64,9 @@ evals = []
 
 for setting in dics_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
+    if sensor_type == 'joint' and not use_noise_cov:
+        # Invalid combination of parameters
+        continue
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info

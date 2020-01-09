@@ -7,7 +7,7 @@ from mne.beamformer import make_lcmv, apply_lcmv
 import config
 from config import fname, lcmv_settings
 from spatial_resolution import get_nearest_neighbors, correlation
-from time_series import simulate_raw_vol_two_sources, create_epochs
+from time_series import simulate_raw, add_source_to_raw, create_epochs
 
 # Don't be verbose
 mne.set_log_level(False)
@@ -17,7 +17,7 @@ fn_report_h5 = None  # Don't make reports.
 
 
 ###############################################################################
-# Load data
+# Simulate raw data
 ###############################################################################
 
 print('simulate data')
@@ -27,7 +27,15 @@ fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
-# Read in the manually created discrete forward solution
+raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
+                               signal_freq=config.signal_freq, trial_length=config.trial_length,
+                               n_trials=config.n_trials, noise_multiplier=config.noise,
+                               random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
+                               er_raw=er_raw)
+
+del info, er_raw
+
+# Read in forward solution
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 ###############################################################################
@@ -41,28 +49,27 @@ corrs = []
 n_settings = len(lcmv_settings)
 do_break = np.zeros(shape=n_settings, dtype=bool)
 
-for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]:
+
+for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, distances))[:config.n_neighbors_max]):
+    print(f'Processing neighbour {i}/{config.n_neighbors_max}', flush=True)
 
     # after column_stack nb_vertex is float
     nb_vertex = int(nb_vertex)
 
     ###############################################################################
-    # Simulate raw data
+    # Simulate second dipole
     ###############################################################################
 
-    raw, _, _ = simulate_raw_vol_two_sources(info=info, fwd_disc_true=fwd_disc_true, signal_vertex1=config.vertex,
-                                             signal_freq1=config.signal_freq, signal_vertex2=nb_vertex,
-                                             signal_freq2=config.signal_freq2, trial_length=config.trial_length,
-                                             n_trials=config.n_trials, noise_multiplier=config.noise,
-                                             random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                             er_raw=er_raw)
+    raw2, stc_signal2 = add_source_to_raw(raw, fwd_disc_true=fwd_disc_true,
+                                          signal_vertex=nb_vertex, signal_freq=config.signal_freq2,
+                                          trial_length=config.trial_length, n_trials=config.n_trials)
 
     ###############################################################################
     # Create epochs
     ###############################################################################
 
     title = 'Simulated evoked for two signal vertices'
-    epochs = create_epochs(raw, config.trial_length, config.n_trials, title=title,
+    epochs = create_epochs(raw2, config.trial_length, config.n_trials, title=title,
                            fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
 
     epochs_grad = epochs.copy().pick_types(meg='grad')
@@ -82,7 +89,15 @@ for nb_vertex, nb_dist in np.column_stack((nearest_neighbors, distances))[:confi
     ###############################################################################
 
     for idx_setting, setting in enumerate(lcmv_settings):
+        if do_break[idx_setting]:
+            continue
+
         reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+
+        if sensor_type == 'joint' and not use_noise_cov:
+            # Invalid combination of parameters
+            continue
+
         try:
             if sensor_type == 'grad':
                 evoked = evoked_grad
