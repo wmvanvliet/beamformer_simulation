@@ -62,15 +62,23 @@ for setting in lcmv_settings:
                             inversion=inversion, normalize_fwd=normalize_fwd,
                             noise_cov=noise_cov if use_noise_cov else None)
 
-        # We only care about the SI response at 40ms after stimulus onset
-        stc = apply_lcmv(evoked, filters).crop(0.04, 0.04)
+        stc = apply_lcmv(evoked, filters)
 
-        # Compute distance between true and estimated source
-        estimated_pos = fwd['src'][0]['rr'][stc.get_peak()[0]]
-        dist = np.linalg.norm(somato_true_pos - estimated_pos)
+        # Peak should be around 0.04
+        peak_time = stc.get_peak()[1]
+        if not (0.03 <= peak_time <= 0.05):
+            print('Could not find SI peak')
+            dist = np.nan
+            ev = np.nan
+        else:
+            stc = stc.crop(0.03, 0.05).mean()
 
-        # Fancy evaluation metric
-        ev = evaluate_fancy_metric_volume(stc, true_vert_idx=somato_true_vert_idx)
+            # Compute distance between true and estimated source
+            estimated_pos = fwd['src'][0]['rr'][stc.get_peak()[0]]
+            dist = np.linalg.norm(somato_true_pos - estimated_pos)
+
+            # Fancy evaluation metric
+            ev = evaluate_fancy_metric_volume(stc, true_vert_idx=somato_true_vert_idx)
     except Exception as e:
         print(e)
         dist = np.nan
