@@ -8,8 +8,7 @@ inv = mne.minimum_norm.make_inverse_operator(epochs.info, fwd, noise_cov)
 stc = mne.minimum_norm.apply_inverse(epochs.average(), inv)
 stc.subject = subject_id
 stc.save(fname.stc_mne)
-peak_time = stc.get_peak()[1]
-abs(stc.copy().crop(peak_time, peak_time)).save_as_volume(fname.nii_mne, src=fwd['src'])
+abs(stc.copy().crop(0.040, 0.040)).save_as_volume(fname.nii_mne, src=fwd['src'])
 
 fig = stc.plot(initial_time=0.040, subject=subject_id, subjects_dir=fname.subjects_dir, src=fwd['src'],
                clim=dict(kind='percent', lims=[99.9, 99.95, 100]))

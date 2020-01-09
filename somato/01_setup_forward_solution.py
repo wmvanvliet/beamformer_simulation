@@ -10,6 +10,7 @@ info = mne.io.read_info(fname.raw)
 trans = mne_bids.get_head_mri_trans(fname.raw, fname.bids_root)
 bem = mne.make_bem_model('01', ico=4, subjects_dir=fname.subjects_dir)
 bem_sol = mne.make_bem_solution(bem)
+mne.write_bem_solution(fname.bem, bem_sol)
 src = mne.setup_volume_source_space(subject=subject_id, bem=bem_sol, subjects_dir=fname.subjects_dir)
 fwd = mne.make_forward_solution(info=info, trans=trans, src=src, bem=bem_sol)
 
