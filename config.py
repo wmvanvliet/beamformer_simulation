@@ -47,10 +47,12 @@ args = parser.parse_args()
 ###############################################################################
 
 trial_length = 2.0  # Length of a trial in seconds
+tmin = -1.0
+tmax = 1.0
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
-signal_freq = 10  # Frequency at which to simulate the signal timecourse
-signal_freq2 = 30  # Frequency at which to simulate the second signal timecourse
+signal_freq = 20  # Frequency at which to simulate the signal timecourse
+signal_freq2 = 33  # Frequency at which to simulate the second signal timecourse
 n_neighbors_max = 200  # maximum number of nearest neighbors being considered
 #n_neighbors_max = 1  # maximum number of nearest neighbors being considered
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses

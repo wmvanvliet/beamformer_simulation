@@ -11,7 +11,7 @@ from utils import add_stcs, add_volume_stcs, set_directory
 from utils import add_text_next_to_xlabel
 
 
-def generate_signal(times, freq=10., n_trial=2, phase_lock=False):
+def generate_signal(times, freq=10., phase=0):
     """Simulate a time series.
 
     Parameters:
@@ -20,18 +20,14 @@ def generate_signal(times, freq=10., n_trial=2, phase_lock=False):
         Time points.
     freq : float
         Frequency of oscillations in Hz.
-    n_trial : int
-        Number of trials, defaults to 2.
+    phase : float
+        Phase of the oscillations. From 0 to 2 * pi.
     """
     signal = np.zeros_like(times)
 
-    for trial in range(n_trial):
-        envelope = np.exp(50. * -(times - 0.5 - trial) ** 2.)
-        if phase_lock is False:
-            phase = config.random.rand() * 2 * np.pi
-            signal += np.cos(phase + freq * 2 * np.pi * times) * envelope
-        else:
-            signal += np.cos(freq * 2 * np.pi * times) * envelope
+    for chirp in range(2):
+        envelope = np.exp(100. * -(times - 0.25 - 0.5 * chirp) ** 2.)
+        signal += np.cos(phase + freq * 2 * np.pi * times) * envelope
     return signal * 1e-7
 
 
@@ -60,20 +56,16 @@ def generate_random(times, lowpass=40):
     return signal
 
 
-def create_epochs(raw, trial_length, n_trials, title='Simulated evoked',
+def create_epochs(raw, title='Simulated evoked',
                   fn_simulated_epochs=None, fn_report_h5=None):
     """
     Create epochs based on the raw object with the baseline
-    going from 0 to 0.3 s.
+    going from config.tmin to config.tmax
 
     Parameters:
     -----------
     raw : instance of Raw
         Simulated raw file.
-    trial_length : float
-        Length of a single trial in samples.
-    n_trials : int
-        Number of trials to create.
     fn_simulated_raw : None | string
         Path where the epochs file is to be saved. If None the file is not saved.
     fn_report_h5 : None | string
@@ -84,17 +76,18 @@ def create_epochs(raw, trial_length, n_trials, title='Simulated evoked',
     epochs : instance of Epochs
         Epochs created from the simulated raw.
     """
-
+    sfreq = raw.info['sfreq']
+    trial_length = int((config.tmax - config.tmin) * sfreq)
     events = np.hstack((
-        (np.arange(n_trials) * trial_length * raw.info['sfreq'])[:, np.newaxis],
-        np.zeros((n_trials, 1)),
-        np.ones((n_trials, 1)),
+        (np.arange(config.n_trials) * trial_length)[:, np.newaxis] - int(config.tmin * sfreq),
+        np.zeros((config.n_trials, 1)),
+        np.ones((config.n_trials, 1)),
     )).astype(np.int)
 
     #  Use tmin=0.1 and tmax=trial_length - 0.1 to avoid edge artifacts
     epochs = mne.Epochs(raw=raw, events=events, event_id=1,
-                        tmin=0.1, tmax=trial_length - 0.1,
-                        baseline=(None, 0.3), preload=True)
+                        tmin=config.tmin + 1 / sfreq, tmax=config.tmax - 1 / sfreq,
+                        baseline=(None, 0), preload=True)
 
     ###############################################################################
     # Save everything
@@ -168,7 +161,9 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
         Source time courses of the signal.
     """
 
-    times = np.arange(0, trial_length * info['sfreq']) / info['sfreq']
+    sfreq = info['sfreq']
+    trial_length = int((config.tmax - config.tmin) * sfreq)
+    times = np.arange(trial_length) / sfreq + config.tmin
 
     ###############################################################################
     # Simulate a single signal dipole source as signal
@@ -179,8 +174,8 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
     signal_vert = src[0]['vertno'][signal_vertex]
     data = np.asarray([generate_signal(times, freq=signal_freq)])
     vertices = np.array([signal_vert])
-    stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=0,
-                                       tstep=1 / info['sfreq'], subject='sample')
+    stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=times[0],
+                                       tstep=np.diff(times[:2])[0], subject='sample')
     if fn_stc_signal is not None:
         set_directory(op.dirname(fn_stc_signal))
         stc_signal.save(fn_stc_signal)
@@ -251,6 +246,7 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
                                        section='Sensor-level', replace=True)
             report.save(fn_report_html, overwrite=True, open_browser=False)
 
+    raw._annotations = mne.annotations.Annotations([], [], [])
     return raw, stc_signal
 
 
@@ -283,14 +279,18 @@ def add_source_to_raw(raw, fwd_disc_true, signal_vertex, signal_freq,
     stc_signal : instance of SourceEstimate
         Source time courses of the new signal.
     """
+    sfreq = raw.info['sfreq']
+    trial_length = int((config.tmax - config.tmin) * sfreq)
+    times = np.arange(trial_length) / sfreq + config.tmin
 
-    times = np.arange(0, trial_length * raw.info['sfreq']) / raw.info['sfreq']
     src = fwd_disc_true['src']
     signal_vert = src[0]['vertno'][signal_vertex]
-    data = np.asarray([generate_signal(times, freq=signal_freq)])
+    data = np.zeros(len(times))
+    signal_part = times >= 0
+    data[signal_part] += generate_random(times[signal_part])
     vertices = np.array([signal_vert])
-    stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=0,
-                                       tstep=1 / raw.info['sfreq'], subject='sample')
+    stc_signal = mne.VolSourceEstimate(data=data[np.newaxis, :], vertices=vertices, tmin=times[0],
+                                       tstep=np.diff(times[:2])[0], subject='sample')
     raw_signal = simulate_raw_mne(raw.info, stc_signal, trans=None, src=None,
                                   bem=None, forward=fwd_disc_true)
     raw_signal = mne.concatenate_raws([raw_signal.copy() for _ in range(n_trials)])

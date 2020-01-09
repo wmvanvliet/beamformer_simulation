@@ -6,7 +6,7 @@ from scipy.stats import pearsonr
 
 import config
 from config import fname, lcmv_settings
-from time_series import simulate_raw_vol, create_epochs
+from time_series import simulate_raw, create_epochs
 from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 # Don't be verbose
@@ -30,15 +30,15 @@ fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
-raw, stc_signal = simulate_raw_vol(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
-                                   signal_freq=config.signal_freq, trial_length=config.trial_length,
-                                   n_trials=config.n_trials, noise_multiplier=config.noise,
-                                   random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                   er_raw=er_raw)
+raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
+                               signal_freq=config.signal_freq, trial_length=config.trial_length,
+                               n_trials=config.n_trials, noise_multiplier=config.noise,
+                               random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
+                               er_raw=er_raw)
 
 del info, fwd_disc_true, er_raw
 
-epochs = create_epochs(raw, config.trial_length, config.n_trials)
+epochs = create_epochs(raw)
 
 ###############################################################################
 # Sensor-level analysis
@@ -49,8 +49,8 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make cov matrices
-cov = mne.compute_covariance(epochs, method='empirical')
-noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
+cov = mne.compute_covariance(epochs, tmin=0, tmax=1, method='empirical')
+noise_cov = mne.compute_covariance(epochs, tmin=-1, tmax=0, method='empirical')
 
 # Compute evokeds
 evoked_grad = epochs_grad.average()
@@ -69,9 +69,6 @@ evals = []
 corrs = []
 for setting in lcmv_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
-    if sensor_type == 'joint' and not use_noise_cov:
-        # Invalid combination of parameters
-        continue
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -87,7 +84,7 @@ for setting in lcmv_settings:
                             inversion=inversion, normalize_fwd=normalize_fwd,
                             noise_cov=noise_cov if use_noise_cov else None)
 
-        stc = apply_lcmv(evoked, filters)
+        stc = apply_lcmv(evoked, filters).crop(0.001, 1)
 
         # Compute distance between true and estimated source
         dip_true = make_dipole_volume(stc_signal, fwd_disc_man['src'])
@@ -98,16 +95,15 @@ for setting in lcmv_settings:
         ev = evaluate_fancy_metric_volume(stc, stc_signal)
 
         # Correlation between true and reconstructed timecourse
-        time_idx_min = np.searchsorted(stc_signal.times, epochs.times[0])
-        time_idx_max = np.searchsorted(stc_signal.times, epochs.times[-1])
-        true_time_course = stc_signal.data[0, time_idx_min:time_idx_max+1]
+        true_time_course = stc_signal.copy().crop(0, 1).data[0]
         peak_vertex = abs(stc).mean().get_peak(vert_as_index=True)[0]
         estimated_time_course = np.abs(stc.data[peak_vertex])
-        corr = pearsonr(np.abs(true_time_course), np.abs(stc.data[0]))[0]
+        corr = pearsonr(np.abs(true_time_course), estimated_time_course)[0]
     except Exception as e:
         print(e)
         dist = np.nan
         ev = np.nan
+        corr = np.nan
     print(setting, dist, ev, corr)
 
     dists.append(dist)

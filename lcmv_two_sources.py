@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import warnings
 from mne.beamformer import make_lcmv, apply_lcmv
+from scipy.stats import pearsonr
 
 import config
 from config import fname, lcmv_settings
@@ -36,6 +37,7 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true,
                                er_raw=er_raw)
 
 del info, er_raw
+
 
 # Read in forward solution
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
@@ -71,16 +73,15 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
     ###############################################################################
 
     title = 'Simulated evoked for two signal vertices'
-    epochs = create_epochs(raw2, config.trial_length, config.n_trials, title=title,
-                           fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
+    epochs = create_epochs(raw2, title=title, fn_simulated_epochs=None, fn_report_h5=fn_report_h5)
 
     epochs_grad = epochs.copy().pick_types(meg='grad')
     epochs_mag = epochs.copy().pick_types(meg='mag')
     epochs_joint = epochs.copy().pick_types(meg=True)
 
     # Make cov matrix
-    cov = mne.compute_covariance(epochs, method='empirical')
-    noise_cov = mne.compute_covariance(epochs, tmin=0.7, tmax=1.3, method='empirical')
+    data_cov = mne.compute_covariance(epochs, tmin=0, tmax=None, method='empirical')
+    noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0, method='empirical')
 
     evoked_grad = epochs_grad.average()
     evoked_mag = epochs_mag.average()
@@ -111,11 +112,11 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
+            filters = make_lcmv(evoked.info, fwd_disc_man, data_cov, reg=reg,
                                 pick_ori=pick_ori, weight_norm=weight_norm,
                                 normalize_fwd=normalize_fwd, inversion=inversion,
                                 noise_cov=noise_cov if use_noise_cov else None)
-            stc = apply_lcmv(evoked, filters)
+            stc = apply_lcmv(evoked, filters).crop(0.001, 1)
             corr = correlation(stc, signal_vertex1=config.vertex,
                                signal_vertex2=nb_vertex, signal_hemi=0)
             corrs.append(list(setting) + [nb_vertex, nb_dist, corr])
@@ -124,6 +125,8 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
+                break
+
 
         except Exception as e:
             print(e)
