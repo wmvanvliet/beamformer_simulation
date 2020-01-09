@@ -100,7 +100,9 @@ lcmv_settings = list(product(
 ###############################################################################
 
 # FIXME replace with actual value determined by Hanna Renvall
-somato_true_pos = [0.042, 0.009, 0.105]  # In head space, in meters
+somato_true_pos_ras = [32.9265, 10.8532, 57.4155]  # In RAS space, in mm
+somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in meters
+somato_true_vert_idx = 12679
 
 ###############################################################################
 # Filenames for various things

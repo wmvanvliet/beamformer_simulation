@@ -4,8 +4,8 @@ import pandas as pd
 from mne.beamformer import make_lcmv, apply_lcmv
 
 import config
-from config import fname, lcmv_settings, somato_true_pos
-from utils import make_dipole_volume, evaluate_fancy_metric_volume
+from config import fname, lcmv_settings, somato_true_pos, somato_true_vert_idx
+from utils import evaluate_fancy_metric_volume
 
 # Don't be verbose
 mne.set_log_level(False)
@@ -62,15 +62,15 @@ for setting in lcmv_settings:
                             inversion=inversion, normalize_fwd=normalize_fwd,
                             noise_cov=noise_cov if use_noise_cov else None)
 
-        stc = apply_lcmv(evoked, filters)
+        # We only care about the SI response at 40ms after stimulus onset
+        stc = apply_lcmv(evoked, filters).crop(0.04, 0.04)
 
         # Compute distance between true and estimated source
-        dip_est = make_dipole_volume(stc, fwd['src'])
-        dist = np.linalg.norm(somato_true_pos - dip_est.pos)
+        estimated_pos = fwd['src'][0]['rr'][stc.get_peak()[0]]
+        dist = np.linalg.norm(somato_true_pos - estimated_pos)
 
         # Fancy evaluation metric
-        #ev = evaluate_fancy_metric_volume(stc, stc_signal)
-        ev = np.nan
+        ev = evaluate_fancy_metric_volume(stc, true_vert_idx=somato_true_vert_idx)
     except Exception as e:
         print(e)
         dist = np.nan

@@ -22,7 +22,7 @@ csd_ers = csd_ers.mean()
 
 # Compute DICS beamformer to localize ERS
 fwd = mne.read_forward_solution(fname.fwd)
-inv = mne.beamformer.make_dics(epochs.info, fwd, csd, noise_csd=csd_baseline, pick_ori='max-power')
+inv = mne.beamformer.make_dics(epochs.info, fwd, csd, noise_csd=csd_baseline)
 
 # Compute source power
 stc_baseline, _ = mne.beamformer.apply_dics_csd(csd_baseline, inv)
@@ -34,6 +34,8 @@ stc_ers.subject = subject_id
 stc_ers /= stc_baseline
 stc_ers.data = np.log(stc_ers.data)
 stc_ers.save(fname.stc_dics)
+stc_ers.save_as_volume(fname.nii_dics, src=fwd['src'])
+
 fig = stc_ers.plot(subject=subject_id, subjects_dir=fname.subjects_dir, src=fwd['src'],
                    clim=dict(kind='percent', lims=[99, 99.5, 100]))
 report.add_figs_to_section(fig, 'DICS Source estimate', 'Source level', replace=True)

@@ -4,9 +4,8 @@ import pandas as pd
 from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
 
-import config
-from config import fname, dics_settings, somato_true_pos
-from utils import make_dipole_volume, evaluate_fancy_metric_volume
+from config import fname, dics_settings, somato_true_pos, somato_true_vert_idx
+from utils import evaluate_fancy_metric_volume
 
 # Don't be verbose
 mne.set_log_level(False)
@@ -68,12 +67,11 @@ for setting in dics_settings:
         stc_ers.data = np.log(stc_ers.data)
 
         # Compute distance between true and estimated source
-        dip_est = make_dipole_volume(stc_ers, fwd['src'])
-        dist = np.linalg.norm(somato_true_pos - dip_est.pos)
+        estimated_pos = fwd['src'][0]['rr'][stc_ers.get_peak()[0]]
+        dist = np.linalg.norm(somato_true_pos - estimated_pos)
 
         # Fancy evaluation metric
-        #ev = evaluate_fancy_metric_volume(stc, stc_signal)
-        ev = np.nan
+        ev = evaluate_fancy_metric_volume(stc_ers, true_vert_idx=somato_true_vert_idx)
     except Exception as e:
         print(e)
         dist = np.nan

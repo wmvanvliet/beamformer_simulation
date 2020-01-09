@@ -25,7 +25,7 @@ def task_mne():
     """Step 3: MNE source estimate"""
     return dict(
         file_dep=[fname.epochs, fname.fwd, '03_mne.py'],
-        targets=[fname.stc_mne],
+        targets=[fname.stc_mne, fname.nii_mne],
         actions=['ipython 03_mne.py'],
     )
 
@@ -33,7 +33,7 @@ def task_lcmv():
     """Step 4: LCMV source estimate"""
     return dict(
         file_dep=[fname.epochs, fname.fwd, '04_lcmv.py'],
-        targets=[fname.stc_lcmv],
+        targets=[fname.stc_lcmv, fname.nii_lcmv],
         actions=['ipython 04_lcmv.py'],
     )
 
@@ -41,6 +41,6 @@ def task_dics():
     """Step 5: DICS source estimate"""
     return dict(
         file_dep=[fname.epochs, fname.fwd, '05_dics.py'],
-        targets=[fname.stc_dics],
+        targets=[fname.stc_dics, fname.nii_dics],
         actions=['ipython 05_dics.py'],
     )

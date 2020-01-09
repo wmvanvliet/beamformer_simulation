@@ -130,7 +130,7 @@ def evaluate_fancy_metric(stc_est, stc_signal):
     return estimate[true_vert_idx][0]
 
 
-def evaluate_fancy_metric_volume(stc_est, stc_signal):
+def evaluate_fancy_metric_volume(stc_est, stc_signal=None, true_vert_idx=None):
     # Find the estimated source distribution at peak activity
     peak_time = stc_est.get_peak(time_as_index=True)[1]
     estimate = abs(stc_est).data[:, peak_time]
@@ -138,10 +138,12 @@ def evaluate_fancy_metric_volume(stc_est, stc_signal):
     # Normalize the estimated source distribution to sum to 1
     estimate /= estimate.sum()
 
-    # Measure the estimated activity left at the true signal location
-    true_vert = stc_signal.vertices[0]
-    true_vert_idx = np.hstack(stc_est.vertices) == true_vert
-    return estimate[true_vert_idx][0]
+    if stc_signal is not None:
+        # Measure the estimated activity left at the true signal location
+        true_vert = stc_signal.vertices[0]
+        true_vert_idx = np.flatnonzero(stc_est.vertices == true_vert)[0]
+
+    return estimate[true_vert_idx]
 
 
 def add_text_next_to_xlabel(fig, ax, text):
