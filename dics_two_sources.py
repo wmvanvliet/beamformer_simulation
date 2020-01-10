@@ -2,11 +2,11 @@ import mne
 import numpy as np
 import pandas as pd
 import warnings
-from mne.beamformer import make_lcmv, apply_lcmv
-from scipy.stats import pearsonr
+from mne.beamformer import make_dics, apply_dics_csd
+from mne.time_frequency import csd_morlet
 
 import config
-from config import fname, lcmv_settings
+from config import fname, dics_settings
 from spatial_resolution import get_nearest_neighbors, correlation
 from time_series import simulate_raw, add_source_to_raw, create_epochs
 
@@ -50,7 +50,7 @@ nearest_neighbors, distances = get_nearest_neighbors(config.vertex, signal_hemi=
 
 corrs = []
 
-n_settings = len(lcmv_settings)
+n_settings = len(dics_settings)
 do_break = np.zeros(shape=n_settings, dtype=bool)
 
 
@@ -67,7 +67,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
     raw2, stc_signal2 = add_source_to_raw(raw, fwd_disc_true=fwd_disc_true,
                                           signal_vertex=nb_vertex, signal_freq=config.signal_freq2,
                                           trial_length=config.trial_length, n_trials=config.n_trials,
-                                          source_type='random')
+                                          source_type='chirp')
 
     ###############################################################################
     # Create epochs
@@ -80,50 +80,49 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
     epochs_mag = epochs.copy().pick_types(meg='mag')
     epochs_joint = epochs.copy().pick_types(meg=True)
 
-    # Make cov matrix
-    data_cov = mne.compute_covariance(epochs, tmin=0, tmax=None, method='empirical')
-    noise_cov = mne.compute_covariance(epochs, tmin=None, tmax=0, method='empirical')
-
-    evoked_grad = epochs_grad.average()
-    evoked_mag = epochs_mag.average()
-    evoked_joint = epochs_joint.average()
+    # Make CSDs
+    csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=0, tmax=1)
+    noise_csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=-1, tmax=0)
 
     ###############################################################################
-    # Compute LCMV beamformer results
+    # Compute DICS beamformer results
     ###############################################################################
 
-    for idx_setting, setting in enumerate(lcmv_settings):
+    for idx_setting, setting in enumerate(dics_settings):
         if do_break[idx_setting]:
             print(setting, '(skip)')
             continue
 
-        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
 
         try:
             if sensor_type == 'grad':
-                evoked = evoked_grad
+                info = epochs_grad.info
             elif sensor_type == 'mag':
-                evoked = evoked_mag
+                info = epochs_mag.info
             elif sensor_type == 'joint':
-                evoked = evoked_joint
+                info = epochs_joint.info
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            filters = make_lcmv(evoked.info, fwd_disc_man, data_cov, reg=reg,
-                                pick_ori=pick_ori, weight_norm=weight_norm,
-                                normalize_fwd=normalize_fwd, inversion=inversion,
-                                noise_cov=noise_cov if use_noise_cov else None)
-            stc = apply_lcmv(evoked, filters).crop(0.001, 1)
-            corr = correlation(stc, signal_vertex1=config.vertex,
-                               signal_vertex2=nb_vertex, signal_hemi=0)
-            corrs.append(list(setting) + [nb_vertex, nb_dist, corr])
+            filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
+                                inversion=inversion, weight_norm=weight_norm,
+                                noise_csd=noise_csd if use_noise_cov else None,
+                                normalize_fwd=normalize_fwd,
+                                real_filter=real_filter)
 
-            print(setting, nb_dist, corr)
+            stc, freqs = apply_dics_csd(csd, filters)
 
-            if corr < 2 ** -0.5:
+            ratio1 = stc.data[config.vertex, 0] / stc.data[config.vertex, 1]
+            ratio2 = stc.data[nb_vertex, 1] / stc.data[nb_vertex, 0]
+            ratio = ratio1 * ratio2
+            corrs.append(list(setting) + [nb_vertex, nb_dist, ratio])
+
+            print(setting, nb_dist, ratio)
+
+            if ratio > 4:
                 do_break[idx_setting] = True
                 break
-
 
         except Exception as e:
             print(e)
@@ -143,7 +142,7 @@ else:
 
 df = pd.DataFrame(corrs,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                           'weight_norm', 'normalize_fwd', 'real_filter', 'use_noise_cov',
                            'nb_vertex', 'nb_dist', 'corr'])
-df.to_csv(fname.lcmv_results_2s(vertex=config.vertex))
+df.to_csv(fname.dics_results_2s(vertex=config.vertex))
 print('OK!')

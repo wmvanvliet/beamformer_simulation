@@ -251,7 +251,7 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
 
 
 def add_source_to_raw(raw, fwd_disc_true, signal_vertex, signal_freq,
-                      trial_length, n_trials):
+                      trial_length, n_trials, source_type):
     """
     Add a new simulated dipole source to an existing raw. Operates on a copy of
     the raw.
@@ -271,6 +271,8 @@ def add_source_to_raw(raw, fwd_disc_true, signal_vertex, signal_freq,
         Length of a single trial in samples.
     n_trials : int
         Number of trials to create.
+    source_type : 'chirp' | 'random'
+        Type of source signal to add.
 
     Returns:
     --------
@@ -287,7 +289,12 @@ def add_source_to_raw(raw, fwd_disc_true, signal_vertex, signal_freq,
     signal_vert = src[0]['vertno'][signal_vertex]
     data = np.zeros(len(times))
     signal_part = times >= 0
-    data[signal_part] += generate_random(times[signal_part])
+
+    if source_type == 'chirp':
+        data[signal_part] += generate_signal(times[signal_part], signal_freq, phase=0.5)
+    elif source_type == 'random':
+        data[signal_part] += generate_random(times[signal_part])
+
     vertices = np.array([signal_vert])
     stc_signal = mne.VolSourceEstimate(data=data[np.newaxis, :], vertices=vertices, tmin=times[0],
                                        tstep=np.diff(times[:2])[0], subject='sample')
