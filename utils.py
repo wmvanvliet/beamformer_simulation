@@ -1,9 +1,7 @@
 import os
-import fnmatch
 import mne
 import numpy as np
 from scipy.spatial import distance
-import surfer
 
 import config
 
@@ -74,6 +72,7 @@ def compute_distances(src):
 
 def plot_distance(stc_est, stc_signal, D, surface='inflated'):
     """Plots the distance to the peak estimated signal, along with the true signal location"""
+    import surfer  # Import here so other parts of the code can be used without graphics
     peak = stc_est.get_peak(vert_as_index=True)[0]
     peak_hemi = 0 if peak < len(stc_est.vertices[0]) else 1 
     true_hemi = config.signal_hemi
