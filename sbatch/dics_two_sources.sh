@@ -11,7 +11,7 @@
 # Do the analysis for each vertex.
 #SBATCH --array=0-3756
 
-#SBATCH --output=lcmv_two_sources.out --open-mode=append
+#SBATCH --output=dics_two_sources.out --open-mode=append
 
 # Location to write the logfile to
 LOG_FILE=logs/dics_two_sources.log
