@@ -4,10 +4,11 @@ import pandas as pd
 import warnings
 from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
+from mne.forward.forward import _restrict_forward_to_src_sel
 
 import config
 from config import fname, dics_settings
-from spatial_resolution import get_nearest_neighbors, correlation
+from spatial_resolution import get_nearest_neighbors
 from time_series import simulate_raw, add_source_to_raw, create_epochs
 
 # Don't be verbose
@@ -69,6 +70,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
                                           trial_length=config.trial_length, n_trials=config.n_trials,
                                           source_type='chirp')
 
+
     ###############################################################################
     # Create epochs
     ###############################################################################
@@ -81,12 +83,17 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
     epochs_joint = epochs.copy().pick_types(meg=True)
 
     # Make CSDs
-    csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=0, tmax=1)
-    noise_csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=-1, tmax=0)
+    csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=0, tmax=1, decim=5)
+    noise_csd = csd_morlet(epochs, [config.signal_freq, config.signal_freq2], tmin=-1, tmax=0, decim=5)
 
     ###############################################################################
     # Compute DICS beamformer results
     ###############################################################################
+
+    # Speed things up by restricting the forward solution to only the two
+    # relevant source points.
+    src_sel = np.sort(np.array([config.vertex, nb_vertex]))
+    fwd = _restrict_forward_to_src_sel(fwd_disc_man, src_sel)
 
     for idx_setting, setting in enumerate(dics_settings):
         if do_break[idx_setting]:
@@ -105,7 +112,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
+            filters = make_dics(info, fwd, csd, reg=reg, pick_ori=pick_ori,
                                 inversion=inversion, weight_norm=weight_norm,
                                 noise_csd=noise_csd if use_noise_cov else None,
                                 normalize_fwd=normalize_fwd,
@@ -113,16 +120,17 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
 
             stc, freqs = apply_dics_csd(csd, filters)
 
-            ratio1 = stc.data[config.vertex, 0] / stc.data[config.vertex, 1]
-            ratio2 = stc.data[nb_vertex, 1] / stc.data[nb_vertex, 0]
+            vert1_idx = np.searchsorted(src_sel, config.vertex)
+            vert2_idx = np.searchsorted(src_sel, nb_vertex)
+            ratio1 = stc.data[vert1_idx, 0] / stc.data[vert1_idx, 1]
+            ratio2 = stc.data[vert2_idx, 1] / stc.data[vert2_idx, 0]
             ratio = ratio1 * ratio2
             corrs.append(list(setting) + [nb_vertex, nb_dist, ratio])
 
             print(setting, nb_dist, ratio)
 
-            if ratio > 4:
+            if ratio > 2:
                 do_break[idx_setting] = True
-                break
 
         except Exception as e:
             print(e)
@@ -143,6 +151,6 @@ else:
 df = pd.DataFrame(corrs,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'real_filter', 'use_noise_cov',
-                           'nb_vertex', 'nb_dist', 'corr'])
+                           'nb_vertex', 'nb_dist', 'ratio'])
 df.to_csv(fname.dics_results_2s(vertex=config.vertex))
 print('OK!')

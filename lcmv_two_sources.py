@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import warnings
 from mne.beamformer import make_lcmv, apply_lcmv
-from scipy.stats import pearsonr
+from mne.forward.forward import _restrict_forward_to_src_sel
 
 import config
 from config import fname, lcmv_settings
@@ -92,6 +92,11 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
     # Compute LCMV beamformer results
     ###############################################################################
 
+    # Speed things up by restricting the forward solution to only the two
+    # relevant source points.
+    src_sel = np.sort(np.array([config.vertex, nb_vertex]))
+    fwd = _restrict_forward_to_src_sel(fwd_disc_man, src_sel)
+
     for idx_setting, setting in enumerate(lcmv_settings):
         if do_break[idx_setting]:
             print(setting, '(skip)')
@@ -109,21 +114,23 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             else:
                 raise ValueError('Invalid sensor type: %s', sensor_type)
 
-            filters = make_lcmv(evoked.info, fwd_disc_man, data_cov, reg=reg,
+            filters = make_lcmv(evoked.info, fwd, data_cov, reg=reg,
                                 pick_ori=pick_ori, weight_norm=weight_norm,
                                 normalize_fwd=normalize_fwd, inversion=inversion,
                                 noise_cov=noise_cov if use_noise_cov else None)
             stc = apply_lcmv(evoked, filters).crop(0.001, 1)
-            corr = correlation(stc, signal_vertex1=config.vertex,
-                               signal_vertex2=nb_vertex, signal_hemi=0)
+
+
+            vert1_idx = np.searchsorted(src_sel, config.vertex)
+            vert2_idx = np.searchsorted(src_sel, nb_vertex)
+            corr = correlation(stc, signal_vertex1=vert1_idx,
+                               signal_vertex2=vert2_idx, signal_hemi=0)
             corrs.append(list(setting) + [nb_vertex, nb_dist, corr])
 
             print(setting, nb_dist, corr)
 
             if corr < 2 ** -0.5:
                 do_break[idx_setting] = True
-                break
-
 
         except Exception as e:
             print(e)
