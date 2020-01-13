@@ -1,3 +1,4 @@
+import os.path as op
 from itertools import product
 
 import mne
@@ -46,7 +47,7 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-with pd.HDFStore(fname.lcmv_results_2d) as store:
+with pd.HDFStore(fname.lcmv_results_2s) as store:
     for vertex in tqdm(range(3765), total=3765):
         try:
             df = store['vertex_{vertex:05d}']
@@ -100,7 +101,8 @@ html_footer = '</body></table>'
 
 html_table = ''
 
-set_directory('html/lcmv')
+html_path = op.join('html', 'lcmv_two_sources')
+set_directory(html_path)
 
 for i, setting in enumerate(settings):
     # construct query
@@ -154,7 +156,7 @@ for i, setting in enumerate(settings):
     # Plot
     ###############################################################################
 
-    fn_image = 'html/lcmv/%03d_dist_2sources_ortho.png' % i
+    fn_image = op.join(html_path, '%03d_dist_2sources_ortho.png' % i)
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=fname.subjects_dir,

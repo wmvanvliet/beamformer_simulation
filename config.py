@@ -18,7 +18,7 @@ if user == 'rodin':
     target_path = './data'
     n_jobs = 4
 elif user == 'ckiefer':
-    target_path = './data'
+    target_path = '~/beamformer/data'
     n_jobs = 3
 elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
     # My workstation
@@ -143,9 +143,9 @@ fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vert
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 fname.add('lcmv_results', '{target_path}/lcmv_results-vertex{vertex:04d}.csv')
-fname.add('lcmv_results_2s', '{target_path}/lcmv_results-2sources-vertex{vertex:04d}.csv')
+fname.add('lcmv_results_2s', '{target_path}/lcmv_two_sources/lcmv_results-2sources-vertex{vertex:04d}.csv')
 fname.add('dics_results', '{target_path}/dics_results-vertex{vertex:04d}.csv')
-fname.add('dics_results_2s', '{target_path}/dics_results-2sources-vertex{vertex:04d}.csv')
+fname.add('dics_results_2s', '{target_path}/dics_two_sources/dics_results-2sources-vertex{vertex:04d}.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
