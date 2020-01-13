@@ -1,5 +1,4 @@
 import os.path as op
-from itertools import product
 
 import mne
 import numpy as np
@@ -10,20 +9,6 @@ from tqdm import tqdm
 import config
 from config import fname
 from utils import set_directory
-
-###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
 
 ###############################################################################
 # Load volume source space
