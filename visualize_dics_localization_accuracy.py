@@ -7,6 +7,7 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from tqdm import tqdm
 
 import config
+from config import dics_settings
 from config import fname
 from utils import set_directory
 
@@ -17,7 +18,7 @@ from utils import set_directory
 info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(fname.fwd_discrete_man)
+fwd = mne.read_forward_solution(fname.fwd_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
 vsrc = fwd['src']
@@ -32,41 +33,25 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-with pd.HDFStore(fname.dics_results) as store:
-    for vertex in tqdm(range(3765), total=3765):
-        try:
-            df = store['vertex_{vertex:05d}']
-            df['vertex'] = vertex
-            df['noise'] = config.noise
-            dfs.append(df)
-        except Exception as e:
-            print(e)
+for vertex in tqdm(range(3756), total=3756):
+    try:
+        df = pd.read_csv(fname.dics_results(vertex=vertex), index_col=0)
+        df['vertex'] = vertex
+        df['noise'] = config.noise
+        dfs.append(df)
+    except Exception as e:
+        print(e)
 dics = pd.concat(dfs, ignore_index=True)
 dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
 
-cbar_range_dist = [0, dics['dist'].dropna().get_values().max()]
-cbar_range_eval = [0, dics['eval'].dropna().get_values().max()]
-
-###############################################################################
-# Construct dics settings list
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = ['none', 'normal', 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'none']
-normalize_fwds = [True, False]
-real_filters = [True, False]
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
+cbar_range_dist = [0, dics['dist'].dropna().to_numpy().max()]
+cbar_range_eval = [0, dics['eval'].dropna().to_numpy().max()]
 
 html_header = '''
     <html>
     <head>
         <link rel="stylesheet" type="text/css" href="style.css">
-        <script src="filter.js"></script>
     </head>
     <body>
     <table>
@@ -78,32 +63,27 @@ html_header = '''
         <th>weight_norm</th>
         <th>normalize_fwd</th>
         <th>real_filter</th>
+        <th>use_noise_cov</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
     </tr>
-    <tr>
-        <td><input type="text" onkeyup="filter(0, this)" placeholder="reg"></td>
-        <td><input type="text" onkeyup="filter(1, this)" placeholder="sensor type"></td>
-        <td><input type="text" onkeyup="filter(2, this)" placeholder="pick_ori"></td>
-        <td><input type="text" onkeyup="filter(3, this)" placeholder="inversion"></td>
-        <td><input type="text" onkeyup="filter(4, this)" placeholder="weight_norm"></td>
-        <td><input type="text" onkeyup="filter(5, this)" placeholder="normalize_fwd"></td>
-        <td><input type="text" onkeyup="filter(6, this)" placeholder="real_filter"></td>
-        <td></td>
-        <td></td>
-    </tr>
 '''
 
-html_footer = '</body></table>'
+html_footer = '''
+        <script src="tablefilter/tablefilter.js"></script>
+        <script src="filter.js"></script>
+    </body>
+</html>
+'''
 
 html_table = ''
 
 set_directory('html/dics')
 
-for i, setting in enumerate(settings):
+for i, setting in enumerate(dics_settings):
     # construct query
-    q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and "
-         "inversion=='%s' and weight_norm=='%s' and normalize_fwd==%s and real_filter==%s" % setting)
+    q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
+         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s" % setting)
 
     print(q)
 
@@ -112,7 +92,7 @@ for i, setting in enumerate(settings):
     if len(sel) < 1000:
         continue
 
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filters = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
 
     # Skip some combinations
     if weight_norm == 'unit-noise-gain' and normalize_fwd is True:
@@ -124,9 +104,9 @@ for i, setting in enumerate(settings):
     # Create dist stc from simulated data
     ###############################################################################
 
-    vert_sel = sel['vertex'].get_values()
-    data_dist_sel = sel['dist'].get_values()
-    data_eval_sel = sel['eval'].get_values()
+    vert_sel = sel['vertex'].to_numpy()
+    data_dist_sel = sel['dist'].to_numpy()
+    data_eval_sel = sel['eval'].to_numpy()
 
     data_dist = np.zeros(shape=(vertno.shape[0], 1))
 

@@ -32,7 +32,7 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-for vertex in tqdm(range(3756), total=3765):
+for vertex in tqdm(range(3756), total=3756):
     try:
         df = pd.read_csv(fname.lcmv_results(vertex=vertex), index_col=0)
         df['vertex'] = vertex
