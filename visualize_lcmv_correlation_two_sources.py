@@ -1,5 +1,4 @@
 import os.path as op
-import warnings
 
 import mne
 import numpy as np
@@ -10,8 +9,6 @@ from tqdm import tqdm
 import config
 from config import fname
 from utils import set_directory
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 ###############################################################################
 # Load volume source space
