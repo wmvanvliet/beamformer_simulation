@@ -81,10 +81,11 @@ for setting in dics_settings:
                             real_filter=real_filter)
 
         stc, freqs = apply_dics_csd(csd, filters)
+        stc_baseline, freqs = apply_dics_csd(noise_csd, filters)
 
         # Compute distance between true and estimated source
         dip_true = make_dipole_volume(stc_signal, fwd_disc_man['src'])
-        dip_est = make_dipole_volume(stc, fwd_disc_man['src'])
+        dip_est = make_dipole_volume((stc / stc_baseline), fwd_disc_man['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
 
         # Fancy evaluation metric
