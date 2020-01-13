@@ -1,7 +1,7 @@
 import mne
 import numpy as np
 
-from config import fname, vfname
+from config import fname
 from utils import make_discrete_forward_solutions
 
 ###############################################################################
@@ -19,32 +19,24 @@ trans_true_head_to_mri = mne.read_trans(fname.trans_true)
 src_true_mri = mne.read_source_spaces(fname.src)
 bem = mne.read_bem_solution(fname.bem)
 
+fwd_true = mne.make_forward_solution(info, trans=trans_true_head_to_mri, src=src_true_mri,
+                                     bem=bem, meg=True, eeg=False)
+
 fwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=src_true_mri,
-                                    bem=bem, meg=True, eeg=False, mindist=5.0)
+                                    bem=bem, meg=True, eeg=False)
 mne.write_forward_solution(fname.fwd_man, fwd_man, overwrite=True)
-
-# create forward solution for volume source space
-vsrc_true_mri = mne.read_source_spaces(vfname.src)
-vbem = mne.read_bem_solution(vfname.bem)
-
-vfwd_true = mne.make_forward_solution(info, trans=trans_true_head_to_mri, src=vsrc_true_mri,
-                                      bem=vbem, meg=True, eeg=False)
-
-vfwd_man = mne.make_forward_solution(info, trans=trans_man_head_to_mri, src=vsrc_true_mri,
-                                     bem=vbem, meg=True, eeg=False)
-mne.write_forward_solution(vfname.fwd_man, vfwd_man, overwrite=True)
 
 ###############################################################################
 # Construct forward solutions for discrete source spaces
 ###############################################################################
 
-vrr = vsrc_true_mri[0]['rr']
+rr = src_true_mri[0]['rr']
 # use only vertices inuse to construct vrr
-vrr = vrr[vsrc_true_mri[0]['inuse'] == 1]
+rr = rr[src_true_mri[0]['inuse'] == 1]
 
-vfwd_disc_true, vfwd_disc_man = make_discrete_forward_solutions(info, vrr, vbem, trans_true_head_to_mri,
-                                                                trans_man_head_to_mri, vfname.subjects_dir,
-                                                                vfname.fwd_discrete_true, vfname.fwd_discrete_man)
+fwd_disc_true, fwd_disc_man = make_discrete_forward_solutions(info, rr, bem, trans_true_head_to_mri,
+                                                              trans_man_head_to_mri, fname.subjects_dir,
+                                                              fname.fwd_discrete_true, fname.fwd_discrete_man)
 
 ###############################################################################
 # Check coregistration error
@@ -54,37 +46,26 @@ vfwd_disc_true, vfwd_disc_man = make_discrete_forward_solutions(info, vrr, vbem,
 
 trans_true_mri_to_head = mne.transforms._get_trans(trans_true_head_to_mri,
                                                    fro='mri', to='head')[0]
-for hemi in range(2):
-
-    rr_true_mri = src_true_mri[hemi]['rr'][src_true_mri[hemi]['vertno']]
-    # Transform the source space from mri to head space with true trans file
-    rr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, rr_true_mri)
-    # Transform the source space from mri space back to head space with inverse manual trans file
-    rr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, rr_true_mri_to_head)
-
-    distances = np.linalg.norm(rr_true_mri_to_head_to_mri - rr_true_mri, axis=1)
-
-    print('Surface hemi %d: avg. distance %.4f, n_vertno %d' % (hemi, distances.mean(), len(rr_true_mri)))
 
 # Volume source space coregistration error
 
-vrr_true_mri = vsrc_true_mri[0]['rr'][vsrc_true_mri[0]['vertno']]
+rr_true_mri = src_true_mri[0]['rr'][src_true_mri[0]['vertno']]
 # Transform the source space from mri to head space with true trans file
-vrr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, vrr_true_mri)
+rr_true_mri_to_head = mne.transforms.apply_trans(trans_true_mri_to_head, rr_true_mri)
 # Transform the source space from head space back to mri space with inverse manual trans file
-vrr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_true_mri_to_head)
+rr_true_mri_to_head_to_mri = mne.transforms.apply_trans(trans_man_head_to_mri, rr_true_mri_to_head)
 
-distances = np.linalg.norm(vrr_true_mri_to_head_to_mri - vrr_true_mri, axis=1)
-print('Volume: avg. distance %.4f, n_vertno %d' % (distances.mean(), len(vrr_true_mri)))
+distances = np.linalg.norm(rr_true_mri_to_head_to_mri - rr_true_mri, axis=1)
+print('Volume: avg. distance %.4f, n_vertno %d' % (distances.mean(), len(rr_true_mri)))
 
-vsrc_disc_true = vfwd_disc_true['src']
-vrr_disc_true_head = vsrc_disc_true[0]['rr']
+src_disc_true = fwd_disc_true['src']
+rr_disc_true_head = src_disc_true[0]['rr']
 # true source space in head coordinates transformed to mri coordinates using manually created trans file
-vrr_disc_true_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_true_head)
+rr_disc_true_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, rr_disc_true_head)
 
-vsrc_disc_man = vfwd_disc_man['src']
-vrr_disc_man_head = vsrc_disc_man[0]['rr']
+src_disc_man = fwd_disc_man['src']
+rr_disc_man_head = src_disc_man[0]['rr']
 # manually created source space in head coordinates transformed to mri coordinates using manually created trans file
-vrr_disc_man_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, vrr_disc_man_head)
-distances_disc = np.linalg.norm(vrr_disc_true_head_to_mri_man - vrr_disc_man_head_to_mri_man, axis=1)
-print('Discrete volume: avg. distance %.4f, n_vertno %d' % (distances_disc.mean(), len(vrr_disc_true_head)))
+rr_disc_man_head_to_mri_man = mne.transforms.apply_trans(trans_man_head_to_mri, rr_disc_man_head)
+distances_disc = np.linalg.norm(rr_disc_true_head_to_mri_man - rr_disc_man_head_to_mri_man, axis=1)
+print('Discrete volume: avg. distance %.4f, n_vertno %d' % (distances_disc.mean(), len(rr_disc_true_head)))

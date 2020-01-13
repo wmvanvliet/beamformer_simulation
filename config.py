@@ -1,9 +1,10 @@
 import argparse
 import os
 from socket import getfqdn
+from itertools import product
 
 import numpy as np
-from mne.datasets import sample
+from mne.datasets import sample, somato
 from mne.datasets.brainstorm import bst_phantom_ctf
 
 from fnames import FileNames
@@ -33,20 +34,25 @@ else:
                        'should be stored and the n_jobs variable to the '
                        'number of CPU cores the analysis is allowed to use.')
 
-
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Beamformer simulator')
-parser.add_argument('-n', '--noise', type=float, metavar='float', default=1,
+parser.add_argument('-n', '--noise', type=float, metavar='float', default=0.1,
                     help='Amount of noise to add')
 parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
 args = parser.parse_args()
 
+###############################################################################
+# Settings related to the simulation
+###############################################################################
+
 trial_length = 2.0  # Length of a trial in seconds
+tmin = -1.0
+tmax = 1.0
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
-signal_freq = 10  # Frequency at which to simulate the signal timecourse
-signal_freq2 = 30  # Frequency at which to simulate the second signal timecourse
+signal_freq = 20  # Frequency at which to simulate the signal timecourse
+signal_freq2 = 33  # Frequency at which to simulate the second signal timecourse
 n_neighbors_max = 1000  # maximum number of nearest neighbors being considered
 #n_neighbors_max = 1  # maximum number of nearest neighbors being considered
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
@@ -59,7 +65,50 @@ n_vertices = 3765  # Number of dipoles in the source space
 
 random = np.random.RandomState(vertex)  # Random seed for everything
 
+###############################################################################
+# Settings grid for beamformers
+###############################################################################
+
+# Compare
+#   - vector vs. scalar (max-power orientation)
+#   - Array-gain BF (leadfield normalization)
+#   - Unit-gain BF ('vanilla' LCMV)
+#   - Unit-noise-gain BF (weight normalization)
+#   - pre-whitening (noise-covariance)
+#   - different sensor types
+#   - what changes with condition contrasting
+
+regs = [0.05, 0.1, 0.5]
+sensor_types = ['grad', 'mag', 'joint']
+pick_oris = [None, 'max-power']
+inversions = ['single', 'matrix']
+weight_norms = ['unit-noise-gain', 'nai', None]
+normalize_fwds = [True, False]
+real_filters = [True, False]
+use_noise_covs = [True, False]
+
+dics_settings = list(product(
+    regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
+    real_filters, use_noise_covs,
+))
+
+lcmv_settings = list(product(
+    regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
+    use_noise_covs,
+))
+
+###############################################################################
+# True source locations for real datasets
+###############################################################################
+
+# FIXME replace with actual value determined by Hanna Renvall
+somato_true_pos_ras = [32.9265, 10.8532, 57.4155]  # In RAS space, in mm
+somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in meters
+somato_true_vert_idx = 12679
+
+###############################################################################
 # Filenames for various things
+###############################################################################
 fname = FileNames()
 
 n_noise_dipoles_vol = 150  # number of noise_dipoles in volume source space
@@ -103,6 +152,17 @@ phantom_fname = FileNames()
 phantom_fname.add('data_path', bst_phantom_ctf.data_path()) 
 phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
 phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
+
+# MNE-Somato data set
+fname.add('somato_path', somato.data_path())
+fname.add('somato_derivatives', '{somato_path}/derivatives/sub-01')
+fname.add('somato_subjects', '{somato_path}/derivatives/freesurfer/subjects')
+fname.add('somato_src', '{somato_derivatives}/sub-01_task-somato_vol-src.fif')
+fname.add('somato_fwd', '{somato_derivatives}/sub-01_task-somato_vol-fwd.fif')
+fname.add('somato_epochs', '{somato_derivatives}/sub-01_task-somato_epo.fif')
+fname.add('somato_epochs_long', '{somato_derivatives}/sub-01_task-somato_long_epo.fif')
+fname.add('lcmv_somato_results', '{target_path}/lcmv_results-somato.csv')
+fname.add('dics_somato_results', '{target_path}/dics_results-somato.csv')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir

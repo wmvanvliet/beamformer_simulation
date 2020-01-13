@@ -1,5 +1,3 @@
-from itertools import product
-
 import mne
 import numpy as np
 import pandas as pd
@@ -7,8 +5,8 @@ from mne.beamformer import make_dics, apply_dics_csd
 from mne.time_frequency import csd_morlet
 
 import config
-from config import fname
-from time_series import simulate_raw_vol, create_epochs
+from config import fname, dics_settings
+from time_series import simulate_raw, create_epochs
 from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 # Don't be verbose
@@ -22,21 +20,6 @@ fn_simulated_epochs = fname.simulated_epochs(vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
 
 ###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['grad', 'mag']
-pick_oris = [None, 'max-power']
-inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
-normalize_fwds = [True, False]
-real_filters = [True, False]
-
-settings = list(product(regs, sensor_types, pick_oris, inversions,
-                        weight_norms, normalize_fwds, real_filters))
-
-###############################################################################
 # Simulate raw data and create epochs
 ###############################################################################
 
@@ -47,57 +30,53 @@ fwd_disc_true = mne.read_forward_solution(fname.fwd_discrete_true)
 fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
-raw, stc_signal = simulate_raw_vol(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
-                                   signal_freq=config.signal_freq, trial_length=config.trial_length,
-                                   n_trials=config.n_trials, noise_multiplier=config.noise,
-                                   random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                                   er_raw=er_raw)
+raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
+                               signal_freq=config.signal_freq, trial_length=config.trial_length,
+                               n_trials=config.n_trials, noise_multiplier=config.noise,
+                               random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
+                               er_raw=er_raw)
 
 del info, fwd_disc_true, er_raw
 
-epochs = create_epochs(raw, config.trial_length, config.n_trials)
+epochs = create_epochs(raw)
 
 ###############################################################################
-# Read in the manually created forward solution
+# Sensor level analysis
 ###############################################################################
 
-fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
-
-# TODO: test if this is actually necessary for a discrete volume source space
-# For pick_ori='normal', the fwd needs to be in surface orientation
-fwd_disc_man = mne.convert_forward_solution(fwd_disc_man, surf_ori=True)
-
-###############################################################################
-# Create epochs for for different sensors
-###############################################################################
-
-# The DICS beamformer currently only uses one sensor type
 epochs_grad = epochs.copy().pick_types(meg='grad')
 epochs_mag = epochs.copy().pick_types(meg='mag')
+epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make CSD matrix
-csd = csd_morlet(epochs, [config.signal_freq])
+csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
+noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
 
 ###############################################################################
 # Compute DICS beamformer results
 ###############################################################################
 
+# Read in forward solution
+fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
+
 dists = []
 evals = []
 
-for setting in settings:
-    (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd,
-     real_filter) = setting
+for setting in dics_settings:
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info
         elif sensor_type == 'mag':
             info = epochs_mag.info
+        elif sensor_type == 'joint':
+            info = epochs_joint.info
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
         filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
+                            noise_csd=noise_csd if use_noise_cov else None,
                             normalize_fwd=normalize_fwd,
                             real_filter=real_filter)
 
@@ -123,9 +102,10 @@ for setting in settings:
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(settings, columns=['reg', 'sensor_type', 'pick_ori',
-                                     'inversion', 'weight_norm',
-                                     'normalize_fwd', 'real_filter'])
+df = pd.DataFrame(dics_settings,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'real_filter',
+                           'use_noise_cov'])
 df['dist'] = dists
 df['eval'] = evals
 

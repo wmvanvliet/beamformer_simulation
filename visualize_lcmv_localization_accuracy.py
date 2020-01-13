@@ -11,27 +11,13 @@ from config import fname
 from utils import set_directory
 
 ###############################################################################
-# Compute the settings grid
-###############################################################################
-
-regs = [0.05, 0.1, 0.5]
-sensor_types = ['joint', 'grad', 'mag']
-pick_oris = [None, 'max-power']
-weight_norms = ['unit-noise-gain', 'nai', None]
-use_noise_covs = [True, False]
-depths = [True, False]
-
-settings = list(product(regs, sensor_types, pick_oris, weight_norms,
-                        use_noise_covs, depths))
-
-###############################################################################
 # Load volume source space
 ###############################################################################
 
 info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(fname.fwd_discrete_man)
+fwd = mne.read_forward_solution(fname.fwd_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
 vsrc = fwd['src']
@@ -46,91 +32,80 @@ if vsrc[0]['subject_his_id'] is None:
 ###############################################################################
 
 dfs = []
-with pd.HDFStore(fname.lcmv_results) as store:
-    for vertex in tqdm(range(3765), total=3765):
-        try:
-            df = store['vertex_{vertex:05d}']
-            df['vertex'] = vertex
-            df['noise'] = config.noise
-            dfs.append(df)
-        except Exception as e:
-            print(e)
+for vertex in tqdm(range(3756), total=3756):
+    try:
+        df = pd.read_csv(fname.lcmv_results(vertex=vertex), index_col=0)
+        df['vertex'] = vertex
+        df['noise'] = config.noise
+        dfs.append(df)
+    except Exception as e:
+        print(e)
 lcmv = pd.concat(dfs, ignore_index=True)
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 
-cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
-cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
+cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
+cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
 
 ###############################################################################
 # HTML settings
 ###############################################################################
 
 html_header = '''
-    <html>
+<html>
     <head>
+        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="style.css">
-        <script src="filter.js"></script>
     </head>
     <body>
-    <table>
+    <table id="results">
     <tr>
         <th>reg</th>
         <th>sensor type</th>
         <th>pick_ori</th>
+        <th>inversion</th>
         <th>weight_norm</th>
+        <th>normalize_fwd</th>
         <th>use_noise_cov</th>
-        <th>depth</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
     </tr>
-    <tr>
-        <td><input type="text" onkeyup="filter(0, this)" placeholder="reg"></td>
-        <td><input type="text" onkeyup="filter(1, this)" placeholder="sensor type"></td>
-        <td><input type="text" onkeyup="filter(2, this)" placeholder="pick_ori"></td>
-        <td><input type="text" onkeyup="filter(3, this)" placeholder="weight_norm"></td>
-        <td><input type="text" onkeyup="filter(4, this)" placeholder="use_noise_doc"></td>
-        <td><input type="text" onkeyup="filter(5, this)" placeholder="depth"></td>
-        <td></td>
-        <td></td>
-    </tr>
 '''
 
-html_footer = '</body></table>'
+html_footer = '''
+        <script src="tablefilter/tablefilter.js"></script>
+        <script src="filter.js"></script>
+    </body>
+</html>
+'''
 
 html_table = ''
 
 set_directory('html/lcmv')
 
-for i, setting in enumerate(settings):
+for i, setting in enumerate(config.lcmv_settings):
     # construct query
-    q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and "
-         "weight_norm=='%s' and use_noise_cov==%s and depth==%s" % setting)
+    setting = tuple(['none' if s is None else s for s in setting])
+    q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
+         "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s" % setting)
 
     print(q)
 
     sel = lcmv.query(q).dropna()
 
     if len(sel) < 1000:
+        print('Not enough voxels. Did this run fail?')
         continue
 
-    reg, sensor_type, pick_ori, weight_norm, use_noise_cov, depth = setting
-
-    # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and depth is True:
-        continue
-    if weight_norm == 'none' and depth is False:
-        continue
-    if sensor_type == 'joint' and use_noise_cov is False:
-        continue
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
 
     ###############################################################################
     # Create dist stc from simulated data
     ###############################################################################
 
-    vert_sel = sel['vertex'].get_values()
-    data_dist_sel = sel['dist'].get_values()
-    data_eval_sel = sel['eval'].get_values()
+    vert_sel = sel['vertex'].to_numpy()
+    data_dist_sel = sel['dist'].to_numpy()
+    data_eval_sel = sel['eval'].to_numpy()
 
     data_dist = np.zeros(shape=(vertno.shape[0], 1))
 
@@ -188,4 +163,3 @@ for i, setting in enumerate(settings):
         f.write(html_header)
         f.write(html_table)
         f.write(html_footer)
-
