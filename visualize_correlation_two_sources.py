@@ -107,9 +107,6 @@ for i, setting in enumerate(config.lcmv_settings):
 
     print(q)
 
-    if q != "reg==0.1 and sensor_type=='mag' and pick_ori=='max-power' and inversion=='single' and weight_norm=='unit-noise-gain' and normalize_fwd==True and use_noise_cov==False":
-        continue
-
     sel = lcmv.query(q).dropna()
 
     if len(sel) < 1000:
