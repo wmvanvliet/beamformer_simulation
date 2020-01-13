@@ -54,7 +54,7 @@ html_header = '''
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
-    <table>
+    <table id="results">
     <tr>
         <th>reg</th>
         <th>sensor type</th>
@@ -82,6 +82,7 @@ set_directory('html/dics')
 
 for i, setting in enumerate(dics_settings):
     # construct query
+    setting = tuple(['none' if s is None else s for s in setting])
     q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
          "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s" % setting)
 
@@ -93,12 +94,6 @@ for i, setting in enumerate(dics_settings):
         continue
 
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
-
-    # Skip some combinations
-    if weight_norm == 'unit-noise-gain' and normalize_fwd is True:
-        continue
-    if weight_norm == 'none' and normalize_fwd is False:
-        continue
 
     ###############################################################################
     # Create dist stc from simulated data

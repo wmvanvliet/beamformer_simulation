@@ -18,9 +18,9 @@ var filtersConfig = {
         'string', 'image', 'image'
     ],
     col_widths: [
-        '80px', '120px', '110px',
-        '110px', '140px', '130px',
-        '130px', '210px', '210px'
+        '80px', '150px', '130px',
+        '110px', '170px', '150px',
+        '150px', '210px', '210px'
     ]
 };
 

@@ -44,8 +44,8 @@ lcmv = pd.concat(dfs, ignore_index=True)
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 
-cbar_range_dist = [0, lcmv['dist'].dropna().get_values().max()]
-cbar_range_eval = [0, lcmv['eval'].dropna().get_values().max()]
+cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
+cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
 
 ###############################################################################
 # HTML settings
@@ -85,6 +85,7 @@ set_directory('html/lcmv')
 
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
+    setting = tuple(['none' if s is None else s for s in setting])
     q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
          "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s" % setting)
 
@@ -97,10 +98,6 @@ for i, setting in enumerate(config.lcmv_settings):
         continue
 
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
-
-    # Skip some combinations
-    if sensor_type == 'joint' and use_noise_cov is False:
-        continue
 
     ###############################################################################
     # Create dist stc from simulated data
