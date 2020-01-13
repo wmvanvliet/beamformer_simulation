@@ -95,9 +95,9 @@ html_footer = '''
 
 html_table = ''
 
-folder_name = 'lcmv_two_sources'
-html_path = op.join('html', folder_name)
-set_directory(html_path)
+image_folder = 'lcmv_two_sources'
+image_path = op.join('html', image_folder)
+set_directory(image_path)
 
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
@@ -143,7 +143,7 @@ for i, setting in enumerate(config.lcmv_settings):
     # Plot
     ###############################################################################
     fn_image = '%03d_lcmv_dist_2sources_ortho.png' % i
-    fp_image = op.join(html_path, fn_image)
+    fp_image = op.join(image_path, fn_image)
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=fname.subjects_dir,
@@ -159,7 +159,7 @@ for i, setting in enumerate(config.lcmv_settings):
     ###############################################################################
 
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="' + op.join(folder_name, fn_image) + '"></td>'
+    html_table += '<td><img src="' + op.join(image_folder, fn_image) + '"></td>'
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)

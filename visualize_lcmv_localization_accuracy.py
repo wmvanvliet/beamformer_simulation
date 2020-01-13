@@ -1,4 +1,4 @@
-from itertools import product
+import os.path as op
 
 import mne
 import numpy as np
@@ -81,7 +81,9 @@ html_footer = '''
 
 html_table = ''
 
-set_directory('html/lcmv')
+image_folder = 'lcmv'
+image_path = op.join('html', image_folder)
+set_directory(image_path)
 
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
@@ -129,7 +131,8 @@ for i, setting in enumerate(config.lcmv_settings):
     # Plot
     ###############################################################################
 
-    fn_image = 'html/lcmv/%03d_dist_ortho.png' % i
+    fn_image_dist = '%03d_dist_ortho.png' % i
+    fp_image_dist = op.join(image_path, fn_image_dist)
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=fname.subjects_dir,
@@ -138,9 +141,10 @@ for i, setting in enumerate(config.lcmv_settings):
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range_dist,
-                         save=True, fname_save=fn_image)
+                         save=True, fname_save=fp_image_dist)
 
-    fn_image = 'html/lcmv/%03d_eval_ortho.png' % i
+    fn_image_eval = '%03d_eval_ortho.png' % i
+    fp_image_eval = op.join(image_path, fn_image_eval)
 
     plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
                          subjects_dir=fname.subjects_dir,
@@ -149,15 +153,15 @@ for i, setting in enumerate(config.lcmv_settings):
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range_eval,
-                         save=True, fname_save=fn_image)
+                         save=True, fname_save=fp_image_eval)
 
     ###############################################################################
     # Plot
     ###############################################################################
 
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
-    html_table += '<td><img src="lcmv/%03d_dist_ortho.png"></td>' % i
-    html_table += '<td><img src="lcmv/%03d_eval_ortho.png"></td>' % i
+    html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
+    html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
