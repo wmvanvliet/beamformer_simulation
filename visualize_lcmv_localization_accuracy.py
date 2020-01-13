@@ -88,7 +88,7 @@ set_directory(image_path)
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
-    q = ("reg==%.1f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
+    q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
          "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s" % setting)
 
     print(q)
