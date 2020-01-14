@@ -100,7 +100,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             print(setting, '(skip)')
             continue
 
-        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
+        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
 
         try:
             if sensor_type == 'grad':
@@ -115,7 +115,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             filters = make_dics(info, fwd, csd, reg=reg, pick_ori=pick_ori,
                                 inversion=inversion, weight_norm=weight_norm,
                                 noise_csd=noise_csd if use_noise_cov else None,
-                                normalize_fwd=normalize_fwd,
+                                normalize_fwd=normalize_fwd, reduce_rank=reduce_rank,
                                 real_filter=real_filter)
 
             stc, freqs = apply_dics_csd(csd, filters)
@@ -151,6 +151,6 @@ else:
 df = pd.DataFrame(corrs,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'real_filter', 'use_noise_cov',
-                           'nb_vertex', 'nb_dist', 'ratio'])
+                           'reduce_rank', 'nb_vertex', 'nb_dist', 'ratio'])
 df.to_csv(fname.dics_results_2s(vertex=config.vertex))
 print('OK!')
