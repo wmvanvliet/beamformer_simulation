@@ -66,8 +66,7 @@ html_header = '''
         <th>weight_norm</th>
         <th>normalize_fwd</th>
         <th>use_noise_cov</th>
-        <th>P2P distance</th>
-        <th>Fancy metric</th>
+        <th>Spatial resolution</th>
     </tr>
 '''
 
