@@ -68,7 +68,7 @@ dists = []
 evals = []
 corrs = []
 for setting in lcmv_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -82,7 +82,8 @@ for setting in lcmv_settings:
         filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             inversion=inversion, normalize_fwd=normalize_fwd,
-                            noise_cov=noise_cov if use_noise_cov else None)
+                            noise_cov=noise_cov if use_noise_cov else None,
+                            reduce_rank=reduce_rank)
 
         stc = apply_lcmv(evoked, filters).crop(0.001, 1)
 
@@ -116,7 +117,7 @@ for setting in lcmv_settings:
 
 df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov'])
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
 df['eval'] = evals
 df['corr'] = corrs

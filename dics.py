@@ -19,6 +19,8 @@ fn_simulated_epochs = fname.simulated_epochs(vertex=config.vertex)
 #fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
 
+src = mne.read_source_spaces(fname.src)
+
 ###############################################################################
 # Simulate raw data and create epochs
 ###############################################################################
@@ -52,6 +54,9 @@ epochs_joint = epochs.copy().pick_types(meg=True)
 csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
 noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
 
+cov = mne.compute_covariance(epochs, tmin=0, tmax=1)
+noise_cov = mne.compute_covariance(epochs, tmin=-1, tmax=0)
+
 ###############################################################################
 # Compute DICS beamformer results
 ###############################################################################
@@ -63,7 +68,7 @@ dists = []
 evals = []
 
 for setting in dics_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info
@@ -78,14 +83,12 @@ for setting in dics_settings:
                             inversion=inversion, weight_norm=weight_norm,
                             noise_csd=noise_csd if use_noise_cov else None,
                             normalize_fwd=normalize_fwd,
-                            real_filter=real_filter)
-
+                            real_filter=real_filter, reduce_rank=reduce_rank)
         stc, freqs = apply_dics_csd(csd, filters)
-        stc_baseline, freqs = apply_dics_csd(noise_csd, filters)
 
         # Compute distance between true and estimated source
         dip_true = make_dipole_volume(stc_signal, fwd_disc_man['src'])
-        dip_est = make_dipole_volume((stc / stc_baseline), fwd_disc_man['src'])
+        dip_est = make_dipole_volume(stc, fwd_disc_man['src'])
         dist = np.linalg.norm(dip_true.pos - dip_est.pos)
 
         # Fancy evaluation metric
@@ -106,7 +109,7 @@ for setting in dics_settings:
 df = pd.DataFrame(dics_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'real_filter',
-                           'use_noise_cov'])
+                           'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
 df['eval'] = evals
 

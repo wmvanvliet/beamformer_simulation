@@ -60,8 +60,8 @@ noise = args.noise  # Multiplier for the noise dipoles
 
 # Position of the signal
 vertex = args.vertex
-signal_hemi = 1
-n_vertices = 3765  # Number of dipoles in the source space
+signal_hemi = 0
+n_vertices = 3756  # Number of dipoles in the source space
 
 random = np.random.RandomState(vertex)  # Random seed for everything
 
@@ -82,19 +82,20 @@ regs = [0.05, 0.1, 0.5]
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', 'nai', None]
+weight_norms = ['unit-noise-gain', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
 use_noise_covs = [True, False]
+reduce_ranks = [True, False]
 
 dics_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
-    real_filters, use_noise_covs,
+    real_filters, use_noise_covs, reduce_ranks
 ))
 
 lcmv_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
-    use_noise_covs,
+    use_noise_covs, reduce_ranks
 ))
 
 ###############################################################################
@@ -143,9 +144,9 @@ fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vert
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 fname.add('lcmv_results', '{target_path}/lcmv_results-vertex{vertex:04d}.csv')
-fname.add('lcmv_results_2s', '{target_path}/lcmv_two_sources/lcmv_results-2sources-vertex{vertex:04d}.csv')
+fname.add('lcmv_results_2s', '{target_path}/lcmv_results-2sources-vertex{vertex:04d}.csv')
 fname.add('dics_results', '{target_path}/dics_results-vertex{vertex:04d}.csv')
-fname.add('dics_results_2s', '{target_path}/dics_two_sources/dics_results-2sources-vertex{vertex:04d}.csv')
+fname.add('dics_results_2s', '{target_path}/dics_results-2sources-vertex{vertex:04d}.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()

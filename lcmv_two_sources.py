@@ -102,7 +102,7 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             print(setting, '(skip)')
             continue
 
-        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
 
         try:
             if sensor_type == 'grad':
@@ -117,7 +117,8 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             filters = make_lcmv(evoked.info, fwd, data_cov, reg=reg,
                                 pick_ori=pick_ori, weight_norm=weight_norm,
                                 normalize_fwd=normalize_fwd, inversion=inversion,
-                                noise_cov=noise_cov if use_noise_cov else None)
+                                noise_cov=noise_cov if use_noise_cov else None,
+                                reduce_rank=reduce_rank)
             stc = apply_lcmv(evoked, filters).crop(0.001, 1)
 
 
@@ -151,6 +152,6 @@ else:
 df = pd.DataFrame(corrs,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'use_noise_cov',
-                           'nb_vertex', 'nb_dist', 'corr'])
+                           'reduce_rank', 'nb_vertex', 'nb_dist', 'corr'])
 df.to_csv(fname.lcmv_results_2s(vertex=config.vertex))
 print('OK!')
