@@ -54,9 +54,6 @@ epochs_joint = epochs.copy().pick_types(meg=True)
 csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
 noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
 
-cov = mne.compute_covariance(epochs, tmin=0, tmax=1)
-noise_cov = mne.compute_covariance(epochs, tmin=-1, tmax=0)
-
 ###############################################################################
 # Compute DICS beamformer results
 ###############################################################################
