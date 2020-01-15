@@ -66,6 +66,7 @@ html_header = '''
         <th>weight_norm</th>
         <th>normalize_fwd</th>
         <th>use_noise_cov</th>
+        <th>reduce_rank</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
     </tr>
@@ -87,8 +88,10 @@ set_directory(image_path)
 for i, setting in enumerate(config.dics_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
+
     q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s" % setting)
+         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s"
+         "and reduce_rank==%s") % setting
 
     print(q)
 
@@ -146,7 +149,7 @@ for i, setting in enumerate(config.dics_settings):
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image) + '"></td>'
 
-    with open('html/dics_vol.html', 'w') as f:
+    with open('html/dics_vol_2sources.html', 'w') as f:
         f.write(html_header)
         f.write(html_table)
         f.write(html_footer)

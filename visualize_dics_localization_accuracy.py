@@ -64,7 +64,9 @@ html_header = '''
         <th>normalize_fwd</th>
         <th>real_filter</th>
         <th>use_noise_cov</th>
-        <th>Spatial resolution</th>
+        <th>reduce_rank</th>
+        <th>P2P distance</th>
+        <th>Fancy metric</th>
     </tr>
 '''
 
@@ -86,8 +88,10 @@ set_directory(image_path)
 for i, setting in enumerate(dics_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
+
     q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s" % setting)
+         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s"
+         "and reduce_rank==%s") % setting
 
     print(q)
 
@@ -95,8 +99,6 @@ for i, setting in enumerate(dics_settings):
 
     if len(sel) < 1000:
         continue
-
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
 
     ###############################################################################
     # Create dist stc from simulated data
