@@ -1,5 +1,6 @@
 import argparse
 import os
+import getpass
 from socket import getfqdn
 from itertools import product
 
@@ -9,14 +10,18 @@ from mne.datasets.brainstorm import bst_phantom_ctf
 
 from fnames import FileNames
 
-user = os.environ['USER']  # Username of the user running the scripts
+user = getpass.getuser()  # Username of the user running the scripts
 host = getfqdn()  # Hostname of the machine running the scripts
 print('Running on %s@%s' % (user, host))
 
 if user == 'rodin':
-    # My laptop
+    # My home laptop
     target_path = './data'
     n_jobs = 4
+if user == 'wmvan':
+    # My work laptop
+    target_path = './data'
+    n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'
     n_jobs = 3
@@ -103,7 +108,7 @@ lcmv_settings = list(product(
 ###############################################################################
 
 # FIXME replace with actual value determined by Hanna Renvall
-somato_true_pos_ras = [32.9265, 10.8532, 57.4155]  # In RAS space, in mm
+somato_true_pos_ras = [36.9265, 7.85419, 53.4155]  # In RAS space, in mm
 somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in meters
 somato_true_vert_idx = 12679
 
@@ -131,7 +136,7 @@ fname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files from manual coregistration
 fname.add('fwd_man', '{data_path}/MEG/sample/sample_coregerror-meg-vol-7-fwd.fif')
-fname.add('trans_man', '{sample_folder}/sample_manual_bw-trans.fif')
+fname.add('trans_man', 'sample_manual_bw-trans.fif')
 
 # Files produced by volume simulation code
 fname.add('target_path', target_path)  # Where to put everything
