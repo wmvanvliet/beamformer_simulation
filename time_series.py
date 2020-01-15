@@ -7,8 +7,8 @@ from mne.simulation import simulate_sparse_stc, simulate_raw as simulate_raw_mne
 from scipy.signal import butter, filtfilt
 
 import config
-from utils import add_stcs, add_volume_stcs, set_directory
 from utils import add_text_next_to_xlabel
+from utils import add_volume_stcs, set_directory
 
 
 def generate_signal(times, freq=10., phase=0):
@@ -111,7 +111,7 @@ def create_epochs(raw, title='Simulated evoked',
     return epochs
 
 
-def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
+def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq,
                  n_trials, noise_multiplier, random_state, n_noise_dipoles,
                  er_raw, fn_stc_signal=None, fn_simulated_raw=None,
                  fn_report_h5=None):
@@ -131,8 +131,6 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq, trial_length,
         The vertex where signal dipole is placed.
     signal_freq : float
         The frequency of the signal.
-    trial_length : float
-        Length of a single trial in samples.
     n_trials : int
         Number of trials to create.
     noise_multiplier : float
