@@ -64,6 +64,7 @@ html_header = '''
         <th>normalize_fwd</th>
         <th>real_filter</th>
         <th>use_noise_cov</th>
+        <th>reduce_rank</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
     </tr>
@@ -71,7 +72,44 @@ html_header = '''
 
 html_footer = '''
         <script src="tablefilter/tablefilter.js"></script>
-        <script src="filter.js"></script>
+        <script>
+            var filtersConfig = {
+                base_path: 'tablefilter/',
+                col_0: 'checklist',
+                col_1: 'checklist',
+                col_2: 'checklist',
+                col_3: 'checklist',
+                col_4: 'checklist',
+                col_5: 'checklist',
+                col_6: 'checklist',
+                col_7: 'checklist',
+                col_8: 'checklist',
+                col_9: 'none',
+                col_10: 'none',
+                filters_row_index: 1,
+                enable_checklist_reset_filter: false,
+                alternate_rows: true,
+                col_types: [
+                    'number', 'string', 'string',
+                    'string', 'string', 'string',
+                    'string', 'string', 'string',
+                    'image', 'image'
+                ],
+                col_widths: [
+                    '80px', '150px', '130px',
+                    '110px', '170px', '150px',
+                    '150px', '150px', '150px',
+                    '210px', '210px'
+                ]
+            };
+
+            var tf = new TableFilter('results', filtersConfig);
+            tf.init();
+
+            for (div of document.getElementsByClassName("div_checklist")) {
+                div.style.height = 100;
+            }
+        </script>
     </body>
 </html>
 '''
@@ -88,7 +126,8 @@ for i, setting in enumerate(dics_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
     q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s" % setting)
+         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s and "
+         "reduce_rank==%s" % setting)
 
     print(q)
 
@@ -97,7 +136,7 @@ for i, setting in enumerate(dics_settings):
     if len(sel) < 1000:
         continue
 
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
 
     ###############################################################################
     # Create dist stc from simulated data
