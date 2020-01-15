@@ -128,7 +128,7 @@ for i, setting in enumerate(config.lcmv_settings):
     ###############################################################################
     # Plot
     ###############################################################################
-    fn_image = '%03d_lcmv_dist_2sources_ortho.png' % i
+    fn_image = '%03d_sres_ortho.png' % i
     fp_image = op.join(image_path, fn_image)
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
