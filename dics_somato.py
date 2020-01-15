@@ -41,7 +41,7 @@ dists = []
 evals = []
 
 for setting in dics_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info
@@ -56,7 +56,7 @@ for setting in dics_settings:
                             inversion=inversion, weight_norm=weight_norm,
                             noise_csd=noise_csd if use_noise_cov else None,
                             normalize_fwd=normalize_fwd,
-                            real_filter=real_filter)
+                            real_filter=real_filter, reduce_rank=reduce_rank)
 
         # Compute source power
         stc_baseline, _ = apply_dics_csd(noise_csd, filters)
@@ -88,7 +88,7 @@ for setting in dics_settings:
 df = pd.DataFrame(dics_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'real_filter',
-                           'use_noise_cov'])
+                           'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
 df['eval'] = evals
 

@@ -10,14 +10,18 @@ raw = mne_bids.read_raw_bids(fname.raw, fname.bids_root)
 raw.load_data()
 report.add_figs_to_section(raw.plot_psd(), 'PSD of unfiltered raw', 'Raw', replace=True)
 
+raw = raw.notch_filter([50, 100, 150, 200, 250])
+report.add_figs_to_section(raw.plot_psd(), 'PSD of notch filtered raw', 'Raw', replace=True)
+
 # Fit ICA to the continuous data
-raw_filtered = raw.copy().filter(1, 40)
-ica = mne.preprocessing.ICA(n_components=0.999).fit(raw_filtered)
+raw_detrended = raw.copy().filter(1, None)
+ica = mne.preprocessing.ICA(n_components=0.99).fit(raw_detrended)
 ica.save(fname.ica)
 
 # Get ICA components that capture eye blinks
-eog_epochs = mne.preprocessing.create_eog_epochs(raw_filtered)
-ica.exclude, eog_scores = ica.find_bads_eog(eog_epochs)
+eog_epochs = mne.preprocessing.create_eog_epochs(raw_detrended)
+_, eog_scores = ica.find_bads_eog(raw_detrended)
+ica.exclude = np.flatnonzero(abs(eog_scores) > 0.2)
 report.add_figs_to_section(ica.plot_scores(eog_scores), 'Correlation between ICA components and EOG channel', 'ICA', replace=True)
 report.add_figs_to_section(ica.plot_properties(eog_epochs, picks=ica.exclude), ['Properties of component %02d' % e for e in ica.exclude], 'ICA', replace=True)
 report.add_figs_to_section(ica.plot_overlay(eog_epochs.average()), 'Signal removed by ICA', 'ICA', replace=True)
@@ -36,7 +40,7 @@ epochs_long.save(fname.epochs_long, overwrite=True)
 
 # Visualize spectral content of the longer repochs
 freqs = np.logspace(np.log10(5), np.log10(40), 20)
-epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, return_itc=False)
+epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, return_itc=False, n_jobs=4)
 fig = epochs_tfr.plot_topo(baseline=(-1, 0), mode='logratio')
 fig.set_size_inches((12, 12))
 report.add_figs_to_section(fig, 'Time-frequency decomposition', 'Spectrum', replace=True)

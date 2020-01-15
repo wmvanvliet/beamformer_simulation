@@ -11,13 +11,14 @@ trans = mne_bids.get_head_mri_trans(fname.raw, fname.bids_root)
 bem = mne.make_bem_model('01', ico=4, subjects_dir=fname.subjects_dir)
 bem_sol = mne.make_bem_solution(bem)
 mne.write_bem_solution(fname.bem, bem_sol)
-src = mne.setup_volume_source_space(subject=subject_id, bem=bem_sol, subjects_dir=fname.subjects_dir)
+#src = mne.setup_volume_source_space(subject=subject_id, bem=bem_sol, subjects_dir=fname.subjects_dir)
+src = mne.setup_source_space(subject=subject_id, subjects_dir=fname.subjects_dir, n_jobs=4)
 fwd = mne.make_forward_solution(info=info, trans=trans, src=src, bem=bem_sol)
 
 # Save things
 trans.save(fname.trans)
-src.save(fname.src, overwrite=True)
-mne.write_forward_solution(fname.fwd, fwd, overwrite=True)
+src.save(fname.src_surf, overwrite=True)
+mne.write_forward_solution(fname.fwd_surf, fwd, overwrite=True)
 
 # Visualize source space and MEG sensors
 fig = mne.viz.plot_alignment(info=info, trans=trans, subject=subject_id,
