@@ -143,7 +143,7 @@ for i, setting in enumerate(config.lcmv_settings):
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=fname.subjects_dir,
-                         time=vstc_dist.tmin, cut_coords=(-5, -30, 30),
+                         time=vstc_dist.tmin, cut_coords=config.cut_coords,
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma_r',
                          symmetric_cbar='auto', threshold=0,
@@ -155,7 +155,7 @@ for i, setting in enumerate(config.lcmv_settings):
 
     plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
                          subjects_dir=fname.subjects_dir,
-                         time=vstc_eval.tmin, cut_coords=(-5, -30, 30),
+                         time=vstc_eval.tmin, cut_coords=config.cut_coords,
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
@@ -167,7 +167,7 @@ for i, setting in enumerate(config.lcmv_settings):
 
     plot_vstc_sliced_old(vstc_corr, vsrc, vstc_corr.tstep,
                          subjects_dir=fname.subjects_dir,
-                         time=vstc_corr.tmin, cut_coords=(-5, -30, 30),
+                         time=vstc_corr.tmin, cut_coords=config.cut_coords,
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
