@@ -1,7 +1,8 @@
+import warnings
+
 import mne
 import numpy as np
 import pandas as pd
-import warnings
 from mne.beamformer import make_lcmv, apply_lcmv
 from mne.forward.forward import _restrict_forward_to_src_sel
 
@@ -120,7 +121,6 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
                                 noise_cov=noise_cov if use_noise_cov else None,
                                 reduce_rank=reduce_rank)
             stc = apply_lcmv(evoked, filters).crop(0.001, 1)
-
 
             vert1_idx = np.searchsorted(src_sel, config.vertex)
             vert2_idx = np.searchsorted(src_sel, nb_vertex)

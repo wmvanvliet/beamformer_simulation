@@ -1,10 +1,11 @@
+import warnings
+
 import mne
 import numpy as np
 import pandas as pd
-import warnings
 from mne.beamformer import make_dics, apply_dics_csd
-from mne.time_frequency import csd_morlet
 from mne.forward.forward import _restrict_forward_to_src_sel
+from mne.time_frequency import csd_morlet
 
 import config
 from config import fname, dics_settings
@@ -122,14 +123,14 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
 
             vert1_idx = np.searchsorted(src_sel, config.vertex)
             vert2_idx = np.searchsorted(src_sel, nb_vertex)
-            ratio1 = stc.data[vert1_idx, 0] / stc.data[vert1_idx, 1]
-            ratio2 = stc.data[vert2_idx, 1] / stc.data[vert2_idx, 0]
-            ratio = ratio1 * ratio2
+            ratio1 = stc.data[vert1_idx, 1] / stc.data[vert1_idx, 0]
+            ratio2 = stc.data[vert2_idx, 0] / stc.data[vert2_idx, 1]
+            ratio = np.sqrt(ratio1 * ratio2)
             corrs.append(list(setting) + [nb_vertex, nb_dist, ratio])
 
             print(setting, nb_dist, ratio)
 
-            if ratio > 2:
+            if ratio < 0.5 ** 0.5:
                 do_break[idx_setting] = True
 
         except Exception as e:
