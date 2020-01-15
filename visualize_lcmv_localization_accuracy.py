@@ -46,6 +46,7 @@ lcmv['weight_norm'].fillna('none', inplace=True)
 
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
 cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
+cbar_range_corr = [0, lcmv['corr'].dropna().to_numpy().max()]
 
 ###############################################################################
 # HTML settings
@@ -67,8 +68,10 @@ html_header = '''
         <th>weight_norm</th>
         <th>normalize_fwd</th>
         <th>use_noise_cov</th>
+        <th>reduce_rank</th>
         <th>P2P distance</th>
         <th>Fancy metric</th>
+        <th>Time course correlation</th>
     </tr>
 '''
 
@@ -88,8 +91,9 @@ set_directory(image_path)
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
+
     q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s" % setting)
+         "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s and reduce_rank==%s") % setting
 
     print(q)
 
@@ -99,8 +103,6 @@ for i, setting in enumerate(config.lcmv_settings):
         print('Not enough voxels. Did this run fail?')
         continue
 
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
-
     ###############################################################################
     # Create dist stc from simulated data
     ###############################################################################
@@ -108,23 +110,28 @@ for i, setting in enumerate(config.lcmv_settings):
     vert_sel = sel['vertex'].to_numpy()
     data_dist_sel = sel['dist'].to_numpy()
     data_eval_sel = sel['eval'].to_numpy()
-
-    data_dist = np.zeros(shape=(vertno.shape[0], 1))
+    data_corr_sel = sel['corr'].to_numpy()
 
     # do I want to add small value for thresholding in the plot, e.g., 0.001
     # -> causes points with localization error equal to zero to be black in the plot
-    data_dist[vert_sel, 0] = data_dist_sel + 0.001
+    offset = 0.001
+
+    data_dist = np.zeros(shape=(vertno.shape[0], 1))
+    data_dist[vert_sel, 0] = data_dist_sel + offset
 
     vstc_dist = mne.VolSourceEstimate(data=data_dist, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
 
     data_eval = np.zeros(shape=(vertno.shape[0], 1))
-
-    # do I want to add small value for thresholding in the plot, e.g., 0.001
-    # -> causes points with localization error equal to zero to be black in the plot
-    data_eval[vert_sel, 0] = data_eval_sel + 0.001
+    data_eval[vert_sel, 0] = data_eval_sel + offset
 
     vstc_eval = mne.VolSourceEstimate(data=data_eval, vertices=vertno, tmin=0,
+                                      tstep=1 / info['sfreq'], subject='sample')
+
+    data_corr = np.zeros(shape=(vertno.shape[0], 1))
+    data_corr[vert_sel, 0] = data_corr_sel + offset
+
+    vstc_corr = mne.VolSourceEstimate(data=data_corr, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
 
     ###############################################################################
@@ -136,9 +143,9 @@ for i, setting in enumerate(config.lcmv_settings):
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
                          subjects_dir=fname.subjects_dir,
-                         time=vstc_dist.tmin, cut_coords=(0, 0, 0),
+                         time=vstc_dist.tmin, cut_coords=(-5, -30, 30),
                          display_mode='ortho', figure=None,
-                         axes=None, colorbar=True, cmap='magma',
+                         axes=None, colorbar=True, cmap='magma_r',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range_dist,
                          save=True, fname_save=fp_image_dist)
@@ -148,12 +155,24 @@ for i, setting in enumerate(config.lcmv_settings):
 
     plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,
                          subjects_dir=fname.subjects_dir,
-                         time=vstc_eval.tmin, cut_coords=(0, 0, 0),
+                         time=vstc_eval.tmin, cut_coords=(-5, -30, 30),
                          display_mode='ortho', figure=None,
                          axes=None, colorbar=True, cmap='magma',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range_eval,
                          save=True, fname_save=fp_image_eval)
+
+    fn_image_corr = '%03d_corr_ortho.png' % i
+    fp_image_corr = op.join(image_path, fn_image_corr)
+
+    plot_vstc_sliced_old(vstc_corr, vsrc, vstc_corr.tstep,
+                         subjects_dir=fname.subjects_dir,
+                         time=vstc_corr.tmin, cut_coords=(-5, -30, 30),
+                         display_mode='ortho', figure=None,
+                         axes=None, colorbar=True, cmap='magma',
+                         symmetric_cbar='auto', threshold=0,
+                         cbar_range=cbar_range_corr,
+                         save=True, fname_save=fp_image_corr)
 
     ###############################################################################
     # Plot
@@ -162,6 +181,7 @@ for i, setting in enumerate(config.lcmv_settings):
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
+    html_table += '<td><img src="' + op.join(image_folder, fn_image_corr) + '"></td>'
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
