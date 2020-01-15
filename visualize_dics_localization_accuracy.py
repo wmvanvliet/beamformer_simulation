@@ -130,7 +130,7 @@ for i, setting in enumerate(dics_settings):
     # Plot
     ###############################################################################
 
-    fn_image_dist = '%03d_dist_ortho.png' % i
+    fn_image_dist = '%03d_dics_dist_ortho.png' % i
     fp_image_dist = op.join(image_path, fn_image_dist)
 
     plot_vstc_sliced_old(vstc_dist, vsrc, vstc_dist.tstep,
@@ -142,7 +142,7 @@ for i, setting in enumerate(dics_settings):
                          cbar_range=cbar_range_dist,
                          save=True, fname_save=fp_image_dist)
 
-    fn_image_eval = '%03d_eval_ortho.png' % i
+    fn_image_eval = '%03d_dics_eval_ortho.png' % i
     fp_image_eval = op.join(image_path, fn_image_eval)
 
     plot_vstc_sliced_old(vstc_eval, vsrc, vstc_eval.tstep,

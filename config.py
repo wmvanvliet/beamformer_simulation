@@ -1,8 +1,8 @@
 import argparse
-import os
 import getpass
-from socket import getfqdn
+import os
 from itertools import product
+from socket import getfqdn
 
 import numpy as np
 from mne.datasets import sample, somato
@@ -154,14 +154,14 @@ fname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vertex:04d}-epo.fif')
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
-fname.add('lcmv_results', '{target_path}/lcmv_results-vertex{vertex:04d}.csv')
-fname.add('lcmv_results_2s', '{target_path}/lcmv_results-2sources-vertex{vertex:04d}.csv')
-fname.add('dics_results', '{target_path}/dics_results-vertex{vertex:04d}.csv')
-fname.add('dics_results_2s', '{target_path}/dics_results-2sources-vertex{vertex:04d}.csv')
+fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}.csv')
+fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}.csv')
+fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')
+fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
-phantom_fname.add('data_path', bst_phantom_ctf.data_path()) 
+phantom_fname.add('data_path', bst_phantom_ctf.data_path())
 phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
 phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
 
