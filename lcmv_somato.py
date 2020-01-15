@@ -46,7 +46,7 @@ fwd = mne.read_forward_solution(fname.somato_fwd)
 dists = []
 evals = []
 for setting in lcmv_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -60,25 +60,28 @@ for setting in lcmv_settings:
         filters = make_lcmv(evoked.info, fwd, data_cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             inversion=inversion, normalize_fwd=normalize_fwd,
-                            noise_cov=noise_cov if use_noise_cov else None)
+                            noise_cov=noise_cov if use_noise_cov else None,
+                            reduce_rank=reduce_rank)
 
         stc = apply_lcmv(evoked, filters)
 
-        # Peak should be around 0.04
-        peak_time = stc.get_peak()[1]
-        if not (0.03 <= peak_time <= 0.05):
-            print('Could not find SI peak')
-            dist = np.nan
-            ev = np.nan
-        else:
-            stc = stc.crop(0.03, 0.05).mean()
+        # # Peak should be around 0.04
+        # peak_time = stc.get_peak()[1]
+        # if not (0.01 <= peak_time <= 0.05):
+        #     print('Could not find SI peak')
+        #     dist = np.nan
+        #     ev = np.nan
+        # else:
+        #     #stc = stc.crop(0.03, 0.05).mean()
 
-            # Compute distance between true and estimated source
-            estimated_pos = fwd['src'][0]['rr'][stc.get_peak()[0]]
-            dist = np.linalg.norm(somato_true_pos - estimated_pos)
+        stc = stc.crop(0.035, 0.035)
 
-            # Fancy evaluation metric
-            ev = evaluate_fancy_metric_volume(stc, true_vert_idx=somato_true_vert_idx)
+        # Compute distance between true and estimated source
+        estimated_pos = fwd['src'][0]['rr'][stc.get_peak()[0]]
+        dist = np.linalg.norm(somato_true_pos - estimated_pos)
+
+        # Fancy evaluation metric
+        ev = evaluate_fancy_metric_volume(stc, true_vert_idx=somato_true_vert_idx)
     except Exception as e:
         print(e)
         dist = np.nan
@@ -94,7 +97,7 @@ for setting in lcmv_settings:
 
 df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov'])
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
 df['eval'] = evals
 
