@@ -83,7 +83,7 @@ random = np.random.RandomState(vertex)  # Random seed for everything
 #   - different sensor types
 #   - what changes with condition contrasting
 
-regs = [0.05, 0.1, 0.5]
+regs = [0, 0.05, 0.1]
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
