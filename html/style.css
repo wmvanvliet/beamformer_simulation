@@ -1,0 +1,11 @@
+body {
+  font-family: sans-serif;
+}
+
+img {
+  height: 70px;
+}
+
+img:active {
+  transform:scale(5) translate(10px, 10px);
+}
