@@ -174,7 +174,7 @@ for i, setting in enumerate(dics_settings):
                          subjects_dir=fname.subjects_dir,
                          time=vstc_dist.tmin, cut_coords=config.cut_coords,
                          display_mode='ortho', figure=None,
-                         axes=None, colorbar=True, cmap='magma',
+                         axes=None, colorbar=True, cmap='magma_r',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range_dist,
                          save=True, fname_save=fp_image_dist)
