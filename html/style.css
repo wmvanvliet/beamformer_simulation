@@ -7,5 +7,5 @@ img {
 }
 
 img:active {
-  transform:scale(5) translate(10px, 10px);
+  transform:scale(5) translate(-60px, 0px);
 }

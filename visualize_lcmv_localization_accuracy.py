@@ -90,18 +90,21 @@ html_footer = '''
                 col_7: 'checklist',
                 col_8: 'none',
                 col_9: 'none',
+                col_10: 'none',
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
                 col_types: [
                     'number', 'string', 'string',
                     'string', 'string', 'string',
-                    'string', 'string', 'image', 'image'
+                    'string', 'string', 'image',
+                    'image', 'image'
                 ],
                 col_widths: [
                     '80px', '150px', '130px',
                     '110px', '170px', '150px',
-                    '150px', '150px', '210px', '210px'
+                    '150px', '150px', '210px',
+                    '210px', '210px'
                 ]
             };
 
