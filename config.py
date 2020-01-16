@@ -142,7 +142,7 @@ fname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files from manual coregistration
 fname.add('fwd_man', '{data_path}/MEG/sample/sample_coregerror-meg-vol-7-fwd.fif')
-fname.add('trans_man', 'sample_manual_bw-trans.fif')
+fname.add('trans_man', 'sample_manual_ck-trans.fif')
 
 # Files produced by volume simulation code
 fname.add('target_path', target_path)  # Where to put everything
