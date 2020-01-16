@@ -32,7 +32,6 @@ er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true,
                                signal_vertex=config.vertex,
                                signal_freq=config.signal_freq,
-                               trial_length=config.trial_length,
                                n_trials=config.n_trials, noise_multiplier=0,
                                random_state=config.random, n_noise_dipoles=0,
                                er_raw=er_raw)

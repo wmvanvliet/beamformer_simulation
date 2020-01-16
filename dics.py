@@ -33,10 +33,9 @@ fwd_disc_true = mne.pick_types_forward(fwd_disc_true, meg=True, eeg=False)
 er_raw = mne.io.read_raw_fif(fname.ernoise, preload=True)
 
 raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_vertex=config.vertex,
-                               signal_freq=config.signal_freq, trial_length=config.trial_length,
-                               n_trials=config.n_trials, noise_multiplier=config.noise,
-                               random_state=config.random, n_noise_dipoles=config.n_noise_dipoles_vol,
-                               er_raw=er_raw)
+                               signal_freq=config.signal_freq, n_trials=config.n_trials,
+                               noise_multiplier=config.noise, random_state=config.random,
+                               n_noise_dipoles=config.n_noise_dipoles_vol, er_raw=er_raw)
 
 del info, fwd_disc_true, er_raw
 
