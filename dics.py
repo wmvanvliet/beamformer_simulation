@@ -37,6 +37,8 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_ve
                                noise_multiplier=config.noise, random_state=config.random,
                                n_noise_dipoles=config.n_noise_dipoles_vol, er_raw=er_raw)
 
+true_ori = fwd_disc_true['src'][0]['nn'][config.vertex]
+
 del info, fwd_disc_true, er_raw
 
 epochs = create_epochs(raw)
@@ -62,6 +64,7 @@ fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 dists = []
 evals = []
+ori_errors = []
 
 for setting in dics_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
@@ -89,14 +92,22 @@ for setting in dics_settings:
 
         # Fancy evaluation metric
         ev = evaluate_fancy_metric_volume(stc, stc_signal)
+
+        if pick_ori == 'max-power':
+            estimated_ori = filters['max_power_ori'][config.vertex]
+            ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
+        else:
+            ori_error = np.nan
     except Exception as e:
         print(e)
         dist = np.nan
         ev = np.nan
-    print(setting, dist, ev)
+        ori_error = np.nan
+    print(setting, dist, ev, ori_error)
 
     dists.append(dist)
     evals.append(ev)
+    ori_errors.append(ori_error)
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -108,6 +119,7 @@ df = pd.DataFrame(dics_settings,
                            'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
 df['eval'] = evals
+df['ori_error'] = ori_errors
 
 df.to_csv(fname.dics_results(vertex=config.vertex, noise=config.noise))
 print('OK!')
