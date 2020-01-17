@@ -37,7 +37,7 @@ if vsrc[0]['subject_his_id'] is None:
 dfs = []
 for vertex in tqdm(range(3756), total=3756):
     try:
-        df = pd.read_csv(fname.lcmv_results(vertex=vertex), index_col=0)
+        df = pd.read_csv(fname.lcmv_results(vertex=vertex, noise=0.1), index_col=0)
         df['vertex'] = vertex
         df['noise'] = config.noise
         dfs.append(df)
@@ -97,6 +97,7 @@ html_footer = '''
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
+                sticky_headers: true,
                 col_types: [
                     'number', 'string', 'string',
                     'string', 'string', 'string',

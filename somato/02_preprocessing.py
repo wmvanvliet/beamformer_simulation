@@ -30,6 +30,8 @@ report.add_figs_to_section(ica.plot_overlay(eog_epochs.average()), 'Signal remov
 epochs = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
 epochs_clean = ica.apply(epochs)
 epochs_clean.save(fname.epochs, overwrite=True)
+evoked = epochs_clean.average()
+evoked.save(fname.evoked)
 report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds without ICA (grads)', 'Evokeds without ICA (mags)'], 'Sensor level', replace=True)
 report.add_figs_to_section(epochs_clean.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after ICA (grads)', 'Evokeds after ICA (mags)'], 'Sensor level', replace=True)
 

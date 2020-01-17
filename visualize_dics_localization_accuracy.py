@@ -89,6 +89,7 @@ html_footer = '''
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
+                sticky_headers: true,
                 col_types: [
                     'number', 'string', 'string',
                     'string', 'string', 'string',
