@@ -109,5 +109,5 @@ df = pd.DataFrame(dics_settings,
 df['dist'] = dists
 df['eval'] = evals
 
-df.to_csv(fname.dics_results(vertex=config.vertex))
+df.to_csv(fname.dics_results(vertex=config.vertex, noise=config.noise))
 print('OK!')

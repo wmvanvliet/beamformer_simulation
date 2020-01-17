@@ -121,5 +121,5 @@ df['dist'] = dists
 df['eval'] = evals
 df['corr'] = corrs
 
-df.to_csv(fname.lcmv_results(vertex=config.vertex))
+df.to_csv(fname.lcmv_results(vertex=config.vertex, noise=config.noise))
 print('OK!')

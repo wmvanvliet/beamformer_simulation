@@ -137,8 +137,6 @@ for i, (nb_vertex, nb_dist) in enumerate(np.column_stack((nearest_neighbors, dis
             corrs.append(list(setting) + [nb_vertex, nb_dist, np.nan])
 
     if do_break.all():
-        # for all settings the shared variance between neighbors is less than 1/sqrt(2)
-        # no need to compute correlation for neighbors further away
         break
 else:
     warnings.warn('Reached max number of sources, but still some parameter combinations have large correlations.')
