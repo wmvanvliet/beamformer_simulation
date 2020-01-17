@@ -320,15 +320,7 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subje
     # Construct source space normals as random tangential vectors
     ###########################################################################
 
-    com = rr.mean(axis=0)  # center of mass
-
-    # get vectors pointing from center of mass to voxels
-    radial = rr - com
-    rnd_vectors = np.array([random_three_vector() for i in range(rr.shape[0])])
-    tangential = np.cross(radial, rnd_vectors)
-    # normalize to unit length
-    nn = (tangential.T * (1. / np.linalg.norm(tangential, axis=1))).T
-
+    nn = np.array([random_three_vector() for i in range(rr.shape[0])])
     pos = {'rr': rr, 'nn': nn}
 
     ###########################################################################
