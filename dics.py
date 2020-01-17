@@ -94,7 +94,7 @@ for setting in dics_settings:
         ev = evaluate_fancy_metric_volume(stc, stc_signal)
 
         if pick_ori == 'max-power':
-            estimated_ori = filters['max_power_ori'][config.vertex]
+            estimated_ori = filters['max_power_oris'][0][config.vertex]
             ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
         else:
             ori_error = np.nan

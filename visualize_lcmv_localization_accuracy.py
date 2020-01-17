@@ -50,6 +50,7 @@ lcmv['weight_norm'].fillna('none', inplace=True)
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
 cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
 cbar_range_corr = [0, lcmv['corr'].dropna().to_numpy().max()]
+cbar_range_ori = [0, lcmv['ori_error'].dropna().to_numpy().max()]
 
 ###############################################################################
 # HTML settings
@@ -75,6 +76,7 @@ html_header = '''
         <th>P2P distance</th>
         <th>Fancy metric</th>
         <th>Time course correlation</th>
+        <th>Orientation error</th>
     </tr>
 '''
 
@@ -94,6 +96,7 @@ html_footer = '''
                 col_8: 'none',
                 col_9: 'none',
                 col_10: 'none',
+                col_11: 'none',
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
@@ -102,13 +105,13 @@ html_footer = '''
                     'number', 'string', 'string',
                     'string', 'string', 'string',
                     'string', 'string', 'image',
-                    'image', 'image'
+                    'image', 'image', 'image'
                 ],
                 col_widths: [
                     '80px', '150px', '130px',
                     '110px', '170px', '150px',
                     '150px', '150px', '210px',
-                    '210px', '210px'
+                    '210px', '210px', '210px'
                 ]
             };
 
@@ -152,6 +155,7 @@ for i, setting in enumerate(config.lcmv_settings):
     data_dist_sel = sel['dist'].to_numpy()
     data_eval_sel = sel['eval'].to_numpy()
     data_corr_sel = sel['corr'].to_numpy()
+    data_ori_sel = sel['ori_error'].to_numpy()
 
     # do I want to add small value for thresholding in the plot, e.g., 0.001
     # -> causes points with localization error equal to zero to be black in the plot
@@ -175,6 +179,11 @@ for i, setting in enumerate(config.lcmv_settings):
     vstc_corr = mne.VolSourceEstimate(data=data_corr, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
 
+    data_ori = np.zeros(shape=(vertno.shape[0], 1))
+    data_ori[vert_sel, 0] = data_ori_sel + offset
+
+    vstc_ori = mne.VolSourceEstimate(data=data_ori, vertices=vertno, tmin=0,
+                                      tstep=1 / info['sfreq'], subject='sample')
     ###############################################################################
     # Plot
     ###############################################################################
@@ -215,6 +224,17 @@ for i, setting in enumerate(config.lcmv_settings):
                          cbar_range=cbar_range_corr,
                          save=True, fname_save=fp_image_corr)
 
+    fn_image_ori = '%03d_lcmv_ori_ortho.png' % i
+    fp_image_ori = op.join(image_path, fn_image_ori)
+
+    plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
+                         subjects_dir=fname.subjects_dir,
+                         time=vstc_ori.tmin, cut_coords=config.cut_coords,
+                         display_mode='ortho', figure=None,
+                         axes=None, colorbar=True, cmap='magma_r',
+                         symmetric_cbar='auto', threshold=0,
+                         cbar_range=cbar_range_ori,
+                         save=True, fname_save=fp_image_ori)
     ###############################################################################
     # Plot
     ###############################################################################
@@ -223,6 +243,7 @@ for i, setting in enumerate(config.lcmv_settings):
     html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_corr) + '"></td>'
+    html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
