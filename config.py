@@ -116,7 +116,8 @@ cut_coords = (-5, -30, 30)
 # FIXME replace with actual value determined by Hanna Renvall
 somato_true_pos_ras = [36.9265, 7.85419, 53.4155]  # In RAS space, in mm
 somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in meters
-somato_true_vert_idx = 12679
+somato_true_pos = [-0.00445296, -0.0150457, 0.0552662]  # In head space, in meters
+somato_true_vert_idx = 5419
 
 ###############################################################################
 # Filenames for various things
