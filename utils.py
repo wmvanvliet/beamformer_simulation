@@ -317,7 +317,7 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subje
     """
 
     ###########################################################################
-    # Construct source space normals as random tangential vectors
+    # Construct source space normals as random vectors
     ###########################################################################
 
     nn = np.array([random_three_vector() for i in range(rr.shape[0])])
