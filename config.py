@@ -33,6 +33,9 @@ elif 'triton' in host and user == 'vanvlm1':
     # The big computational cluster at Aalto University
     target_path = '/scratch/nbe/epasana/beamformer_simulation/data'
     n_jobs = 1
+elif user == 'we':
+    target_path = '~/Documents/projects/beamf_sim/data'
+    n_jobs = 2
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
                        'variable to point to the location where the data '
@@ -83,7 +86,10 @@ random = np.random.RandomState(vertex)  # Random seed for everything
 #   - different sensor types
 #   - what changes with condition contrasting
 
-regs = [0, 0.05, 0.1]
+if user == 'we':
+    regs = [0.05, 0.1, 0.5]  # still plotting the old results
+else:
+    regs = [0, 0.05, 0.1]
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
@@ -155,10 +161,18 @@ fname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vertex:04d}-epo.fif')
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
-fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
-fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')
-fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
-fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')
+
+# no backwards compatability in naming:
+if user == 'we' and args.noise == 0.0:
+    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}.csv')
+    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}.csv')
+    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')
+    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')
+else:
+    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
+    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')
+    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
+    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
