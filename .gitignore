@@ -116,3 +116,8 @@ venv.bak/
 
 # Triton
 *.out
+
+
+# Emacs
+*.py~
+\#*#
