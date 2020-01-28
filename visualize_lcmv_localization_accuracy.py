@@ -48,8 +48,9 @@ lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
-cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
-cbar_range_corr = [0, lcmv['corr'].dropna().to_numpy().max()]
+# fancy metric is very skewed, use 0.015 as fixed cutoff
+cbar_range_eval = [0, 0.015]
+cbar_range_corr = [0, 1]
 
 ###############################################################################
 # HTML settings
