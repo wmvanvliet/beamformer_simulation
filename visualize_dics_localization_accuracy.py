@@ -35,7 +35,7 @@ if vsrc[0]['subject_his_id'] is None:
 dfs = []
 for vertex in tqdm(range(3756), total=3756):
     try:
-        df = pd.read_csv(fname.dics_results(vertex=vertex), index_col=0)
+        df = pd.read_csv(fname.dics_results(vertex=vertex, noise=0.1), index_col=0)
         df['vertex'] = vertex
         df['noise'] = config.noise
         dfs.append(df)
@@ -47,6 +47,7 @@ dics['weight_norm'].fillna('none', inplace=True)
 
 cbar_range_dist = [0, dics['dist'].dropna().to_numpy().max()]
 cbar_range_eval = [0, dics['eval'].dropna().to_numpy().max()]
+cbar_range_ori = [0, dics['ori_error'].dropna().to_numpy().max()]
 
 html_header = '''
     <html>
@@ -66,7 +67,8 @@ html_header = '''
         <th>use_noise_cov</th>
         <th>reduce_rank</th>
         <th>P2P distance</th>
-        <th>Fancy metric</th>
+        <th>Focality</th>
+        <th>Orientation error</th>
     </tr>
 '''
 
@@ -86,20 +88,22 @@ html_footer = '''
                 col_8: 'checklist',
                 col_9: 'none',
                 col_10: 'none',
+                col_11: 'none',
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
+                sticky_headers: true,
                 col_types: [
                     'number', 'string', 'string',
                     'string', 'string', 'string',
                     'string', 'string', 'string',
-                    'image', 'image'
+                    'image', 'image', 'image'
                 ],
                 col_widths: [
                     '80px', '150px', '130px',
                     '110px', '170px', '150px',
                     '150px', '150px', '150px',
-                    '210px', '210px'
+                    '210px', '210px', '210px'
                 ]
             };
 
@@ -144,24 +148,22 @@ for i, setting in enumerate(dics_settings):
     vert_sel = sel['vertex'].to_numpy()
     data_dist_sel = sel['dist'].to_numpy()
     data_eval_sel = sel['eval'].to_numpy()
+    data_ori_sel = sel['ori_errer'].to_numpy()
 
     data_dist = np.zeros(shape=(vertno.shape[0], 1))
-
-    # do I want to add small value for thresholding in the plot, e.g., 0.001
-    # -> causes points with localization error equal to zero to be black in the plot
     data_dist[vert_sel, 0] = data_dist_sel + 0.001
-
     vstc_dist = mne.VolSourceEstimate(data=data_dist, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
 
     data_eval = np.zeros(shape=(vertno.shape[0], 1))
-
-    # do I want to add small value for thresholding in the plot, e.g., 0.001
-    # -> causes points with localization error equal to zero to be black in the plot
     data_eval[vert_sel, 0] = data_eval_sel + 0.001
-
     vstc_eval = mne.VolSourceEstimate(data=data_eval, vertices=vertno, tmin=0,
                                       tstep=1 / info['sfreq'], subject='sample')
+
+    data_ori = np.zeros(shape=(vertno.shape[0], 1))
+    data_ori[vert_sel, 0] = data_ori_sel + 0.001
+    vstc_ori = mne.VolSourceEstimate(data=data_ori, vertices=vertno, tmin=0,
+                                     tstep=1 / info['sfreq'], subject='sample')
 
     ###############################################################################
     # Plot
@@ -191,6 +193,18 @@ for i, setting in enumerate(dics_settings):
                          cbar_range=cbar_range_eval,
                          save=True, fname_save=fp_image_eval)
 
+    fn_image_ori = '%03d_dics_ori_ortho.png' % i
+    fp_image_ori = op.join(image_path, fn_image_ori)
+
+    plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
+                         subjects_dir=fname.subjects_dir,
+                         time=vstc_ori.tmin, cut_coords=config.cut_coords,
+                         display_mode='ortho', figure=None,
+                         axes=None, colorbar=True, cmap='magma',
+                         symmetric_cbar='auto', threshold=0,
+                         cbar_range=cbar_range_ori,
+                         save=True, fname_save=fp_image_ori)
+
     ###############################################################################
     # Plot
     ###############################################################################
@@ -198,6 +212,7 @@ for i, setting in enumerate(dics_settings):
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
+    html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
 
     with open('html/dics_vol.html', 'w') as f:
         f.write(html_header)

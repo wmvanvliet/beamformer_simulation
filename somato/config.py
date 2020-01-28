@@ -1,4 +1,5 @@
 import mne
+
 from fnames import FileNames
 
 fname = FileNames()
@@ -20,6 +21,7 @@ fname.add('evoked', '{derivatives}/sub-01_task-somato_ave.fif')
 fname.add('stc_mne', '{derivatives}/sub-01_task-somato_mne')
 fname.add('stc_lcmv', '{derivatives}/sub-01_task-somato_lcmv')
 fname.add('stc_dics', '{derivatives}/sub-01_task-somato_dics')
+fname.add('ecd', '{derivatives}/sub-01_task-somato_ecd.dip')
 fname.add('nii_mne', '{derivatives}/sub-01_task-somato_mne.nii.gz')
 fname.add('nii_lcmv', '{derivatives}/sub-01_task-somato_lcmv.nii.gz')
 fname.add('nii_dics', '{derivatives}/sub-01_task-somato_dics.nii.gz')

@@ -1,6 +1,7 @@
 import mne
 import mne_bids
 import numpy as np
+
 from config import fname
 
 report = mne.open_report(fname.report)
@@ -22,19 +23,27 @@ ica.save(fname.ica)
 eog_epochs = mne.preprocessing.create_eog_epochs(raw_detrended)
 _, eog_scores = ica.find_bads_eog(raw_detrended)
 ica.exclude = np.flatnonzero(abs(eog_scores) > 0.2)
-report.add_figs_to_section(ica.plot_scores(eog_scores), 'Correlation between ICA components and EOG channel', 'ICA', replace=True)
-report.add_figs_to_section(ica.plot_properties(eog_epochs, picks=ica.exclude), ['Properties of component %02d' % e for e in ica.exclude], 'ICA', replace=True)
+report.add_figs_to_section(ica.plot_scores(eog_scores), 'Correlation between ICA components and EOG channel', 'ICA',
+                           replace=True)
+report.add_figs_to_section(ica.plot_properties(eog_epochs, picks=ica.exclude),
+                           ['Properties of component %02d' % e for e in ica.exclude], 'ICA', replace=True)
 report.add_figs_to_section(ica.plot_overlay(eog_epochs.average()), 'Signal removed by ICA', 'ICA', replace=True)
 
 # Create short epochs for evoked analysis
-epochs = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
+epochs = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0),
+                    preload=True)
 epochs_clean = ica.apply(epochs)
 epochs_clean.save(fname.epochs, overwrite=True)
-report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds without ICA (grads)', 'Evokeds without ICA (mags)'], 'Sensor level', replace=True)
-report.add_figs_to_section(epochs_clean.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after ICA (grads)', 'Evokeds after ICA (mags)'], 'Sensor level', replace=True)
+evoked = epochs_clean.average()
+evoked.save(fname.evoked)
+report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]),
+                           ['Evokeds without ICA (grads)', 'Evokeds without ICA (mags)'], 'Sensor level', replace=True)
+report.add_figs_to_section(epochs_clean.average().plot_joint(times=[0.035, 0.1]),
+                           ['Evokeds after ICA (grads)', 'Evokeds after ICA (mags)'], 'Sensor level', replace=True)
 
 # Create longer epochs for rhythmic analysis
-epochs_long = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-1.5, tmax=2, reject=None, baseline=None, preload=True)
+epochs_long = mne.Epochs(raw, *mne.events_from_annotations(raw), tmin=-1.5, tmax=2, reject=None, baseline=None,
+                         preload=True)
 epochs_long = ica.apply(epochs_long)
 epochs_long.save(fname.epochs_long, overwrite=True)
 

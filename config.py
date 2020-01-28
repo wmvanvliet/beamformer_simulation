@@ -33,6 +33,9 @@ elif 'triton' in host and user == 'vanvlm1':
     # The big computational cluster at Aalto University
     target_path = '/scratch/nbe/epasana/beamformer_simulation/data'
     n_jobs = 1
+elif user == 'we':
+    target_path = '~/Documents/projects/beamf_sim/data'
+    n_jobs = 2
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
                        'variable to point to the location where the data '
@@ -57,9 +60,9 @@ tmax = 1.0
 # We have 109 seconds of empty room data
 n_trials = int(109 / trial_length)  # Number of trials to simulate
 signal_freq = 20  # Frequency at which to simulate the signal timecourse
-signal_freq2 = 33  # Frequency at which to simulate the second signal timecourse
+signal_freq2 = 33  # Frequency at which to simulate the 2nd signal timecourse
 n_neighbors_max = 1000  # maximum number of nearest neighbors being considered
-#n_neighbors_max = 1  # maximum number of nearest neighbors being considered
+# n_neighbors_max = 1  # maximum number of nearest neighbors being considered
 noise_lowpass = 40  # Low-pass frequency for generating noise timecourses
 noise = args.noise  # Multiplier for the noise dipoles
 
@@ -83,7 +86,10 @@ random = np.random.RandomState(vertex)  # Random seed for everything
 #   - different sensor types
 #   - what changes with condition contrasting
 
-regs = [0, 0.05, 0.1]
+if user == 'we':
+    regs = [0.05, 0.1, 0.5]  # still plotting the old results
+else:
+    regs = [0, 0.05, 0.1]
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
@@ -115,8 +121,9 @@ cut_coords = (-5, -30, 30)
 
 # FIXME replace with actual value determined by Hanna Renvall
 somato_true_pos_ras = [36.9265, 7.85419, 53.4155]  # In RAS space, in mm
-somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in meters
-somato_true_vert_idx = 12679
+somato_true_pos = [0.03279403, 0.00966346, 0.10528801]  # In head space, in m
+somato_true_pos = [-0.00445296, -0.0150457, 0.0552662]  # In head space, in m
+somato_true_vert_idx = 5419
 
 ###############################################################################
 # Filenames for various things
@@ -141,23 +148,33 @@ fname.add('fwd_true', '{data_path}/MEG/sample/sample_audvis-meg-vol-7-fwd.fif')
 fname.add('trans_true', '{sample_folder}/sample_audvis_raw-trans.fif')
 
 # Files from manual coregistration
-fname.add('fwd_man', '{data_path}/MEG/sample/sample_coregerror-meg-vol-7-fwd.fif')
+fname.add('fwd_man', '{data_path}/MEG/sample/sample_coregerror-meg-vol-7-fwd.fif')  # noqa
 fname.add('trans_man', 'sample_manual_ck-trans.fif')
 
 # Files produced by volume simulation code
 fname.add('target_path', target_path)  # Where to put everything
-fname.add('fwd_discrete_true', '{data_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')
-fname.add('fwd_discrete_man', '{data_path}/sample_coregerror-meg-vol-7-discrete-fwd.fif')
-fname.add('simulated_raw', '{target_path}/volume_simulated-raw-vertex{vertex:04d}-raw.fif')
-fname.add('stc_signal', '{target_path}/volume_stc_signal-vertex{vertex:04d}-vl.stc')
+fname.add('fwd_discrete_true', '{data_path}/sample_audvis-meg-vol-7-discrete-fwd.fif')  # noqa
+fname.add('fwd_discrete_man', '{data_path}/sample_coregerror-meg-vol-7-discrete-fwd.fif')  # noqa
+fname.add('simulated_raw', '{target_path}/volume_simulated-raw-vertex{vertex:04d}-raw.fif')  # noqa
+fname.add('stc_signal', '{target_path}/volume_stc_signal-vertex{vertex:04d}-vl.stc')  # noqa
 fname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
-fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vertex:04d}-epo.fif')
+fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vertex:04d}-epo.fif')  # noqa
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
-fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}.csv')
-fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}.csv')
-fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')
-fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')
+
+# no backwards compatability in naming:
+if user == 'we' and args.noise == 0.0:
+    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}.csv')  # noqa
+    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}.csv')  # noqa
+    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')  # noqa
+    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')  # noqa
+else:
+    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('lcmv_results_2s',
+              '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('dics_results_2s',
+              '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
@@ -172,7 +189,7 @@ fname.add('somato_subjects', '{somato_path}/derivatives/freesurfer/subjects')
 fname.add('somato_src', '{somato_derivatives}/sub-01_task-somato_vol-src.fif')
 fname.add('somato_fwd', '{somato_derivatives}/sub-01_task-somato_vol-fwd.fif')
 fname.add('somato_epochs', '{somato_derivatives}/sub-01_task-somato_epo.fif')
-fname.add('somato_epochs_long', '{somato_derivatives}/sub-01_task-somato_long_epo.fif')
+fname.add('somato_epochs_long', '{somato_derivatives}/sub-01_task-somato_long_epo.fif')  # noqa
 fname.add('lcmv_somato_results', '{target_path}/lcmv_results-somato.csv')
 fname.add('dics_somato_results', '{target_path}/dics_results-somato.csv')
 
