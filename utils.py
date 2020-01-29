@@ -1,4 +1,5 @@
 import os
+
 import mne
 import numpy as np
 from scipy.spatial import distance
@@ -276,7 +277,7 @@ def set_directory(path=None):
 
 
 def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subjects_dir,
-                                    fn_fwd_disc_true=None, fn_fwd_disc_man=None):
+                                    source_ori='random', fn_fwd_disc_true=None, fn_fwd_disc_man=None):
     """
     Create a discrete source space based on the rr coordinates and
     make one forward solution for the true trans file and one for
@@ -297,6 +298,11 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subje
         The true head<->MRI transform.
     trans_man : str
         The manually created head<->MRI transform.
+    subjects_dir : str
+        Path to the subject directory.
+    source_ori : 'random' or 'orthogonal'
+        The normal vectors ('nn' in the pos dict) have random orientations
+        or they are orthogonal to the surface normal vector.
     fn_fwd_disc_true : None | str
         Path where the forward solution corresponding to the true
         transformation is to be saved. It should end with -fwd.fif
@@ -317,11 +323,24 @@ def make_discrete_forward_solutions(info, rr, vbem, trans_true, trans_man, subje
     """
 
     ###########################################################################
-    # Construct source space normals as random tangential vectors
+    # Construct source space normals as random vectors
     ###########################################################################
+    rnd_vectors = np.array([random_three_vector() for i in range(rr.shape[0])])
 
-    nn = np.array([random_three_vector() for i in range(rr.shape[0])])
-    pos = {'rr': rr, 'nn': nn}
+    if source_ori == 'random':
+        pos = {'rr': rr, 'nn': rnd_vectors}
+
+    elif source_ori == 'orthogonal':
+        com = rr.mean(axis=0)  # center of mass
+        # get vectors pointing from center of mass to voxels
+        radial = rr - com
+        tangential = np.cross(radial, rnd_vectors)
+        # normalize to unit length
+        nn = (tangential.T * (1. / np.linalg.norm(tangential, axis=1))).T
+        pos = {'rr': rr, 'nn': nn}
+
+    else:
+        raise ValueError("nn_ori must either be 'random' or 'orthogonal'.")
 
     ###########################################################################
     # make discrete source space

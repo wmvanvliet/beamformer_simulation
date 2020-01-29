@@ -2,12 +2,12 @@ import mne
 import numpy as np
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 
-from config import vfname
+from config import fname
 
-info = mne.io.read_info(vfname.sample_raw)
+info = mne.io.read_info(fname.sample_raw)
 info = mne.pick_info(info, mne.pick_types(info, meg=True, eeg=False))
 
-fwd = mne.read_forward_solution(vfname.fwd_discrete_man)
+fwd = mne.read_forward_solution(fname.fwd_discrete_man)
 fwd = mne.pick_types_forward(fwd, meg=True, eeg=False)
 
 src = fwd['src']
@@ -41,7 +41,7 @@ if src[0]['subject_his_id'] is None:
     src[0]['subject_his_id'] = 'sample'
 
 plot_vstc_sliced_old(stc_signal, src, stc_signal.tstep,
-                     subjects_dir=vfname.subjects_dir,
+                     subjects_dir=fname.subjects_dir,
                      time=stc_signal.times[0], cut_coords=None,
                      display_mode='ortho', figure=None,
                      axes=None, colorbar=False,

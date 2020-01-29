@@ -1,4 +1,5 @@
 import mne
+
 from fnames import FileNames
 
 fname = FileNames()

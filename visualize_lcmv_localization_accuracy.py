@@ -57,8 +57,9 @@ def fix(x):
         return x
 lcmv['ori_error'] = lcmv['ori_error'].map(fix)
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
-cbar_range_eval = [0, lcmv['eval'].dropna().to_numpy().max()]
-cbar_range_corr = [0, lcmv['corr'].dropna().to_numpy().max()]
+# fancy metric is very skewed, use 0.015 as fixed cutoff
+cbar_range_eval = [0, 0.015]
+cbar_range_corr = [0, 1]
 cbar_range_ori = [0, lcmv['ori_error'].dropna().to_numpy().max()]
 
 ###############################################################################
@@ -246,6 +247,7 @@ for i, setting in enumerate(config.lcmv_settings):
                              symmetric_cbar='auto', threshold=0,
                              cbar_range=cbar_range_ori,
                              save=True, fname_save=fp_image_ori)
+
     ###############################################################################
     # Plot
     ###############################################################################

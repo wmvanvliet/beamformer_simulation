@@ -37,7 +37,7 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_ve
 
 true_ori = fwd_disc_true['src'][0]['nn'][config.vertex]
 
-#del info, fwd_disc_true, er_raw
+# del info, fwd_disc_true, er_raw
 
 epochs = create_epochs(raw)
 

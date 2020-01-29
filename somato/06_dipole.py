@@ -1,7 +1,8 @@
-import mne
 import os.path as op
-from nilearn.plotting import plot_anat
+
 import matplotlib.pyplot as plt
+import mne
+from nilearn.plotting import plot_anat
 
 from config import fname, subject_id
 
@@ -15,7 +16,6 @@ trans = mne.transforms.read_trans(fname.trans)
 evoked = epochs.average().crop(0.037, 0.037)
 dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=1, verbose=True)
 dip.save(fname.ecd)
-
 
 # Plot the result in 3D brain with the MRI image using Nilearn
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
