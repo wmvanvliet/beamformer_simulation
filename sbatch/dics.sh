@@ -11,10 +11,10 @@
 # Do the analysis for each vertex.
 #SBATCH --array=0-3756
 
-#SBATCH --output=dics.out --open-mode=append
+#SBATCH --output=dics_old_max_power_ori.out --open-mode=append
 
 # Location to write the logfile to
-LOG_FILE=logs/dics.log
+LOG_FILE=logs/dics_old_max_power_ori.log
 
 VERTEX_NUMBER=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 
