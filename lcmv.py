@@ -114,7 +114,6 @@ for setting in lcmv_settings:
         ev = np.nan
         corr = np.nan
         ori_error = np.nan
-        raise e
     print(setting, dist, ev, corr, ori_error)
 
     dists.append(dist)
