@@ -4,8 +4,8 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_lcmv, apply_lcmv
 
 from config import fname, subject_id
-from config_bf import lcmv_settings
-from utils import make_dipole_volume
+from config_sim import lcmv_settings
+from utils_sim import make_dipole_volume
 
 report = mne.open_report(fname.report)
 
@@ -79,6 +79,7 @@ for setting in lcmv_settings:
 
     # fn_image = 'dipole_vs_lcmv_dist_ortho.png'
     # fp_image = op.join(image_path, fn_image_dist)
+    save = False
     fp_image = None
     cbar_range = [stc.data.min(), stc.data.max()]
 
@@ -89,7 +90,7 @@ for setting in lcmv_settings:
                          axes=None, colorbar=True, cmap='magma_r',
                          symmetric_cbar='auto', threshold=0,
                          cbar_range=cbar_range,
-                         save=False, fname_save=fp_image)
+                         save=save, fname_save=fp_image)
 
 ###############################################################################
 # Save everything
