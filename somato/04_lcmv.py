@@ -2,10 +2,9 @@ import mne
 from config import fname, subject_id
 
 epochs = mne.read_epochs(fname.epochs)
-noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='empirical')
-data_cov = mne.compute_covariance(epochs, tmin=0, tmax=0.4, method='empirical')
+noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', rank='info')
+data_cov = mne.compute_covariance(epochs, tmin=0, tmax=0.4, method='empirical', rank='info')
 fwd = mne.read_forward_solution(fname.fwd)
-#inv = mne.beamformer.make_lcmv(epochs.info, fwd, data_cov, reg=0.05, noise_cov=noise_cov, weight_norm='unit-noise-gain')
 inv = mne.beamformer.make_lcmv(epochs.info, fwd, data_cov, reg=0.05, noise_cov=noise_cov, weight_norm=None, pick_ori=None)
 stc = mne.beamformer.apply_lcmv(epochs.average(), inv)
 stc.subject = subject_id
