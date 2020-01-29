@@ -97,7 +97,7 @@ weight_norms = ['unit-noise-gain', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
 use_noise_covs = [True, False]
-reduce_ranks = [True, False]
+reduce_ranks = [False, 'leadfield', 'denominator']
 
 dics_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
