@@ -36,7 +36,9 @@ rr = rr[src_true_mri[0]['inuse'] == 1]
 
 fwd_disc_true, fwd_disc_man = make_discrete_forward_solutions(info, rr, bem, trans_true_head_to_mri,
                                                               trans_man_head_to_mri, fname.subjects_dir,
-                                                              fname.fwd_discrete_true, fname.fwd_discrete_man)
+                                                              source_ori='random',
+                                                              fn_fwd_disc_true=fname.fwd_discrete_true,
+                                                              fn_fwd_disc_man=fname.fwd_discrete_man)
 
 ###############################################################################
 # Check coregistration error

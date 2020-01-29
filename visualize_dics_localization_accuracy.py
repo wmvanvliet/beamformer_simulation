@@ -44,6 +44,7 @@ for vertex in tqdm(range(3756), total=3756):
 dics = pd.concat(dfs, ignore_index=True)
 dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
+dics['ori_error'].fillna(-1, inplace=True)
 
 cbar_range_dist = [0, dics['dist'].dropna().to_numpy().max()]
 cbar_range_eval = [0, dics['eval'].dropna().to_numpy().max()]
@@ -130,15 +131,16 @@ for i, setting in enumerate(dics_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
 
-    q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and real_filter==%s and use_noise_cov==%s"
-         "and reduce_rank==%s") % setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
+    q = (f"reg=={reg:.2f} and sensor_type=='{sensor_type}' and pick_ori=='{pick_ori}' and inversion=='{inversion}' and real_filter=={real_filter} and "
+         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=={reduce_rank}")
 
     print(q)
 
     sel = dics.query(q).dropna()
 
     if len(sel) < 1000:
+        print('Not enough voxels. Did this run fail?')
         continue
 
     ###############################################################################
@@ -148,7 +150,7 @@ for i, setting in enumerate(dics_settings):
     vert_sel = sel['vertex'].to_numpy()
     data_dist_sel = sel['dist'].to_numpy()
     data_eval_sel = sel['eval'].to_numpy()
-    data_ori_sel = sel['ori_errer'].to_numpy()
+    data_ori_sel = sel['ori_error'].to_numpy()
 
     data_dist = np.zeros(shape=(vertno.shape[0], 1))
     data_dist[vert_sel, 0] = data_dist_sel + 0.001
@@ -193,17 +195,18 @@ for i, setting in enumerate(dics_settings):
                          cbar_range=cbar_range_eval,
                          save=True, fname_save=fp_image_eval)
 
-    fn_image_ori = '%03d_dics_ori_ortho.png' % i
-    fp_image_ori = op.join(image_path, fn_image_ori)
+    if pick_ori == 'max-power':
+        fn_image_ori = '%03d_dics_ori_ortho.png' % i
+        fp_image_ori = op.join(image_path, fn_image_ori)
 
-    plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
-                         subjects_dir=fname.subjects_dir,
-                         time=vstc_ori.tmin, cut_coords=config.cut_coords,
-                         display_mode='ortho', figure=None,
-                         axes=None, colorbar=True, cmap='magma',
-                         symmetric_cbar='auto', threshold=0,
-                         cbar_range=cbar_range_ori,
-                         save=True, fname_save=fp_image_ori)
+        plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
+                             subjects_dir=fname.subjects_dir,
+                             time=vstc_ori.tmin, cut_coords=config.cut_coords,
+                             display_mode='ortho', figure=None,
+                             axes=None, colorbar=True, cmap='magma',
+                             symmetric_cbar='auto', threshold=0,
+                             cbar_range=cbar_range_ori,
+                             save=True, fname_save=fp_image_ori)
 
     ###############################################################################
     # Plot
@@ -212,7 +215,10 @@ for i, setting in enumerate(dics_settings):
     html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
-    html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
+    if pick_ori == 'max-power':
+        html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
+    else:
+        html_table += '<td></td>'
 
     with open('html/dics_vol.html', 'w') as f:
         f.write(html_header)

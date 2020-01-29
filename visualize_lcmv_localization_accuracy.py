@@ -46,7 +46,16 @@ for vertex in tqdm(range(3756), total=3756):
 lcmv = pd.concat(dfs, ignore_index=True)
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
+lcmv['ori_error'].fillna(-1, inplace=True)
 
+def fix(x):
+    if x == np.nan:
+        return np.nan
+    elif x > 90:
+        return 180 - x
+    else:
+        return x
+lcmv['ori_error'] = lcmv['ori_error'].map(fix)
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
 # fancy metric is very skewed, use 0.015 as fixed cutoff
 cbar_range_eval = [0, 0.015]
@@ -137,8 +146,9 @@ for i, setting in enumerate(config.lcmv_settings):
     # construct query
     setting = tuple(['none' if s is None else s for s in setting])
 
-    q = ("reg==%.2f and sensor_type=='%s' and pick_ori=='%s' and inversion=='%s' and "
-         "weight_norm=='%s' and normalize_fwd==%s and use_noise_cov==%s and reduce_rank==%s") % setting
+    (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank) = setting
+    q = (f"reg=={reg:.2f} and sensor_type=='{sensor_type}' and pick_ori=='{pick_ori}' and inversion=='{inversion}' and "
+         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=={reduce_rank}")
 
     print(q)
 
@@ -225,17 +235,18 @@ for i, setting in enumerate(config.lcmv_settings):
                          cbar_range=cbar_range_corr,
                          save=True, fname_save=fp_image_corr)
 
-    fn_image_ori = '%03d_lcmv_ori_ortho.png' % i
-    fp_image_ori = op.join(image_path, fn_image_ori)
+    if pick_ori == 'max-power':
+        fn_image_ori = '%03d_lcmv_ori_ortho.png' % i
+        fp_image_ori = op.join(image_path, fn_image_ori)
 
-    plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
-                         subjects_dir=fname.subjects_dir,
-                         time=vstc_ori.tmin, cut_coords=config.cut_coords,
-                         display_mode='ortho', figure=None,
-                         axes=None, colorbar=True, cmap='magma_r',
-                         symmetric_cbar='auto', threshold=0,
-                         cbar_range=cbar_range_ori,
-                         save=True, fname_save=fp_image_ori)
+        plot_vstc_sliced_old(vstc_ori, vsrc, vstc_ori.tstep,
+                             subjects_dir=fname.subjects_dir,
+                             time=vstc_ori.tmin, cut_coords=config.cut_coords,
+                             display_mode='ortho', figure=None,
+                             axes=None, colorbar=True, cmap='magma_r',
+                             symmetric_cbar='auto', threshold=0,
+                             cbar_range=cbar_range_ori,
+                             save=True, fname_save=fp_image_ori)
 
     ###############################################################################
     # Plot
@@ -245,7 +256,10 @@ for i, setting in enumerate(config.lcmv_settings):
     html_table += '<td><img src="' + op.join(image_folder, fn_image_dist) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_eval) + '"></td>'
     html_table += '<td><img src="' + op.join(image_folder, fn_image_corr) + '"></td>'
-    html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
+    if pick_ori == 'max-power':
+        html_table += '<td><img src="' + op.join(image_folder, fn_image_ori) + '"></td>'
+    else:
+        html_table += '<td></td>'
 
     with open('html/lcmv_vol.html', 'w') as f:
         f.write(html_header)
