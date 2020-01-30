@@ -1,10 +1,11 @@
 import mne
 import numpy as np
+
 from config import fname, subject_id
 
 report = mne.open_report(fname.report)
 
-# Create longer epochs
+# Read longer epochs
 epochs = mne.read_epochs(fname.epochs_long).pick_types(meg=True)
 
 # Compute Cross-Spectral Density matrices

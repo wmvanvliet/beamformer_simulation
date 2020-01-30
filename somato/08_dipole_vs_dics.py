@@ -4,10 +4,10 @@ import mne
 import numpy as np
 import pandas as pd
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
-from mne.beamformer import make_lcmv, apply_lcmv
+from mne.beamformer import make_dics, apply_dics_csd
 
 from config import fname, subject_id
-from config_sim import lcmv_settings
+from config_sim import dics_settings
 from utils_sim import make_dipole_volume, set_directory
 
 report = mne.open_report(fname.report)
@@ -16,28 +16,32 @@ report = mne.open_report(fname.report)
 # Load the data
 ###############################################################################
 
-epochs = mne.read_epochs(fname.epochs)
+# Read longer epochs
+epochs = mne.read_epochs(fname.epochs_long).pick_types(meg=True)
 trans = mne.transforms.read_trans(fname.trans)
 fwd = mne.read_forward_solution(fname.fwd)
 
 ###############################################################################
-# Sensor-level analysis for beamformer
+# Sensor level analysis
 ###############################################################################
 
-epochs_grad = epochs.copy().pick_types(meg='grad')
-epochs_mag = epochs.copy().pick_types(meg='mag')
-epochs_joint = epochs.copy().pick_types(meg=True)
+info_grad = epochs.copy().pick_types(meg='grad').info
+info_mag = epochs.copy().pick_types(meg='mag').info
+info_joint = epochs.copy().pick_types(meg=True).info
 
-# Make cov matrices
-noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', rank='info')
-data_cov = mne.compute_covariance(epochs, tmin=0, tmax=0.4, method='empirical', rank='info')
+###############################################################################
+# Compute Cross-Spectral Density matrices
+###############################################################################
 
-# Compute evokeds
-tmin = 0.03
-tmax = 0.05
-evoked_grad = epochs_grad.average().crop(tmin, tmax)
-evoked_mag = epochs_mag.average().crop(tmin, tmax)
-evoked_joint = epochs_joint.average().crop(tmin, tmax)
+freqs = np.logspace(np.log10(12), np.log10(30), 9)
+csd = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=1.5, decim=5, n_jobs=4)
+csd_baseline = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=0, decim=5, n_jobs=4)
+# ERS activity starts at 0.5 seconds after stimulus onset
+csd_ers = mne.time_frequency.csd_morlet(epochs, freqs, tmin=0.5, tmax=1.5, decim=5, n_jobs=4)
+
+csd = csd.mean()
+csd_baseline = csd_baseline.mean()
+csd_ers = csd_ers.mean()
 
 ###############################################################################
 # read dipole created by 06_dipole.py
@@ -53,9 +57,8 @@ mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
 ###############################################################################
 
 html_header = '''
-<html>
+    <html>
     <head>
-        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
@@ -67,9 +70,10 @@ html_header = '''
         <th>inversion</th>
         <th>weight_norm</th>
         <th>normalize_fwd</th>
+        <th>real_filter</th>
         <th>use_noise_cov</th>
         <th>reduce_rank</th>
-        <th>Dipole location vs. LCMV activity</th>
+        <th>Dipole location vs. LCMV power</th>
     </tr>
 '''
 
@@ -86,7 +90,8 @@ html_footer = '''
                 col_5: 'checklist',
                 col_6: 'checklist',
                 col_7: 'checklist',
-                col_8: 'none',
+                col_8: 'checklist',
+                col_9: 'none',
                 filters_row_index: 1,
                 enable_checklist_reset_filter: false,
                 alternate_rows: true,
@@ -94,12 +99,14 @@ html_footer = '''
                 col_types: [
                     'number', 'string', 'string',
                     'string', 'string', 'string',
-                    'string', 'string', 'image'
+                    'string', 'string', 'string',
+                    'image'
                 ],
                 col_widths: [
                     '80px', '150px', '130px',
                     '110px', '170px', '150px',
-                    '150px', '150px', '210px'
+                    '150px', '150px', '150px',
+                    '210px'
                 ]
             };
 
@@ -120,53 +127,57 @@ html_table = ''
 # Set up directories
 ###############################################################################
 
-img_folder = op.join('somato', 'dip_vs_lcmv')
+img_folder = op.join('somato', 'dip_vs_dics')
 html_path = op.join('..', 'html')
 image_path = op.join(html_path, img_folder)
 set_directory(image_path)
 
 ###############################################################################
-# Compute LCMV solution and plot stc at dipole location
+# Compute DICS solution and plot stc at dipole location
 ###############################################################################
 
 dists = []
 
-for ii, setting in enumerate(lcmv_settings):
+for ii, setting in enumerate(dics_settings):
 
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
     try:
-
         if sensor_type == 'grad':
-            evoked = evoked_grad
+            info = info_grad
         elif sensor_type == 'mag':
-            evoked = evoked_mag
+            info = info_mag
         elif sensor_type == 'joint':
-            evoked = evoked_joint
+            info = info_joint
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
-        filters = make_lcmv(evoked.info, fwd, data_cov, reg=reg,
-                            pick_ori=pick_ori, weight_norm=weight_norm,
-                            inversion=inversion, normalize_fwd=normalize_fwd,
-                            noise_cov=noise_cov if use_noise_cov else None,
-                            reduce_rank=reduce_rank)
+        filters = make_dics(info, fwd, csd, reg=reg, pick_ori=pick_ori,
+                            inversion=inversion, weight_norm=weight_norm,
+                            noise_csd=csd_baseline if use_noise_cov else None,
+                            normalize_fwd=normalize_fwd,
+                            real_filter=real_filter, reduce_rank=reduce_rank)
 
-        stc = apply_lcmv(evoked, filters)
-        stc = abs(stc.mean())
+        # Compute source power
+        stc_baseline, _ = apply_dics_csd(csd_baseline, filters)
+        stc_ers, _ = apply_dics_csd(csd_ers, filters)
+
+        # Normalize with baseline power.
+        stc_ers /= stc_baseline
+        stc_ers.data = np.log(stc_ers.data)
 
         # Compute distance between true and estimated source
-        dip_est = make_dipole_volume(stc, fwd['src'])
+        dip_est = make_dipole_volume(stc_ers, fwd['src'])
         dist = np.linalg.norm(dip.pos - dip_est.pos)
 
-        fn_image = str(ii).zfill(3) + '_' + str(setting).replace(' ', '') + '.png'
+        fn_image = str(ii).zfill(3) + '_dics_' + str(setting).replace(' ', '') + '.png'
         fp_image = op.join(image_path, fn_image)
 
         if not op.exists(fp_image):
-            cbar_range = [stc.data.min(), stc.data.max()]
-            threshold = np.percentile(stc.data, 99.5)
-            plot_vstc_sliced_old(stc, vsrc=fwd['src'], tstep=stc.tstep,
+            cbar_range = [stc_ers.data.min(), stc_ers.data.max()]
+            threshold = np.percentile(stc_ers.data, 99.5)
+            plot_vstc_sliced_old(stc_ers, vsrc=fwd['src'], tstep=stc_ers.tstep,
                                  subjects_dir=fname.subjects_dir,
-                                 time=stc.tmin, cut_coords=mri_pos[0],
+                                 time=stc_ers.tmin, cut_coords=mri_pos[0],
                                  display_mode='ortho', figure=None,
                                  axes=None, colorbar=True, cmap='magma',
                                  symmetric_cbar='auto', threshold=threshold,
@@ -180,7 +191,7 @@ for ii, setting in enumerate(lcmv_settings):
         html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
         html_table += '<td><img src="' + op.join(img_folder, fn_image) + '"></td>'
 
-        with open(op.join(html_path, 'dip_vs_lcmv_vol.html'), 'w') as f:
+        with open(op.join(html_path, 'dip_vs_dics_vol.html'), 'w') as f:
             f.write(html_header)
             f.write(html_table)
             f.write(html_footer)
@@ -196,10 +207,11 @@ for ii, setting in enumerate(lcmv_settings):
 # Save everything to a pandas dataframe
 ###############################################################################
 
-df = pd.DataFrame(lcmv_settings,
+df = pd.DataFrame(dics_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
+                           'weight_norm', 'normalize_fwd', 'real_filter',
+                           'use_noise_cov', 'reduce_rank'])
 
 df['dist'] = dists
-df.to_csv(fname.dip_vs_lcmv_results)
+df.to_csv(fname.dip_vs_dics_results)
 print('OK!')

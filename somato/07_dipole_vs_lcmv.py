@@ -158,7 +158,7 @@ for ii, setting in enumerate(lcmv_settings):
         dip_est = make_dipole_volume(stc, fwd['src'])
         dist = np.linalg.norm(dip.pos - dip_est.pos)
 
-        fn_image = str(ii).zfill(3) + '_' + str(setting).replace(' ', '') + '.png'
+        fn_image = str(ii).zfill(3) + '_lcmv_' + str(setting).replace(' ', '') + '.png'
         fp_image = op.join(image_path, fn_image)
 
         if not op.exists(fp_image):
