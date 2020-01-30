@@ -117,19 +117,24 @@ html_footer = '''
 html_table = ''
 
 ###############################################################################
-# Compute LCMV solution and plot stc at dipole location
+# Set up directories
 ###############################################################################
+
 img_folder = op.join('somato', 'dip_vs_lcmv')
 html_path = op.join('..', 'html')
 image_path = op.join(html_path, img_folder)
 set_directory(image_path)
 
+###############################################################################
+# Compute LCMV solution and plot stc at dipole location
+###############################################################################
+
 dists = []
 
-for setting in lcmv_settings:
+for ii, setting in enumerate(lcmv_settings):
 
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
     try:
-        reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
 
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -151,21 +156,22 @@ for setting in lcmv_settings:
 
         # Compute distance between true and estimated source
         dip_est = make_dipole_volume(stc, fwd['src'])
-        dists.append(np.linalg.norm(dip.pos - dip_est.pos))
+        dist = np.linalg.norm(dip.pos - dip_est.pos)
 
-        fn_image = str(setting) + '.png'
+        fn_image = str(ii).zfill(3) + '_' + str(setting).replace(' ', '') + '.png'
         fp_image = op.join(image_path, fn_image)
-        cbar_range = [stc.data.min(), stc.data.max()]
-        threshold = np.percentile(stc.data, 99.5)
 
-        plot_vstc_sliced_old(stc, vsrc=fwd['src'], tstep=stc.tstep,
-                             subjects_dir=fname.subjects_dir,
-                             time=stc.tmin, cut_coords=mri_pos[0],
-                             display_mode='ortho', figure=None,
-                             axes=None, colorbar=True, cmap='magma',
-                             symmetric_cbar='auto', threshold=threshold,
-                             cbar_range=cbar_range,
-                             save=True, fname_save=fp_image)
+        if not op.exists(fp_image):
+            cbar_range = [stc.data.min(), stc.data.max()]
+            threshold = np.percentile(stc.data, 99.5)
+            plot_vstc_sliced_old(stc, vsrc=fwd['src'], tstep=stc.tstep,
+                                 subjects_dir=fname.subjects_dir,
+                                 time=stc.tmin, cut_coords=mri_pos[0],
+                                 display_mode='ortho', figure=None,
+                                 axes=None, colorbar=True, cmap='magma',
+                                 symmetric_cbar='auto', threshold=threshold,
+                                 cbar_range=cbar_range,
+                                 save=True, fname_save=fp_image)
 
         ###############################################################################
         # save to html
@@ -179,8 +185,12 @@ for setting in lcmv_settings:
             f.write(html_table)
             f.write(html_footer)
 
-    except:
-        dists.append(np.nan)
+    except Exception as e:
+        print(e)
+        dist = np.nan
+
+    print(setting, dist)
+    dists.append(dist)
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -189,6 +199,7 @@ for setting in lcmv_settings:
 df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
+
 df['dist'] = dists
 df.to_csv(fname.dip_vs_lcmv_results)
 print('OK!')
