@@ -43,16 +43,20 @@ evoked = epochs.average().crop(0.037, 0.037)
 noise_cov_shrunk = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk')
 
 dip, res = mne.fit_dipole(evoked, noise_cov_shrunk, bem, trans, n_jobs=1, verbose=True)
-dip.save(fname.ecd)
 
 # get the position of the dipole in MRI coordinates
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
                           subject=subject_id, subjects_dir=fname.subjects_dir)
 
+###############################################################################
+# Compute LCMV solution and plot stc at dipole location
+###############################################################################
+
 dists = []
 evals = []
 corrs = []
 ori_errors = []
+
 for setting in lcmv_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
 
