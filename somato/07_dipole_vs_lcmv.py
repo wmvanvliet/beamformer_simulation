@@ -2,6 +2,7 @@ import os.path as op
 
 import mne
 import numpy as np
+import pandas as pd
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_lcmv, apply_lcmv
 
@@ -150,11 +151,7 @@ for setting in lcmv_settings:
 
         # Compute distance between true and estimated source
         dip_est = make_dipole_volume(stc, fwd['src'])
-        dist = np.linalg.norm(dip.pos - dip_est.pos)
-
-        print('\n##########################################')
-        print(dist)
-        print('##########################################\n')
+        dists.append(np.linalg.norm(dip.pos - dip_est.pos))
 
         fn_image = str(setting) + '.png'
         fp_image = op.join(image_path, fn_image)
@@ -183,4 +180,15 @@ for setting in lcmv_settings:
             f.write(html_footer)
 
     except:
-        print(setting)
+        dists.append(np.nan)
+
+###############################################################################
+# Save everything to a pandas dataframe
+###############################################################################
+
+df = pd.DataFrame(lcmv_settings,
+                  columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
+df['dist'] = dists
+df.to_csv(fname.dip_vs_lcmv_results)
+print('OK!')

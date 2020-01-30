@@ -28,5 +28,6 @@ fname.add('nii_dics', '{derivatives}/sub-01_task-somato_dics.nii.gz')
 fname.add('mri', '{bids_root}/derivatives/freesurfer/subjects/01/mri/orig.mgz')
 fname.add('report', 'somato.h5')
 fname.add('report_html', 'somato.html')
+fname.add('dip_vs_lcmv_results', 'dip_vs_lcmv_results.csv')
 
 subject_id = '01'
