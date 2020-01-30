@@ -48,10 +48,79 @@ mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
                           subject=subject_id, subjects_dir=fname.subjects_dir)
 
 ###############################################################################
-# Compute LCMV solution and plot stc at dipole location
+# HTML settings
 ###############################################################################
 
-image_path = 'dip_vs_lcmv'
+html_header = '''
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+    <table id="results">
+    <tr>
+        <th>reg</th>
+        <th>sensor type</th>
+        <th>pick_ori</th>
+        <th>inversion</th>
+        <th>weight_norm</th>
+        <th>normalize_fwd</th>
+        <th>use_noise_cov</th>
+        <th>reduce_rank</th>
+        <th>Dipole location vs. LCMV activity</th>
+    </tr>
+'''
+
+html_footer = '''
+        <script src="tablefilter/tablefilter.js"></script>
+        <script>
+            var filtersConfig = {
+                base_path: 'tablefilter/',
+                col_0: 'checklist',
+                col_1: 'checklist',
+                col_2: 'checklist',
+                col_3: 'checklist',
+                col_4: 'checklist',
+                col_5: 'checklist',
+                col_6: 'checklist',
+                col_7: 'checklist',
+                col_8: 'none',
+                filters_row_index: 1,
+                enable_checklist_reset_filter: false,
+                alternate_rows: true,
+                sticky_headers: true,
+                col_types: [
+                    'number', 'string', 'string',
+                    'string', 'string', 'string',
+                    'string', 'string', 'image'
+                ],
+                col_widths: [
+                    '80px', '150px', '130px',
+                    '110px', '170px', '150px',
+                    '150px', '150px', '210px'
+                ]
+            };
+
+            var tf = new TableFilter('results', filtersConfig);
+            tf.init();
+
+            for (div of document.getElementsByClassName("div_checklist")) {
+                div.style.height = 100;
+            }
+        </script>
+    </body>
+</html>
+'''
+
+html_table = ''
+
+###############################################################################
+# Compute LCMV solution and plot stc at dipole location
+###############################################################################
+img_folder = op.join('somato', 'dip_vs_lcmv')
+html_path = op.join('..', 'html')
+image_path = op.join(html_path, img_folder)
 set_directory(image_path)
 
 dists = []
@@ -101,11 +170,17 @@ for setting in lcmv_settings:
                              cbar_range=cbar_range,
                              save=True, fname_save=fp_image)
 
+        ###############################################################################
+        # save to html
+        ###############################################################################
+
+        html_table += '<tr><td>' + '</td><td>'.join([str(s) for s in setting]) + '</td>'
+        html_table += '<td><img src="' + op.join(img_folder, fn_image) + '"></td>'
+
+        with open(op.join(html_path, 'dip_vs_lcmv_vol.html'), 'w') as f:
+            f.write(html_header)
+            f.write(html_table)
+            f.write(html_footer)
+
     except:
         print(setting)
-
-###############################################################################
-# Save everything
-###############################################################################
-
-# TODO
