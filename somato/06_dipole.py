@@ -9,13 +9,13 @@ from config import fname, subject_id
 report = mne.open_report(fname.report)
 
 epochs = mne.read_epochs(fname.epochs)
-noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk')
+noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', rank='info')
 bem = mne.read_bem_solution(fname.bem)
 trans = mne.transforms.read_trans(fname.trans)
 
-evoked = epochs.average().crop(0.037, 0.037)
-dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=1, verbose=True)
-dip.save(fname.ecd)
+evoked = epochs.average().crop(0.036, 0.037)
+dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=8, verbose=True)
+dip.save(fname.ecd, overwrite=True)
 
 # Plot the result in 3D brain with the MRI image using Nilearn
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,

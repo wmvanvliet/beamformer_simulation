@@ -19,7 +19,7 @@ fwd_surf = mne.make_forward_solution(info=info, trans=trans, src=src_surf, bem=b
 # create volume source space & forward solution
 src = mne.setup_volume_source_space(subject=subject_id, pos=7., mri=fname.mri,
                                     bem=bem_sol, subjects_dir=fname.subjects_dir)
-fwd = mne.make_forward_solution(info=info, trans=trans, src=src_surf, bem=bem_sol)
+fwd = mne.make_forward_solution(info=info, trans=trans, src=src, bem=bem_sol)
 
 # Save things
 trans.save(fname.trans)
