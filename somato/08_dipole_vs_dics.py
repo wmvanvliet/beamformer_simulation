@@ -73,7 +73,7 @@ html_header = '''
         <th>real_filter</th>
         <th>use_noise_cov</th>
         <th>reduce_rank</th>
-        <th>Dipole location vs. LCMV power</th>
+        <th>Dipole location vs. DICS power</th>
     </tr>
 '''
 
