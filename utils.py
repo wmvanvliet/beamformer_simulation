@@ -75,7 +75,7 @@ def plot_distance(stc_est, stc_signal, D, surface='inflated'):
     """Plots the distance to the peak estimated signal, along with the true signal location"""
     import surfer  # Import here so other parts of the code can be used without graphics
     peak = stc_est.get_peak(vert_as_index=True)[0]
-    peak_hemi = 0 if peak < len(stc_est.vertices[0]) else 1 
+    peak_hemi = 0 if peak < len(stc_est.vertices[0]) else 1
     true_hemi = config.signal_hemi
 
     est_vert = np.hstack(stc_est.vertices)[peak]
@@ -83,9 +83,9 @@ def plot_distance(stc_est, stc_signal, D, surface='inflated'):
 
     brain = surfer.Brain('sample', hemi='both', surf=surface)
     brain.add_data(D[peak, :len(stc_est.vertices[0])], vertices=stc_est.vertices[0],
-                   hemi='lh', transparent=True)  
+                   hemi='lh', transparent=True)
     brain.add_data(D[peak, len(stc_est.vertices[0]):], vertices=stc_est.vertices[1],
-                   hemi='rh', transparent=True)  
+                   hemi='rh', transparent=True)
     brain.add_foci([est_vert], coords_as_verts=True, hemi='lh' if peak_hemi == 0 else 'rh', color='red')
     brain.add_foci([true_vert], coords_as_verts=True, hemi='lh' if true_hemi == 0 else 'rh', color='green')
     return brain
@@ -191,8 +191,8 @@ def random_three_vector():
     Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
     :return:
     """
-    phi = np.random.uniform(0,np.pi*2)
-    costheta = np.random.uniform(-1,1)
+    phi = np.random.uniform(0, np.pi * 2)
+    costheta = np.random.uniform(-1, 1)
 
     theta = np.arccos(costheta)
     x = np.sin(theta) * np.cos(phi)
@@ -206,7 +206,6 @@ def plot_vstc_grid(vstc, vsrc, subjects_dir, time=None, title='',
                    only_positive_values=False, coords=[-55, 55],
                    grid=[4, 6], threshold='min', display_mode='x',
                    res_save=[1920, 1080], fn_save='plt.png'):
-
     """
     Plot the activity for each time slice and create a movie from the images.
 

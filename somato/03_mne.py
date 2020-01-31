@@ -2,7 +2,7 @@ import mne
 from config import fname, subject_id
 
 epochs = mne.read_epochs(fname.epochs)
-noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk')
+noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', rank='info')
 fwd = mne.read_forward_solution(fname.fwd)
 inv = mne.minimum_norm.make_inverse_operator(epochs.info, fwd, noise_cov)
 stc = mne.minimum_norm.apply_inverse(epochs.average(), inv)
