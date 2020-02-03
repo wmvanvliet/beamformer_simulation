@@ -60,19 +60,25 @@ plt.figure(figsize=(12, 8))
 plt.subplot(2, 2, 1)
 
 x, y = lcmv.query('weight_norm=="unit-noise-gain" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors_5[0], label='Weight normalization')
+plt.scatter(x, y, color=colors_6[0], label='Weight normalization')
 
 x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and reduce_rank=="leadfield"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors_5[1], label='Lead field normalization, reduced rank')
+plt.scatter(x, y, color=colors_6[1], label="Lead field normalization, reduce_rank='leadfield'")
 
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and inversion=="single" and reduce_rank=="False"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors_5[2], label='Lead field normalization, single inversion')
+x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and reduce_rank=="denominator"')[
+    ['dist', y_data]].values.T
+plt.scatter(x, y, color=colors_6[2], label="Lead field normalization, reduce_rank='denominator'")
 
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and inversion=="matrix" and reduce_rank=="False"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors_5[3], label='Lead field normalization, full rank')
+x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and inversion=="single" and reduce_rank=="False"')[
+    ['dist', y_data]].values.T
+plt.scatter(x, y, color=colors_6[3], label='Lead field normalization, single inversion')
+
+x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and inversion=="matrix" and reduce_rank=="False"')[
+    ['dist', y_data]].values.T
+plt.scatter(x, y, color=colors_6[4], label='Lead field normalization, full rank')
 
 x, y = lcmv.query('weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors_5[4], label='No normalization')
+plt.scatter(x, y, color=colors_6[5], label='No normalization')
 
 plt.legend(loc=loc)
 plt.title(title)
