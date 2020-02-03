@@ -1,5 +1,3 @@
-import copy
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -214,3 +212,5 @@ plt.yscale(yscale)
 plt.ylim(ylims)
 plt.xticks(xticks)
 plt.xlim(xlims)
+
+plt.show()
