@@ -97,7 +97,7 @@ weight_norms = ['unit-noise-gain', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
 use_noise_covs = [True, False]
-reduce_ranks = [True, False]
+reduce_ranks = [False, 'leadfield', 'denominator']
 
 dics_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
@@ -172,26 +172,17 @@ else:
     fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
     fname.add('lcmv_results_2s',
               '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('lcmv_results_all', '{target_path}/lcmv_results-noise{noise:.1f}.csv')
     fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
     fname.add('dics_results_2s',
               '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('dics_results_all', '{target_path}/dics_results-noise{noise:.1f}.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
 phantom_fname.add('data_path', bst_phantom_ctf.data_path())
 phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
 phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
-
-# MNE-Somato data set
-fname.add('somato_path', somato.data_path())
-fname.add('somato_derivatives', '{somato_path}/derivatives/sub-01')
-fname.add('somato_subjects', '{somato_path}/derivatives/freesurfer/subjects')
-fname.add('somato_src', '{somato_derivatives}/sub-01_task-somato_vol-src.fif')
-fname.add('somato_fwd', '{somato_derivatives}/sub-01_task-somato_vol-fwd.fif')
-fname.add('somato_epochs', '{somato_derivatives}/sub-01_task-somato_epo.fif')
-fname.add('somato_epochs_long', '{somato_derivatives}/sub-01_task-somato_long_epo.fif')  # noqa
-fname.add('lcmv_somato_results', '{target_path}/lcmv_results-somato.csv')
-fname.add('dics_somato_results', '{target_path}/dics_results-somato.csv')
 
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
