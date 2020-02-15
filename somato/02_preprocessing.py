@@ -11,7 +11,7 @@ raw = mne_bids.read_raw_bids(fname.raw, fname.bids_root)
 raw.load_data()
 report.add_figs_to_section(raw.plot_psd(), 'PSD of unfiltered raw', 'Raw', replace=True)
 
-raw = raw.notch_filter([50, 100, 150, 200, 250])
+raw = raw.notch_filter([50, 100])
 report.add_figs_to_section(raw.plot_psd(), 'PSD of notch filtered raw', 'Raw', replace=True)
 
 # Fit ICA to the continuous data
