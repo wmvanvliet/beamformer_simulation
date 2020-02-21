@@ -36,6 +36,9 @@ elif 'triton' in host and user == 'vanvlm1':
 elif user == 'we':
     target_path = '~/Documents/projects/beamf_sim/data'
     n_jobs = 2
+elif user == '2628425':
+    target_path = '/home/ECIT.QUB.AC.UK/2628425/nbe/scratch/epasana/beamformer_simulation/data'
+    n_jobs = 4
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
                        'variable to point to the location where the data '
