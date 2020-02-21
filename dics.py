@@ -95,7 +95,7 @@ for setting in dics_settings:
 
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_oris'][0][config.vertex]
-            ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
+            ori_error = np.rad2deg(abs(np.arccos(estimated_ori @ true_ori)))
         else:
             ori_error = np.nan
     except Exception as e:
