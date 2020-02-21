@@ -23,7 +23,8 @@ assert len(lcmv) == len(settings)
 # Settings for plotting
 
 # what to plot:
-plot_type = 'foc'  # can be "corr" for correlation or "foc" for focality
+plot_type = 'ori_error'  # can be "corr" for correlation or "foc" for focality
+lcmv = lcmv.query('ori_error >= 0')
 
 # Colors for plotting
 colors1 = ['navy', 'orangered', 'crimson', 'firebrick', 'seagreen']
@@ -47,6 +48,16 @@ elif plot_type == 'foc':
     xlims = (-1, 72)
     loc = 'upper right'
     yticks = np.arange(0.0, 0.041, 0.005)
+    xticks = np.arange(0, 75, 5)
+    yscale='linear'  # or 'log'
+elif plot_type == 'ori_error':
+    y_label = 'Orientation error'
+    y_data = 'ori_error'
+    title = f'Orientation error as a function of localization error, noise={config.noise:.2f}'
+    ylims = (-5, 90)
+    xlims = (-1, 72)
+    loc = 'upper right'
+    yticks = np.arange(0.0, 90, 5)
     xticks = np.arange(0, 75, 5)
     yscale='linear'  # or 'log'
 else:
@@ -236,7 +247,7 @@ plt.xlabel('Localization error [mm]')
 plt.ylabel(y_label)
 plt.yticks(yticks)
 plt.yscale(yscale)
-plt.ylim(-0.001, 0.014)
+plt.ylim(ylims)
 plt.xticks(xticks)
 plt.xlim(xlims)
 
@@ -259,7 +270,7 @@ plt.xlabel('Localization error [mm]')
 plt.ylabel(y_label)
 plt.yticks(yticks)
 plt.yscale(yscale)
-plt.ylim(-0.001, 0.014)
+plt.ylim(ylims)
 plt.xticks(xticks)
 plt.xlim(xlims)
 
