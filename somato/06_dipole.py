@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import mne
 from nilearn.plotting import plot_anat
 
-from config import fname, subject_id
+from config import fname, subject_id, n_jobs
 
 report = mne.open_report(fname.report)
 
@@ -14,7 +14,7 @@ bem = mne.read_bem_solution(fname.bem)
 trans = mne.transforms.read_trans(fname.trans)
 
 evoked = epochs.average().crop(0.036, 0.037)
-dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=8, verbose=True)
+dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=n_jobs, verbose=True)
 dip.save(fname.ecd, overwrite=True)
 
 # Plot the result in 3D brain with the MRI image using Nilearn

@@ -2,7 +2,7 @@ import mne
 import mne_bids
 import numpy as np
 
-from config import fname
+from config import fname, n_jobs
 
 report = mne.open_report(fname.report)
 
@@ -49,7 +49,7 @@ epochs_long.save(fname.epochs_long, overwrite=True)
 
 # Visualize spectral content of the longer repochs
 freqs = np.logspace(np.log10(5), np.log10(40), 20)
-epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, return_itc=False, n_jobs=4)
+epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, return_itc=False, n_jobs=n_jobs)
 fig = epochs_tfr.plot_topo(baseline=(-1, 0), mode='logratio')
 fig.set_size_inches((12, 12))
 report.add_figs_to_section(fig, 'Time-frequency decomposition', 'Spectrum', replace=True)
