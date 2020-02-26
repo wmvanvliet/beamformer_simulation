@@ -48,7 +48,7 @@ def task_dics():
 def task_dipole():
     """Step 6: Single dipole source estimate"""
     return dict(
-        file_dep=[fname.epochs, fname.fwd, '06_ecd.py'],
+        file_dep=[fname.epochs, fname.fwd, '06_dipole.py'],
         targets=[fname.ecd],
         actions=['ipython 06_dipole.py'],
     )
