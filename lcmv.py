@@ -66,7 +66,7 @@ evoked_joint = epochs_joint.average()
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 dists = []
-evals = []
+focs = []
 corrs = []
 ori_errors = []
 for setting in lcmv_settings:
@@ -87,37 +87,43 @@ for setting in lcmv_settings:
                             noise_cov=noise_cov if use_noise_cov else None,
                             reduce_rank=reduce_rank)
 
-        stc = apply_lcmv(evoked, filters).crop(0.001, 1)
+        stc_est = apply_lcmv(evoked, filters).crop(0.001, 1)
 
-        # Compute distance between true and estimated source
-        dip_true = make_dipole_volume(stc_signal, fwd_disc_man['src'])
-        dip_est = make_dipole_volume(stc, fwd_disc_man['src'])
-        dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+        # Estimated source location is at peak power
+        stc_est_power = (stc_est ** 2).sum().sqrt()
+        peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
-        # Fancy evaluation metric
-        ev = evaluate_fancy_metric_volume(stc, stc_signal)
+        # Compute distance between true and estimated source locations
+        pos_est = fwd_disc_man['source_rr'][peak_vertex]
+        pos_true = fwd_disc_man['source_rr'][config.vertex]
+        dist = np.linalg.norm(pos_est - pos_true)
+
+        # Ratio between estimated peak activity and all estimated activity.
+        focality_score = stc_est_power.data[peak_vertex, 0] / stc_est_power.data.sum()
 
         # Correlation between true and reconstructed timecourse
         true_time_course = stc_signal.copy().crop(0, 1).data[0]
-        peak_vertex = abs(stc).mean().get_peak(vert_as_index=True)[0]
-        estimated_time_course = np.abs(stc.data[peak_vertex])
+        estimated_time_course = np.abs(stc_est.data[peak_vertex])
         corr = pearsonr(np.abs(true_time_course), estimated_time_course)[0]
 
+        # Angle between estimated and true source orientation
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_ori'][config.vertex]
             ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
+            if ori_error > 90:
+                ori_error = 180 - ori_error;
         else:
             ori_error = np.nan
     except Exception as e:
         print(e)
         dist = np.nan
-        ev = np.nan
+        focality_score = np.nan
         corr = np.nan
         ori_error = np.nan
-    print(setting, dist, ev, corr, ori_error)
+    print(setting, dist, focality_score, corr, ori_error)
 
     dists.append(dist)
-    evals.append(ev)
+    focs.append(focality_score)
     corrs.append(corr)
     ori_errors.append(ori_error)
 
@@ -129,7 +135,7 @@ df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
-df['eval'] = evals
+df['focality'] = focs
 df['corr'] = corrs
 df['ori_error'] = ori_errors
 

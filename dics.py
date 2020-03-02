@@ -63,7 +63,7 @@ noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
 fwd_disc_man = mne.read_forward_solution(fname.fwd_discrete_man)
 
 dists = []
-evals = []
+focs = []
 ori_errors = []
 
 for setting in dics_settings:
@@ -83,30 +83,35 @@ for setting in dics_settings:
                             noise_csd=noise_csd if use_noise_cov else None,
                             normalize_fwd=normalize_fwd,
                             real_filter=real_filter, reduce_rank=reduce_rank)
-        stc, freqs = apply_dics_csd(csd, filters)
+        stc_est_power, freqs = apply_dics_csd(csd, filters)
 
-        # Compute distance between true and estimated source
-        dip_true = make_dipole_volume(stc_signal, fwd_disc_man['src'])
-        dip_est = make_dipole_volume(stc, fwd_disc_man['src'])
-        dist = np.linalg.norm(dip_true.pos - dip_est.pos)
+        peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
-        # Fancy evaluation metric
-        ev = evaluate_fancy_metric_volume(stc, stc_signal)
+        # Compute distance between true and estimated source locations
+        pos_est = fwd_disc_man['source_rr'][peak_vertex]
+        pos_true = fwd_disc_man['source_rr'][config.vertex]
+        dist = np.linalg.norm(pos_est - pos_true)
+
+        # Ratio between estimated peak activity and all estimated activity.
+        focality_score = stc_est_power.data[peak_vertex, 0] / stc_est_power.data.sum()
 
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_oris'][0][config.vertex]
             ori_error = np.rad2deg(abs(np.arccos(estimated_ori @ true_ori)))
+            if ori_error > 90:
+                ori_error = 180 - ori_error;
         else:
             ori_error = np.nan
+
     except Exception as e:
         print(e)
         dist = np.nan
-        ev = np.nan
+        focality_score = np.nan
         ori_error = np.nan
-    print(setting, dist, ev, ori_error)
+    print(setting, dist, focality_score, ori_error)
 
     dists.append(dist)
-    evals.append(ev)
+    focs.append(focality_score)
     ori_errors.append(ori_error)
 
 ###############################################################################
@@ -118,7 +123,7 @@ df = pd.DataFrame(dics_settings,
                            'weight_norm', 'normalize_fwd', 'real_filter',
                            'use_noise_cov', 'reduce_rank'])
 df['dist'] = dists
-df['eval'] = evals
+df['focality'] = focs
 df['ori_error'] = ori_errors
 
 df.to_csv(fname.dics_results(vertex=config.vertex, noise=config.noise))
