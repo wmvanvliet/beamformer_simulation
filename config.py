@@ -172,10 +172,10 @@ if user == 'we' and args.noise == 0.0:
     fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')  # noqa
     fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')  # noqa
 else:
-    fname.add('lcmv_results', '{target_path}/lcmv_results/new_max_power_ori/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/new_max_power_ori/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('dics_results', '{target_path}/dics_results/new_max_power_ori/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('dics_results_2s', '{target_path}/dics_results/new_max_power_ori/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
+    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
 
 # Brainstorm phantom data
 phantom_fname = FileNames()

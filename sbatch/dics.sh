@@ -9,8 +9,7 @@
 #SBATCH --job-name dics
 
 # Do the analysis for each vertex.
-# #SBATCH --array=0-3756
-#SBATCH --array=2086,2142,2553,2581,2602,2605,2842,2909,2914,2925,2968,2976
+#SBATCH --array=0-3756
 
 #SBATCH --output=dics.out --open-mode=append
 
