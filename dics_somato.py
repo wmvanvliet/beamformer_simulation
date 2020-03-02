@@ -6,9 +6,9 @@ import pandas as pd
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_dics, apply_dics_csd
 
-from somato.config import fname, subject_id
 from config import dics_settings
-from utils import make_dipole_volume, set_directory
+from somato.config import fname, subject_id
+from utils import make_dipole_volume, set_directory, evaluate_fancy_metric_volume
 
 report = mne.open_report(fname.report)
 
@@ -51,6 +51,14 @@ dip = mne.read_dipole(fname.ecd)
 # get the position of the dipole in MRI coordinates
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
                           subject=subject_id, subjects_dir=fname.subjects_dir)
+
+# get true_vert_idx
+rr = fwd['src'][0]['rr']
+inuse = fwd['src'][0]['inuse']
+indices = np.where(fwd['src'][0]['inuse'])[0]
+rr_inuse = rr[indices]
+true_vert_idx = np.where(np.linalg.norm(rr_inuse - dip.pos, axis=1) ==
+                         np.linalg.norm(rr_inuse - dip.pos, axis=1).min())[0][0]
 
 ###############################################################################
 # HTML settings
@@ -137,6 +145,8 @@ set_directory(image_path)
 ###############################################################################
 
 dists = []
+evals = []
+ori_errors = []
 
 for ii, setting in enumerate(dics_settings):
 
@@ -161,13 +171,27 @@ for ii, setting in enumerate(dics_settings):
         stc_baseline, _ = apply_dics_csd(csd_baseline, filters)
         stc_ers, _ = apply_dics_csd(csd_ers, filters)
 
+        stc_ers_orig = stc_ers
+
         # Normalize with baseline power.
-        stc_ers /= stc_baseline
-        stc_ers.data = np.log(stc_ers.data)
+        stc_ers_norm_log = stc_ers / stc_baseline
+        stc_ers_norm_log.data = np.log(stc_ers_norm_log.data)
+
+        stc_ers = stc_ers_norm_log
 
         # Compute distance between true and estimated source
         dip_est = make_dipole_volume(stc_ers, fwd['src'])
         dist = np.linalg.norm(dip.pos - dip_est.pos)
+
+        # Fancy evaluation metric
+        # TODO: where to evaluate fancy metric? before or after normalization, i.e., stc_ers_orig or stc_ers_norm_log?
+        ev = evaluate_fancy_metric_volume(stc_ers, true_vert_idx=true_vert_idx)
+
+        if pick_ori == 'max-power':
+            estimated_ori = filters['max_power_oris'][0][true_vert_idx]
+            ori_error = np.rad2deg(abs(np.arccos(estimated_ori @ dip.ori[0])))
+        else:
+            ori_error = np.nan
 
         fn_image = str(ii).zfill(3) + '_dics_' + str(setting).replace(' ', '') + '.png'
         fp_image = op.join(image_path, fn_image)
@@ -199,9 +223,13 @@ for ii, setting in enumerate(dics_settings):
     except Exception as e:
         print(e)
         dist = np.nan
+        ev = np.nan
+        ori_error = np.nan
 
     print(setting, dist)
     dists.append(dist)
+    evals.append(ev)
+    ori_errors.append(ori_error)
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -213,5 +241,8 @@ df = pd.DataFrame(dics_settings,
                            'use_noise_cov', 'reduce_rank'])
 
 df['dist'] = dists
+df['eval'] = evals
+df['ori_error'] = ori_errors
+
 df.to_csv(fname.dip_vs_dics_results)
 print('OK!')

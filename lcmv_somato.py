@@ -6,9 +6,9 @@ import pandas as pd
 from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_lcmv, apply_lcmv
 
-from somato.config import fname, subject_id
 from config import lcmv_settings
-from utils import make_dipole_volume, set_directory
+from somato.config import fname, subject_id
+from utils import make_dipole_volume, set_directory, evaluate_fancy_metric_volume
 
 report = mne.open_report(fname.report)
 
@@ -47,6 +47,14 @@ dip = mne.read_dipole(fname.ecd)
 # get the position of the dipole in MRI coordinates
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
                           subject=subject_id, subjects_dir=fname.subjects_dir)
+
+# get true_vert_idx
+rr = fwd['src'][0]['rr']
+inuse = fwd['src'][0]['inuse']
+indices = np.where(fwd['src'][0]['inuse'])[0]
+rr_inuse = rr[indices]
+true_vert_idx = np.where(np.linalg.norm(rr_inuse - dip.pos, axis=1) ==
+                         np.linalg.norm(rr_inuse - dip.pos, axis=1).min())[0][0]
 
 ###############################################################################
 # HTML settings
@@ -130,6 +138,8 @@ set_directory(image_path)
 ###############################################################################
 
 dists = []
+evals = []
+ori_errors = []
 
 for ii, setting in enumerate(lcmv_settings):
 
@@ -157,6 +167,15 @@ for ii, setting in enumerate(lcmv_settings):
         # Compute distance between true and estimated source
         dip_est = make_dipole_volume(stc, fwd['src'])
         dist = np.linalg.norm(dip.pos - dip_est.pos)
+
+        # Fancy evaluation metric
+        ev = evaluate_fancy_metric_volume(stc, true_vert_idx=true_vert_idx)
+
+        if pick_ori == 'max-power':
+            estimated_ori = filters['max_power_ori'][true_vert_idx]
+            ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
+        else:
+            ori_error = np.nan
 
         fn_image = str(ii).zfill(3) + '_lcmv_' + str(setting).replace(' ', '') + '.png'
         fp_image = op.join(image_path, fn_image)
@@ -188,9 +207,13 @@ for ii, setting in enumerate(lcmv_settings):
     except Exception as e:
         print(e)
         dist = np.nan
+        ev = np.nan
+        ori_error = np.nan
 
-    print(setting, dist)
+    print(setting, dist, ev, ori_error)
     dists.append(dist)
+    evals.append(ev)
+    ori_errors.append(ori_error)
 
 ###############################################################################
 # Save everything to a pandas dataframe
@@ -201,5 +224,8 @@ df = pd.DataFrame(lcmv_settings,
                            'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
 
 df['dist'] = dists
+df['eval'] = evals
+df['ori_error'] = ori_errors
+
 df.to_csv(fname.dip_vs_lcmv_results)
 print('OK!')

@@ -1,7 +1,7 @@
 import mne
 import numpy as np
 
-from config import fname, subject_id
+from config import fname, subject_id, n_jobs
 
 report = mne.open_report(fname.report)
 
@@ -10,10 +10,10 @@ epochs = mne.read_epochs(fname.epochs_long).pick_types(meg=True)
 
 # Compute Cross-Spectral Density matrices
 freqs = np.logspace(np.log10(12), np.log10(30), 9)
-csd = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=1.5, decim=5, n_jobs=4)
-csd_baseline = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=0, decim=5, n_jobs=4)
+csd = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=1.5, decim=5, n_jobs=n_jobs)
+csd_baseline = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-1, tmax=0, decim=5, n_jobs=n_jobs)
 # ERS activity starts at 0.5 seconds after stimulus onset
-csd_ers = mne.time_frequency.csd_morlet(epochs, freqs, tmin=0.5, tmax=1.5, decim=5, n_jobs=4)
+csd_ers = mne.time_frequency.csd_morlet(epochs, freqs, tmin=0.5, tmax=1.5, decim=5, n_jobs=n_jobs)
 
 csd = csd.mean()
 csd_baseline = csd_baseline.mean()

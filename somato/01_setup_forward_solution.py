@@ -2,7 +2,7 @@ import mne
 import mne_bids
 from mayavi import mlab
 
-from config import fname, subject_id
+from config import fname, subject_id, n_jobs
 
 info = mne.io.read_info(fname.raw)
 
@@ -13,7 +13,7 @@ bem_sol = mne.make_bem_solution(bem)
 mne.write_bem_solution(fname.bem, bem_sol)
 
 # create surface source space & forward solution
-src_surf = mne.setup_source_space(subject=subject_id, subjects_dir=fname.subjects_dir, n_jobs=4)
+src_surf = mne.setup_source_space(subject=subject_id, subjects_dir=fname.subjects_dir, n_jobs=n_jobs)
 fwd_surf = mne.make_forward_solution(info=info, trans=trans, src=src_surf, bem=bem_sol)
 
 # create volume source space & forward solution

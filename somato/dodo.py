@@ -44,3 +44,11 @@ def task_dics():
         targets=[fname.stc_dics, fname.nii_dics],
         actions=['ipython 05_dics.py'],
     )
+
+def task_dipole():
+    """Step 6: Single dipole source estimate"""
+    return dict(
+        file_dep=[fname.epochs, fname.fwd, '06_dipole.py'],
+        targets=[fname.ecd],
+        actions=['ipython 06_dipole.py'],
+    )

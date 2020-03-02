@@ -32,3 +32,4 @@ fname.add('dip_vs_lcmv_results', 'dip_vs_lcmv_results.csv')
 fname.add('dip_vs_dics_results', 'dip_vs_dics_results.csv')
 
 subject_id = '01'
+n_jobs = 4
