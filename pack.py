@@ -33,7 +33,7 @@ lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 lcmv['ori_error'].fillna(-1, inplace=True)
 lcmv['ori_error'] = lcmv['ori_error'].map(fix)
-lcmv.to_csv('lcmv_new_max_power_ori.csv')
+lcmv.to_csv('lcmv_new_max_ori.csv')
 
 dfs = []
 for vertex in tqdm(range(3756), total=3756):
@@ -49,7 +49,7 @@ lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 lcmv['ori_error'].fillna(-1, inplace=True)
 lcmv['ori_error'] = lcmv['ori_error'].map(fix)
-lcmv.to_csv('lcmv_old_max_power_ori.csv')
+lcmv.to_csv('lcmv_old_max_ori.csv')
 
 dfs = []
 for vertex in tqdm(range(3756), total=3756):
@@ -65,7 +65,7 @@ dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
 dics['ori_error'].fillna(-1, inplace=True)
 dics['ori_error'] = dics['ori_error'].map(fix)
-dics.to_csv('dics_new_max_power_ori.csv')
+dics.to_csv('dics_new_max_ori.csv')
 
 dfs = []
 for vertex in tqdm(range(3756), total=3756):
@@ -81,4 +81,4 @@ dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
 dics['ori_error'].fillna(-1, inplace=True)
 dics['ori_error'] = dics['ori_error'].map(fix)
-dics.to_csv('dics_old_max_power_ori.csv')
+dics.to_csv('dics_old_max_ori.csv')
