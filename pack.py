@@ -1,11 +1,8 @@
 """
 Concatenate the individual CSV files produced by the LCMV and DICS simulations.
 """
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
-
-from config import fname
 
 noise = 0.1
 

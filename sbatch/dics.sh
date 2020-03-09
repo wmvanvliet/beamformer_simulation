@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure to request only the resources you really need to avoid cueing
-#SBATCH -t 2:00:00
+#SBATCH -t 3:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH -n 1
 
@@ -20,6 +20,7 @@ VERTEX_NUMBER=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 
 # Load the python environment
 module load anaconda3
+module load anaconda
 
 # Tell BLAS to only use a single thread
 export OMP_NUM_THREADS=1
