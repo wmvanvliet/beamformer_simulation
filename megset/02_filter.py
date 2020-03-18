@@ -21,7 +21,9 @@ raw = mne.chpi.filter_chpi(raw, include_line=True)
 report.add_figs_to_section(raw.plot_psd(tmax=600), 'PSD of notch filtered raw', 'Raw', replace=True)
 raw.save(fname.raw_filt(subject=subject), overwrite=True)
 
+# Make version for ICA use
 raw = raw.filter(1, None)
+raw = raw.resample(128)
 raw.save(fname.raw_detrend(subject=subject), overwrite=True)
 report.save(fname.report(subject=subject), overwrite=True, open_browser=False)
 report.save(fname.report_html(subject=subject), overwrite=True, open_browser=False)

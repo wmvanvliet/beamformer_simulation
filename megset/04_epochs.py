@@ -16,7 +16,7 @@ raw = mne.io.read_raw_fif(fname.raw_filt(subject=subject))
 ica = mne.preprocessing.read_ica(fname.ica(subject=subject))
 
 # Create short epochs for evoked analysis
-events = mne.find_events(raw)
+events = mne.find_events(raw, shortest_event=0.01)
 epochs = mne.Epochs(raw, events, events_id, tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
 epochs_clean = ica.apply(epochs)
 mne.preprocessing.fix_stim_artifact(epochs_clean)
