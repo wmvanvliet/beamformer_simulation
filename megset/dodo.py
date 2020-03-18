@@ -45,14 +45,14 @@ def task_epochs():
             actions=[f'ipython 04_epochs.py {subject:d}'],
         )
 
-def task_mne():
-    """Step 5: MNE source estimate"""
+def task_dipole():
+    """Step 5: Dipole source estimate (golden standard)"""
     for subject in subjects:
         yield dict(
             name=str(subject),
-            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), '05_mne.py'],
-            targets=[fname.stc_mne(subject=subject), fname.nii_mne(subject=subject)],
-            actions=[f'ipython 05_mne.py {subject:d}'],
+            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), '05_dipole.py'],
+            targets=[fname.ecd(subject=subject)],
+            actions=[f'ipython 05_dipole.py {subject:d}'],
         )
 
 def task_lcmv():
@@ -60,7 +60,7 @@ def task_lcmv():
     for subject in subjects:
         yield dict(
             name=str(subject),
-            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), '06_lcmv.py'],
+            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), fname.ecd(subject=subject), '06_lcmv.py'],
             targets=[fname.stc_lcmv(subject=subject), fname.nii_lcmv(subject=subject)],
             actions=[f'ipython 06_lcmv.py {subject:d}'],
         )
@@ -70,17 +70,17 @@ def task_dics():
     for subject in subjects:
         yield dict(
             name=str(subject),
-            file_dep=[fname.epochs_long(subject=subject), fname.fwd(subject=subject), '07_dics.py'],
+            file_dep=[fname.epochs_long(subject=subject), fname.fwd(subject=subject), fname.ecd(subject=subject), '07_dics.py'],
             targets=[fname.stc_dics(subject=subject), fname.nii_dics(subject=subject)],
             actions=[f'ipython 07_dics.py {subject:d}'],
         )
 
-def task_dipole():
-    """Step 8: Dipole source estimate"""
+def task_mne():
+    """Step 8: MNE source estimate"""
     for subject in subjects:
         yield dict(
             name=str(subject),
-            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), '08_dipole.py'],
-            targets=[fname.ecd(subject=subject)],
-            actions=[f'ipython 08_dipole.py {subject:d}'],
+            file_dep=[fname.epochs(subject=subject), fname.fwd(subject=subject), fname.ecd(subject=subject), '08_mne.py'],
+            targets=[fname.stc_mne(subject=subject), fname.nii_mne(subject=subject)],
+            actions=[f'ipython 08_mne.py {subject:d}'],
         )

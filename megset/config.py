@@ -1,4 +1,28 @@
 from fnames import FileNames
+import getpass
+from socket import getfqdn
+
+user = getpass.getuser()  # Username of the user running the scripts
+host = getfqdn()  # Hostname of the machine running the scripts
+print('Running on %s@%s' % (user, host))
+
+if user == 'wmvan':
+    # My work laptop
+    target_path = 'X:/'
+    n_jobs = 6
+elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
+    # My workstation
+    target_path = '/m/nbe/scratch/epasana/beamformer_simulation/data'
+    n_jobs = 4
+elif 'triton' in host and user == 'vanvlm1':
+    # The big computational cluster at Aalto University
+    target_path = '/scratch/nbe/epasana/beamformer_simulation/data'
+    n_jobs = 1
+else:
+    raise RuntimeError('Please edit scripts/config.py and set the target_path '
+                       'variable to point to the location where the data '
+                       'should be stored and the n_jobs variable to the '
+                       'number of CPU cores the analysis is allowed to use.')
 
 subjects = [1, 2, 4, 5, 6, 7]
 bad_subjects = [3]
@@ -26,9 +50,9 @@ bads = {
 
 
 fname = FileNames()
-fname.add('megset_dir', '/m/nbe/project/megset')
-fname.add('target_dir', '/m/nbe/scratch/epasana/beamformer_simulation/megset/sub{subject:02d}')
-fname.add('subjects_dir', '/m/nbe/scratch/epasana/beamformer_simulation/megset/mri')
+fname.add('target_path', target_path)
+fname.add('target_dir', '{target_path}/megset/sub{subject:02d}')
+fname.add('subjects_dir', '{target_path}/megset/mri')
 fname.add('subject_id', 'k{subject:d}_T1')
 fname.add('raw', '{target_dir}/sub{subject:02d}-raw.fif')
 fname.add('raw_filt', '{target_dir}/sub{subject:02d}-filtered-raw.fif')
