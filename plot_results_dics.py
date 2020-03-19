@@ -25,31 +25,21 @@ assert len(dics) == len(settings)
 # Settings for plotting
 
 # what to plot:
-plot_type = 'foc'  # can be "corr" for correlation or "foc" for focality
+plot_type = 'foc'  # can be "foc" for focality or "ori_error" for orientation error
 
 # Colors for plotting
 colors1 = ['navy', 'orangered', 'crimson', 'firebrick', 'seagreen']
 colors2 = ['seagreen', 'yellowgreen', 'orangered', 'firebrick', 'navy', 'cornflowerblue']
 
-if plot_type == 'corr':
-    y_label = 'Correlation'
-    y_data = 'corr'
-    title = f'Correlation as a function of localization error, noise={config.noise:.2f}'
-    ylims = (0.2, 1.1)
-    xlims = (-1, 72)
-    loc = 'lower left'
-    yticks = np.arange(0.4, 1.1, 0.2)
-    xticks = np.arange(0, 75, 5)
-    yscale='linear'
-elif plot_type == 'foc':
+if plot_type == 'foc':
     y_label = 'Focality measure'
     y_data = 'focality'
     title = f'Focality as a function of localization error, noise={config.noise:.2f}'
-    ylims = (0, 0.006)
-    xlims = (-1, 72)
+    ylims = (0, 0.014)
+    xlims = (-1, 85)
     loc = 'upper right'
-    yticks = np.arange(0.0, 0.041, 0.005)
-    xticks = np.arange(0, 75, 5)
+    yticks = np.arange(0.0, 0.014, 0.01)
+    xticks = np.arange(0, 85, 5)
     yscale='linear'  # or 'log'
 elif plot_type == 'ori_error':
     dics = dics.query('ori_error >= 0')
@@ -57,10 +47,10 @@ elif plot_type == 'ori_error':
     y_data = 'ori_error'
     title = f'Orientation error as a function of localization error, noise={config.noise:.2f}'
     ylims = (-5, 90)
-    xlims = (-1, 72)
+    xlims = (-1, 85)
     loc = 'upper right'
     yticks = np.arange(0.0, 90, 5)
-    xticks = np.arange(0, 75, 5)
+    xticks = np.arange(0, 85, 5)
     yscale='linear'  # or 'log'
 else:
     raise ValueError(f'Do not know plotting type "{plot_type}".')
@@ -120,9 +110,9 @@ plt.xlabel('Localization error [mm]')
 plt.ylabel(y_label)
 plt.yticks(yticks)
 plt.yscale(yscale)
-plt.ylim(ylims)
+#plt.ylim(ylims)
 plt.xticks(xticks)
-plt.xlim(xlims)
+#plt.xlim(xlims)
 
 
 ###############################################################################
