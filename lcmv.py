@@ -111,7 +111,7 @@ for setting in lcmv_settings:
             estimated_ori = filters['max_power_ori'][config.vertex]
             ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
             if ori_error > 90:
-                ori_error = 180 - ori_error;
+                ori_error = 180 - ori_error
         else:
             ori_error = np.nan
     except Exception as e:
