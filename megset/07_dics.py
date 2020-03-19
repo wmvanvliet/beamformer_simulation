@@ -28,7 +28,7 @@ csd_ers = csd_ers.mean()
 
 # Compute DICS beamformer to localize ERS
 fwd = mne.read_forward_solution(fname.fwd(subject=subject))
-inv = mne.beamformer.make_dics(epochs.info, fwd, csd, reduce_rank=True, noise_csd=csd)
+inv = mne.beamformer.make_dics(epochs.info, fwd, csd, reduce_rank=True)
 
 # Compute source power
 stc_baseline, _ = mne.beamformer.apply_dics_csd(csd_baseline, inv)
