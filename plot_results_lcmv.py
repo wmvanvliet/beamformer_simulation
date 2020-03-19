@@ -8,14 +8,16 @@ settings = config.lcmv_settings
 settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                     'weight_norm', 'normalize_fwd', 'use_noise_cov',
                     'reduce_rank', 'noise']
-lcmv = pd.read_csv('lcmv_new_max_ori.csv', index_col=0)
+lcmv = pd.read_csv('lcmv.csv', index_col=0)
 lcmv['weight_norm'] = lcmv['weight_norm'].fillna('none')
 lcmv['pick_ori'] = lcmv['pick_ori'].fillna('none')
 lcmv['dist'] *= 1000  # Measure distance in mm
 
 # Average across the various performance scores
 lcmv = lcmv.groupby(settings_columns).agg('mean').reset_index()
-del lcmv['vertex']  # No longer needed
+
+# No longer needed
+del lcmv['vertex']
 
 assert len(lcmv) == len(settings)
 
@@ -23,8 +25,7 @@ assert len(lcmv) == len(settings)
 # Settings for plotting
 
 # what to plot:
-plot_type = 'ori_error'  # can be "corr" for correlation or "foc" for focality
-lcmv = lcmv.query('ori_error >= 0')
+plot_type = 'foc'  # can be "corr" for correlation or "foc" for focality
 
 # Colors for plotting
 colors1 = ['navy', 'orangered', 'crimson', 'firebrick', 'seagreen']
@@ -42,15 +43,16 @@ if plot_type == 'corr':
     yscale='linear'
 elif plot_type == 'foc':
     y_label = 'Focality measure'
-    y_data = 'eval'
+    y_data = 'focality'
     title = f'Focality as a function of localization error, noise={config.noise:.2f}'
-    ylims = (-0.001, 0.041)
+    ylims = (0, 0.006)
     xlims = (-1, 72)
     loc = 'upper right'
     yticks = np.arange(0.0, 0.041, 0.005)
     xticks = np.arange(0, 75, 5)
     yscale='linear'  # or 'log'
 elif plot_type == 'ori_error':
+    lcmv = lcmv.query('ori_error >= 0')
     y_label = 'Orientation error'
     y_data = 'ori_error'
     title = f'Orientation error as a function of localization error, noise={config.noise:.2f}'
@@ -69,25 +71,14 @@ else:
 plt.figure(figsize=(12, 8))
 plt.subplot(2, 2, 1)
 
-x, y = lcmv.query('weight_norm=="unit-noise-gain" and normalize_fwd==False')[['dist', y_data]].values.T
+x, y = lcmv.query('weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors1[0], label='Weight normalization')
 
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and reduce_rank=="leadfield"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[1], label="Lead field normalization, reduce_rank='leadfield'")
-
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and reduce_rank=="denominator"')[
-    ['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[2], label="Lead field normalization, reduce_rank='denominator'")
-
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and reduce_rank=="False"')[
-    ['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[3], label='Lead field normalization, full rank')
-
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and inversion=="matrix" and reduce_rank=="False"')[
-    ['dist', y_data]].values.T
+x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors1[4], label="Lead field normalization")
 
 x, y = lcmv.query('weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[4], label='No normalization')
+plt.scatter(x, y, color=colors1[3], label='No normalization')
 
 plt.legend(loc=loc)
 plt.title(title)
@@ -139,23 +130,11 @@ plt.xlim(xlims)
 
 plt.subplot(2, 2, 3)
 
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==False and use_noise_cov==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[0], label='No normalization')
+x, y = lcmv.query('use_noise_cov==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[0], label='No whitening')
 
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==False and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[1], label='No normalization and whitening')
-
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and use_noise_cov==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[2], label='LF normalization')
-
-x, y = lcmv.query('weight_norm=="none" and normalize_fwd==True and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[3], label='LF normalization and whitening')
-
-x, y = lcmv.query('weight_norm=="unit-noise-gain" and normalize_fwd==False and use_noise_cov==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[4], label='Weight normalization')
-
-x, y = lcmv.query('weight_norm=="unit-noise-gain" and normalize_fwd==False and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[5], label='Weight normalization and whitening')
+x, y = lcmv.query('use_noise_cov==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[1], label='Whitening')
 
 plt.legend(loc=loc)
 plt.title(title)
@@ -173,24 +152,14 @@ plt.xlim(xlims)
 
 plt.subplot(2, 2, 4)
 
-x, y = lcmv.query('sensor_type=="grad" and use_noise_cov==False')[['dist', y_data]].values.T
+x, y = lcmv.query('sensor_type=="grad"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[0], label='Gradiometers')
 
-x, y = lcmv.query('sensor_type=="grad" and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[1], label='Gradiometers, with whitening')
-
-x, y = lcmv.query('sensor_type=="mag" and use_noise_cov==False')[['dist', y_data]].values.T
+x, y = lcmv.query('sensor_type=="mag"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[2], label='Magnetometers')
 
-x, y = lcmv.query('sensor_type=="mag" and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[3], label='Magnetometers, with whitening')
-
-x, y = lcmv.query('sensor_type=="joint" and use_noise_cov==False')[['dist', y_data]].values.T
+x, y = lcmv.query('sensor_type=="joint"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[4], label='Joint grads+mags')
-
-x, y = lcmv.query('sensor_type=="joint" and use_noise_cov==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[5], label='Joint grads+mags, with whitening')
-
 
 plt.legend(loc=loc)
 plt.title(title)
@@ -203,55 +172,6 @@ plt.xticks(xticks)
 plt.xlim(xlims)
 
 plt.tight_layout()
-
-
-###############################################################################
-# Different values for reduce_rank
-plt.figure()
-
-x, y = lcmv.query('reduce_rank=="False"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[0], label='reduce_rank=False')
-
-x, y = lcmv.query('reduce_rank=="denominator"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[2], label='reduce_rank="denominator"')
-
-x, y = lcmv.query('reduce_rank=="leadfield"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[4], label='reduce_rank="leadfield"')
-
-plt.legend(loc=loc)
-plt.title(title)
-plt.xlabel('Localization error [mm]')
-plt.ylabel(y_label)
-plt.yticks(yticks)
-plt.yscale(yscale)
-plt.ylim(ylims)
-plt.xticks(xticks)
-plt.xlim(xlims)
-
-plt.show()
-
-
-###############################################################################
-# Reproduce Britta's plot
-plt.figure()
-
-x, y = lcmv.query('pick_ori=="none" and weight_norm=="unit-noise-gain" and normalize_fwd==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[4], label='no pick ori, weight norm, fwd norm true')
-
-x, y = lcmv.query('pick_ori=="none" and weight_norm=="unit-noise-gain" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[0], label='no pick ori, weight norm, fwd norm false')
-
-plt.legend(loc=loc)
-plt.title(title)
-plt.xlabel('Localization error [mm]')
-plt.ylabel(y_label)
-plt.yticks(yticks)
-plt.yscale(yscale)
-plt.ylim(ylims)
-plt.xticks(xticks)
-plt.xlim(xlims)
-
-plt.show()
 
 
 ###############################################################################

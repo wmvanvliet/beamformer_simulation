@@ -20,7 +20,7 @@ if user == 'rodin':
     n_jobs = 4
 if user == 'wmvan':
     # My work laptop
-    target_path = './data'
+    target_path = 'X:/megset'
     n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'
