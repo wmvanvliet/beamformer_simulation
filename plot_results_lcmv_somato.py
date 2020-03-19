@@ -29,9 +29,9 @@ colors2 = ['seagreen', 'yellowgreen', 'orangered', 'firebrick', 'navy', 'cornflo
 
 if plot_type == 'foc':
     y_label = 'Focality measure'
-    y_data = 'eval'
+    y_data = 'focs'
     title = f'Focality as a function of localization error'
-    ylims = (-0.001, 0.008)
+    ylims = (-0.001, 0.02)
     xlims = (-1, 72)
     loc = 'upper right'
     yticks = np.arange(0.0, ylims[1], 0.001)
