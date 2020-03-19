@@ -8,7 +8,7 @@ from mne.beamformer import make_lcmv, apply_lcmv
 
 from config import lcmv_settings
 from somato.config import fname, subject_id
-from utils import make_dipole_volume, set_directory, evaluate_fancy_metric_volume
+from utils import set_directory
 
 report = mne.open_report(fname.report)
 
@@ -138,7 +138,7 @@ set_directory(image_path)
 ###############################################################################
 
 dists = []
-evals = []
+focs = []
 ori_errors = []
 
 for ii, setting in enumerate(lcmv_settings):
@@ -164,16 +164,23 @@ for ii, setting in enumerate(lcmv_settings):
         stc = apply_lcmv(evoked, filters)
         stc = abs(stc.mean())
 
-        # Compute distance between true and estimated source
-        dip_est = make_dipole_volume(stc, fwd['src'])
-        dist = np.linalg.norm(dip.pos - dip_est.pos)
+        # Estimated source location is at peak power
+        stc_power = (stc ** 2).sum().sqrt()
+        peak_vertex, _ = stc_power.get_peak(vert_as_index=True)
 
-        # Fancy evaluation metric
-        ev = evaluate_fancy_metric_volume(stc, true_vert_idx=true_vert_idx)
+        # Compute distance between true and estimated source locations
+        pos = fwd['source_rr'][peak_vertex]
+        dist = np.linalg.norm(dip.pos - pos)
+
+        # Ratio between estimated peak activity and all estimated activity.
+        focality_score = stc_power.data[peak_vertex, 0] / stc_power.data.sum()
 
         if pick_ori == 'max-power':
+            # TODO: decide if use true_vert_idx or peak_vertex
             estimated_ori = filters['max_power_ori'][true_vert_idx]
             ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
+            if ori_error > 90:
+                ori_error = 180 - ori_error
         else:
             ori_error = np.nan
 
@@ -207,12 +214,12 @@ for ii, setting in enumerate(lcmv_settings):
     except Exception as e:
         print(e)
         dist = np.nan
-        ev = np.nan
+        focality_score = np.nan
         ori_error = np.nan
 
-    print(setting, dist, ev, ori_error)
+    print(setting, dist, focality_score, ori_error)
     dists.append(dist)
-    evals.append(ev)
+    focs.append(focality_score)
     ori_errors.append(ori_error)
 
 ###############################################################################
@@ -224,7 +231,7 @@ df = pd.DataFrame(lcmv_settings,
                            'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
 
 df['dist'] = dists
-df['eval'] = evals
+df['focs'] = focs
 df['ori_error'] = ori_errors
 
 df.to_csv(fname.dip_vs_lcmv_results)

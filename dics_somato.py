@@ -8,7 +8,7 @@ from mne.beamformer import make_dics, apply_dics_csd
 
 from config import dics_settings
 from somato.config import fname, subject_id
-from utils import make_dipole_volume, set_directory, evaluate_fancy_metric_volume
+from utils import set_directory
 
 report = mne.open_report(fname.report)
 
@@ -145,7 +145,7 @@ set_directory(image_path)
 ###############################################################################
 
 dists = []
-evals = []
+focs = []
 ori_errors = []
 
 for ii, setting in enumerate(dics_settings):
@@ -180,16 +180,19 @@ for ii, setting in enumerate(dics_settings):
         stc_ers = stc_ers_norm_log
 
         # Compute distance between true and estimated source
-        dip_est = make_dipole_volume(stc_ers, fwd['src'])
-        dist = np.linalg.norm(dip.pos - dip_est.pos)
+        peak_vertex, _ = stc_ers.get_peak(vert_as_index=True)
+        pos = fwd['source_rr'][peak_vertex]
+        dist = np.linalg.norm(dip.pos - pos)
 
         # Fancy evaluation metric
-        # TODO: where to evaluate fancy metric? before or after normalization, i.e., stc_ers_orig or stc_ers_norm_log?
-        ev = evaluate_fancy_metric_volume(stc_ers, true_vert_idx=true_vert_idx)
+        focality_score = stc_ers.data[peak_vertex, 0] / stc_ers.data.sum()
 
         if pick_ori == 'max-power':
+            # TODO: decide if use true_vert_idx or peak_vertex
             estimated_ori = filters['max_power_oris'][0][true_vert_idx]
             ori_error = np.rad2deg(abs(np.arccos(estimated_ori @ dip.ori[0])))
+            if ori_error > 90:
+                ori_error = 180 - ori_error
         else:
             ori_error = np.nan
 
@@ -223,12 +226,12 @@ for ii, setting in enumerate(dics_settings):
     except Exception as e:
         print(e)
         dist = np.nan
-        ev = np.nan
+        focality_score = np.nan
         ori_error = np.nan
 
     print(setting, dist)
     dists.append(dist)
-    evals.append(ev)
+    focs.append(focality_score)
     ori_errors.append(ori_error)
 
 ###############################################################################
@@ -241,7 +244,7 @@ df = pd.DataFrame(dics_settings,
                            'use_noise_cov', 'reduce_rank'])
 
 df['dist'] = dists
-df['eval'] = evals
+df['focs'] = focs
 df['ori_error'] = ori_errors
 
 df.to_csv(fname.dip_vs_dics_results)
