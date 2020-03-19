@@ -7,16 +7,15 @@ from scipy.stats import pearsonr
 import config
 from config import fname, lcmv_settings
 from time_series import simulate_raw, create_epochs
-from utils import make_dipole_volume, evaluate_fancy_metric_volume
 
 # Don't be verbose
 mne.set_log_level(False)
 
-fn_stc_signal = fname.stc_signal( vertex=config.vertex)
-fn_simulated_raw = fname.simulated_raw( vertex=config.vertex)
-fn_simulated_epochs = fname.simulated_epochs( vertex=config.vertex)
+fn_stc_signal = fname.stc_signal(vertex=config.vertex)
+fn_simulated_raw = fname.simulated_raw(vertex=config.vertex)
+fn_simulated_epochs = fname.simulated_epochs(vertex=config.vertex)
 
-#fn_report_h5 = fname.report(vertex=config.vertex)
+# fn_report_h5 = fname.report(vertex=config.vertex)
 fn_report_h5 = None  # Don't produce a report
 
 ###############################################################################
