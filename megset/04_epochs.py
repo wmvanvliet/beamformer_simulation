@@ -1,7 +1,7 @@
 import mne
 import argparse
 import numpy as np
-from config import fname, events_id
+from config import fname, events_id, bads
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -13,6 +13,7 @@ print('Processing subject:', subject)
 report = mne.open_report(fname.report(subject=subject))
 
 raw = mne.io.read_raw_fif(fname.raw_filt(subject=subject))
+raw.info['bads'] = bads[subject]
 ica = mne.preprocessing.read_ica(fname.ica(subject=subject))
 
 # Create short epochs for evoked analysis

@@ -1,7 +1,7 @@
 import mne
 import argparse
 import numpy as np
-from config import fname
+from config import fname, bads
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -14,6 +14,7 @@ report = mne.open_report(fname.report(subject=subject))
 
 # Fit ICA to the continuous data
 raw_detrended = mne.io.read_raw_fif(fname.raw_detrend(subject=subject))
+raw_detrended.info['bads'] = bads[subject]
 ica = mne.preprocessing.ICA(n_components=100).fit(raw_detrended)
 
 # Get ICA components that capture eye blinks and heart beats
