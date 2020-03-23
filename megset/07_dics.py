@@ -12,11 +12,12 @@ subject = args.subject
 print('Processing subject:', subject)
 
 # Create longer epochs
-epochs = mne.read_epochs(fname.epochs_long(subject=subject)).pick_types(meg=True)
+epochs = mne.read_epochs(fname.epochs_long(subject=subject)).pick_types(meg='grad')
 epochs.apply_baseline()
 
 # Compute Cross-Spectral Density matrices
-freqs = np.arange(7, 15)
+#freqs = np.arange(7, 15)
+freqs = np.arange(7, 11)
 csd = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-0.8, tmax=1.0, n_jobs=n_jobs, decim=5)
 csd_baseline = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-0.8, tmax=0, n_jobs=n_jobs, decim=5)
 # ERS activity starts at 0.5 seconds after stimulus onset

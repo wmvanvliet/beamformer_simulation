@@ -1,7 +1,7 @@
 import mne
 import argparse
 import numpy as np
-from config import fname, events_id, bads
+from config import fname, events_id
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -13,14 +13,12 @@ print('Processing subject:', subject)
 report = mne.open_report(fname.report(subject=subject))
 
 raw = mne.io.read_raw_fif(fname.raw_filt(subject=subject))
-raw.info['bads'] = bads[subject]
 ica = mne.preprocessing.read_ica(fname.ica(subject=subject))
 
 # Create short epochs for evoked analysis
 events = mne.find_events(raw, shortest_event=0.01)
 epochs = mne.Epochs(raw, events, events_id, tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
 epochs_clean = ica.apply(epochs)
-epochs.interpolate_bads()
 mne.preprocessing.fix_stim_artifact(epochs_clean)
 epochs_clean.save(fname.epochs(subject=subject), overwrite=True)
 report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds without cleaning (grads)', 'Evokeds without cleaning (mags)'], 'Sensor level', replace=True)
