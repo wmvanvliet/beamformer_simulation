@@ -1,5 +1,6 @@
 import os.path as op
 
+import numpy as np
 import matplotlib.pyplot as plt
 import mne
 from nilearn.plotting import plot_anat
@@ -13,8 +14,16 @@ noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', r
 bem = mne.read_bem_solution(fname.bem)
 trans = mne.transforms.read_trans(fname.trans)
 
-evoked = epochs.average().crop(0.036, 0.037)
+# Find the slope of the onset
+evoked = epochs.average().crop(0.03, 0.05)
+_, mag_peak = evoked.get_peak('mag')
+_, grad_peak = evoked.get_peak('grad')
+peak_time = (mag_peak + grad_peak) / 2
+evoked = epochs.average().crop(peak_time - 0.005, peak_time + 0.005)
+print(evoked)
+
 dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=n_jobs, verbose=True)
+dip = dip[int(np.argmax(dip.gof))]
 dip.save(fname.ecd, overwrite=True)
 
 # Plot the result in 3D brain with the MRI image using Nilearn

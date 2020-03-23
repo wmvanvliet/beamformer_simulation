@@ -27,10 +27,11 @@ evoked = epochs.average().crop(0.03, 0.05)
 _, mag_peak = evoked.get_peak('mag')
 _, grad_peak = evoked.get_peak('grad')
 peak_time = (mag_peak + grad_peak) / 2
-evoked = epochs.average().crop(peak_time - 0.005, peak_time)
+evoked = epochs.average().crop(peak_time - 0.005, peak_time + 0.005)
 print(evoked)
 
 dip, res = mne.fit_dipole(evoked, noise_cov, bem, trans, n_jobs=n_jobs, verbose=True)
+dip = dip[int(np.argmax(dip.gof))]
 dip.save(fname.ecd(subject=subject), overwrite=True)
 
 # Plot the result in 3D brain with the MRI image using Nilearn
