@@ -48,6 +48,22 @@ bads = {
     7: ['MEG0213', 'MEG2233', 'MEG2212', 'MEG2231', 'EEG001', 'EEG035', 'EEG045'],
 }
 
+freq_range = {
+    1: (7, 15),
+    2: (7, 11),
+    4: (7, 15),
+    5: (7, 15),
+    6: (7, 15),
+    7: (7, 15),
+}
+reg = {
+    1: dict(lcmv=0.05, dics=0.05),
+    2: dict(lcmv=0.05, dics=1.10),  # Crazy DICS regularization needed
+    4: dict(lcmv=0.05, dics=0.05),
+    5: dict(lcmv=0.05, dics=0.05),
+    6: dict(lcmv=0.05, dics=0.05),
+    7: dict(lcmv=0.05, dics=0.05),
+}
 
 fname = FileNames()
 fname.add('target_path', target_path)

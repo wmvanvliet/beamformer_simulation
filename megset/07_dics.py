@@ -2,7 +2,7 @@ import mne
 import argparse
 import numpy as np
 
-from config import fname, n_jobs
+from config import fname, n_jobs, freq_range, reg
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -12,12 +12,12 @@ subject = args.subject
 print('Processing subject:', subject)
 
 # Create longer epochs
-epochs = mne.read_epochs(fname.epochs_long(subject=subject)).pick_types(meg='grad')
-epochs.apply_baseline()
+epochs = mne.read_epochs(fname.epochs_long(subject=subject))
+epochs.apply_baseline((-0.8, 1.0))
 
 # Compute Cross-Spectral Density matrices
 #freqs = np.arange(7, 15)
-freqs = np.arange(7, 11)
+freqs = np.arange(*freq_range[subject])
 csd = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-0.8, tmax=1.0, n_jobs=n_jobs, decim=5)
 csd_baseline = mne.time_frequency.csd_morlet(epochs, freqs, tmin=-0.8, tmax=0, n_jobs=n_jobs, decim=5)
 # ERS activity starts at 0.5 seconds after stimulus onset
@@ -29,7 +29,11 @@ csd_ers = csd_ers.mean()
 
 # Compute DICS beamformer to localize ERS
 fwd = mne.read_forward_solution(fname.fwd(subject=subject))
-inv = mne.beamformer.make_dics(epochs.info, fwd, csd, reduce_rank=True)
+
+info, fwd, csd = mne.channels.equalize_channels([epochs.info, fwd, csd])
+inv = mne.beamformer.make_dics(info, fwd, csd, reduce_rank=True,
+                               pick_ori='max-power', inversion='matrix',
+                               reg=reg[subject]['dics'])
 
 # Compute source power
 stc_baseline, _ = mne.beamformer.apply_dics_csd(csd_baseline, inv)
