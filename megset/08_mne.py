@@ -25,7 +25,7 @@ stc_peak = abs(stc.copy().crop(peak_time, peak_time).mean())
 stc_peak.save(fname.stc_mne(subject=subject))
 stc_peak.save_as_volume(fname.nii_mne(subject=subject), src=fwd['src'])
 
-fig = stc.plot(initial_time=0.04, subject=fname.subject_id(subject=subject), subjects_dir=fname.subjects_dir, src=fwd['src'],
+fig = stc.plot(initial_time=peak_time, subject=fname.subject_id(subject=subject), subjects_dir=fname.subjects_dir, src=fwd['src'],
                clim=dict(kind='percent', lims=[99.9, 99.95, 100]))
 with mne.open_report(fname.report(subject=subject)) as report:
     report.add_figs_to_section(fig, f'MNE Source estimate at {peak_time}', 'Source level', replace=True)
