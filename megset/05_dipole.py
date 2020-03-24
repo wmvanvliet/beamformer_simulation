@@ -15,8 +15,6 @@ args = parser.parse_args()
 subject = args.subject
 print('Processing subject:', subject)
 
-report = mne.open_report(fname.report(subject=subject))
-
 epochs = mne.read_epochs(fname.epochs(subject=subject))
 noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk', rank='info')
 bem = mne.read_bem_solution(fname.bem(subject=subject))
@@ -40,7 +38,6 @@ mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
 t1_fname = op.join(fname.subjects_dir, fname.subject_id(subject=subject), 'mri', 'T1.mgz')
 fig = plt.figure()
 plot_anat(t1_fname, cut_coords=mri_pos[np.argmax(dip.gof)], title='Dipole loc.', figure=fig)
-report.add_figs_to_section(fig, 'ECD source location', 'Source level', replace=True)
-
-report.save(fname.report(subject=subject), overwrite=True, open_browser=False)
-report.save(fname.report_html(subject=subject), overwrite=True, open_browser=False)
+with mne.open_report(fname.report(subject=subject)) as report:
+    report.add_figs_to_section(fig, 'ECD source location', 'Source level', replace=True)
+    report.save(fname.report_html(subject=subject), overwrite=True, open_browser=False)

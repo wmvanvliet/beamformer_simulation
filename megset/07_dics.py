@@ -48,8 +48,6 @@ stc_ers.save(fname.stc_dics(subject=subject))
 stc_ers.save_as_volume(fname.nii_dics(subject=subject), src=fwd['src'])
 
 fig = stc_ers.plot(subject=fname.subject_id(subject=subject), subjects_dir=fname.subjects_dir, src=fwd['src'])
-                   
-
 with mne.open_report(fname.report(subject=subject)) as report:
     report.add_figs_to_section(fig, 'DICS Source estimate', 'Source level', replace=True)
     report.save(fname.report_html(subject=subject), overwrite=True, open_browser=False)
