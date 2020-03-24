@@ -57,7 +57,7 @@ bads = {
 # artifacts. Marijn van Vliet manually picked MEG sensors that showed a lot of
 # the artifacts. This is the channel the ICA components will be compared
 # against to detect components that capture the artifact.
-subjects_with_extra_stim_artifacts = [4, 5, 7]
+subjects_with_extra_stim_artifacts = [4, 7]
 stim_artifact_sensor = {
     4: 'MEG2631',
 }

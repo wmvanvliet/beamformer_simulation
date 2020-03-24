@@ -30,7 +30,7 @@ epochs.save(fname.epochs(subject=subject), overwrite=True)
 # For some subjects, there are more stim artifacts that we need to remove using ICA
 if subject in subjects_with_extra_stim_artifacts:
     ica2 = mne.preprocessing.ICA(0.9).fit(epochs.copy().crop(-0.1, 0.1))
-    stim_scores = ica2.score_sources(epochs, stim_artifact_sensor)
+    stim_scores = ica2.score_sources(epochs, stim_artifact_sensor[subject])
     ica2.exclude = mne.preprocessing.find_outliers(stim_scores, threshold=5)
     report.add_figs_to_section(ica2.plot_scores(stim_scores), [f'Correlation with {stim_artifact_sensor}'], 'Sensor level', replace=True)
     report.add_figs_to_section(ica2.plot_overlay(epochs.average()), ['Signal removed by second ICA'], 'Sensor level', replace=True)
