@@ -18,16 +18,34 @@ ica = mne.preprocessing.read_ica(fname.ica(subject=subject))
 # Create short epochs for evoked analysis
 events = mne.find_events(raw, shortest_event=0.01)
 epochs = mne.Epochs(raw, events, events_id, tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
-epochs_clean = ica.apply(epochs)
-mne.preprocessing.fix_stim_artifact(epochs_clean)
-epochs_clean.save(fname.epochs(subject=subject), overwrite=True)
 report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds without cleaning (grads)', 'Evokeds without cleaning (mags)'], 'Sensor level', replace=True)
-report.add_figs_to_section(epochs_clean.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after cleaning (grads)', 'Evokeds after cleaning (mags)'], 'Sensor level', replace=True)
+
+stim_scores = ica.score_sources(epochs, 'MEG2631')
+ica.exclude.append(np.argmax(abs(stim_scores)))
+
+# Do a first pass for fixing the stim artifact
+epochs = ica.apply(epochs)
+mne.preprocessing.fix_stim_artifact(epochs)
+epochs.save(fname.epochs(subject=subject), overwrite=True)
+
+# For some subjects, there are more artifacts that we need to remove using ICA
+subjects_with_extra_stim_artifacts = [4]
+if subject in subjects_with_extra_stim_artifacts:
+    ica2 = mne.preprocessing.ICA(0.9).fit(epochs.copy().crop(-0.1, 0.1))
+    stim_scores = ica2.score_sources(epochs, 'MEG2631')  # MEG2631 captures the artifacts nicely
+    report.add_figs_to_section(ica2.plot_scores(stim_scores), ['Correlation with MEG2631'], 'Sensor level', replace=True)
+    ica2.exclude = [i for i, score in enumerate(stim_scores) if abs(score) > 0.5]
+    report.add_figs_to_section(ica2.plot_overlay(epochs.average()), ['Signal removed by second ICA'], 'Sensor level', replace=True)
+    epochs = ica2.apply(epochs)
+
+report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after cleaning (grads)', 'Evokeds after cleaning (mags)'], 'Sensor level', replace=True)
 
 # Create longer epochs for rhythmic analysis
 epochs_long = mne.Epochs(raw, events, events_id, tmin=-1.5, tmax=2, reject=None, baseline=None, preload=True)
 epochs_long = ica.apply(epochs_long)
 mne.preprocessing.fix_stim_artifact(epochs_long)
+if subject in subjects_with_extra_stim_artifacts:
+    epochs_long = ica2.apply(epochs_long)
 epochs_long.save(fname.epochs_long(subject=subject), overwrite=True)
 
 # Visualize spectral content of the longer epochs
