@@ -60,6 +60,7 @@ bads = {
 subjects_with_extra_stim_artifacts = [4, 7]
 stim_artifact_sensor = {
     4: 'MEG2631',
+    7: 'MEG1721',
 }
 
 # Frequency range used in the DICS beamformer. The optimal frequencies where we
