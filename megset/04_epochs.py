@@ -1,7 +1,7 @@
 import mne
 import argparse
 import numpy as np
-from config import fname, events_id
+from config import fname, events_id, subjects_with_extra_stim_artifacts, stim_artifact_sensor
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -20,21 +20,19 @@ events = mne.find_events(raw, shortest_event=0.01)
 epochs = mne.Epochs(raw, events, events_id, tmin=-0.2, tmax=0.5, reject=None, baseline=(-0.2, 0), preload=True)
 report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds without cleaning (grads)', 'Evokeds without cleaning (mags)'], 'Sensor level', replace=True)
 
-stim_scores = ica.score_sources(epochs, 'MEG2631')
-ica.exclude.append(np.argmax(abs(stim_scores)))
+# Apply ICA to remove EOG and ECG artifacts
+epochs = ica.apply(epochs)
 
 # Do a first pass for fixing the stim artifact
-epochs = ica.apply(epochs)
 mne.preprocessing.fix_stim_artifact(epochs)
 epochs.save(fname.epochs(subject=subject), overwrite=True)
 
-# For some subjects, there are more artifacts that we need to remove using ICA
-subjects_with_extra_stim_artifacts = [4]
+# For some subjects, there are more stim artifacts that we need to remove using ICA
 if subject in subjects_with_extra_stim_artifacts:
     ica2 = mne.preprocessing.ICA(0.9).fit(epochs.copy().crop(-0.1, 0.1))
-    stim_scores = ica2.score_sources(epochs, 'MEG2631')  # MEG2631 captures the artifacts nicely
+    stim_scores = ica2.score_sources(epochs, stim_artifact_sensor)
     ica2.exclude = mne.preprocessing.find_outliers(stim_scores, threshold=5)
-    report.add_figs_to_section(ica2.plot_scores(stim_scores), ['Correlation with MEG2631'], 'Sensor level', replace=True)
+    report.add_figs_to_section(ica2.plot_scores(stim_scores), [f'Correlation with {stim_artifact_sensor}'], 'Sensor level', replace=True)
     report.add_figs_to_section(ica2.plot_overlay(epochs.average()), ['Signal removed by second ICA'], 'Sensor level', replace=True)
     epochs = ica2.apply(epochs)
 
@@ -54,8 +52,6 @@ epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, retur
 fig = epochs_tfr.plot_topo(baseline=(-0.8, 0), tmin=-0.8, tmax=1.0, mode='logratio')
 fig.set_size_inches((12, 12))
 report.add_figs_to_section(fig, 'Time-frequency decomposition', 'Spectrum', replace=True)
-report.add_figs_to_section(epochs_tfr.plot(picks=['MEG1143'], baseline=(-1, 0), mode='logratio'), 'Time-frequency decomposition for MEG 1143', 'Spectrum', replace=True)
-report.add_figs_to_section(epochs_tfr.plot(picks=['MEG2033'], baseline=(-1, 0), mode='logratio'), 'Time-frequency decomposition for MEG 2033', 'Spectrum', replace=True)
 
 report.save(fname.report(subject=subject), overwrite=True, open_browser=False)
 report.save(fname.report_html(subject=subject), overwrite=True, open_browser=False)
