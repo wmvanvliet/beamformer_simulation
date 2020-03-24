@@ -49,7 +49,7 @@ bads = {
     3: ['MEG2233', 'MEG0741', 'EEG045', 'EEG035', 'EEG001', 'EEG027'],
     4: ['MEG1842', 'MEG2113', 'MEG2342', 'MEG2233', 'MEG1942', 'MEG1922', 'EEG045', 'EEG001', 'EEG035'],
     5: ['MEG2233', 'MEG0811', 'MEG2342', 'MEG0812', 'MEG0813', 'MEG0722', 'MEG0632', 'MEG0913', 'MEG0912', 'EEG001', 'EEG035', 'EEG045'],
-    6: ['EEG001', 'EEG035'],
+    6: ['MEG2233', 'EEG001', 'EEG035'],
     7: ['MEG0213', 'MEG2233', 'MEG2212', 'MEG2231', 'EEG001', 'EEG035', 'EEG045'],
 }
 
@@ -66,12 +66,12 @@ stim_artifact_sensor = {
 # Frequency range used in the DICS beamformer. The optimal frequencies where we
 # find ERD/ERS effects varies a little between subjects.
 freq_range = {
-    1: (7, 15),
-    2: (7, 11),
-    4: (7, 15),
-    5: (7, 15),
-    6: (7, 15),
-    7: (7, 15),
+    1: (7, 15),  # Typical ERD response
+    2: (7, 11),  # Typical ERD response
+    4: (7, 30),  # Very wide response for this subject. Weird.
+    5: (13, 24),  # This subject shows ERS much better than ERD, as is the case with MNE-Somato
+    6: (7, 15),  # Typical ERD response
+    7: (9, 14),  # Bit narrow band ERD response
 }
 
 # Amount of regularization needed for the beamformers. Varies between subjects.
