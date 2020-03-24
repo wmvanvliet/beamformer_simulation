@@ -13,7 +13,7 @@ print('Processing subject:', subject)
 epochs = mne.read_epochs(fname.epochs(subject=subject))
 noise_cov = mne.compute_covariance(epochs, tmin=-0.2, tmax=0, method='shrunk')
 fwd = mne.read_forward_solution(fname.fwd(subject=subject))
-inv = mne.minimum_norm.make_inverse_operator(epochs.info, fwd, noise_cov)
+inv = mne.minimum_norm.make_inverse_operator(epochs.info, fwd, noise_cov, depth=None)
 stc = mne.minimum_norm.apply_inverse(epochs.average(), inv)
 stc.save(fname.stc_mne(subject=subject))
 
