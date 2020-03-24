@@ -33,8 +33,8 @@ subjects_with_extra_stim_artifacts = [4]
 if subject in subjects_with_extra_stim_artifacts:
     ica2 = mne.preprocessing.ICA(0.9).fit(epochs.copy().crop(-0.1, 0.1))
     stim_scores = ica2.score_sources(epochs, 'MEG2631')  # MEG2631 captures the artifacts nicely
+    ica2.exclude = mne.preprocessing.find_outliers(stim_scores, threshold=5)
     report.add_figs_to_section(ica2.plot_scores(stim_scores), ['Correlation with MEG2631'], 'Sensor level', replace=True)
-    ica2.exclude = [i for i, score in enumerate(stim_scores) if abs(score) > 0.5]
     report.add_figs_to_section(ica2.plot_overlay(epochs.average()), ['Signal removed by second ICA'], 'Sensor level', replace=True)
     epochs = ica2.apply(epochs)
 
