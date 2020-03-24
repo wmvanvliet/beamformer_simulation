@@ -27,6 +27,7 @@ dip = mne.read_dipole(fname.ecd(subject=subject))
 peak_time = dip[int(np.argmax(dip.gof))].times[0]
 
 stc_peak = abs(stc.copy().crop(peak_time, peak_time))
+stc_peak.save(fname.stc_lcmv(subject=subject))
 stc_peak.save_as_volume(fname.nii_lcmv(subject=subject), src=fwd['src'])
 
 stc_power = (stc ** 2).sqrt()
