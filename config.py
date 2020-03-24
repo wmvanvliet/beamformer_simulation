@@ -183,5 +183,11 @@ phantom_fname.add('data_path', bst_phantom_ctf.data_path())
 phantom_fname.add('raw', '{data_path}/phantom_20uA_20150603_03.ds')
 phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
 
+# MEGSET results
+fname.add('lcmv_megset_results', '{target_path}/lcmv_megset_results/lcmv_megset_results-subject{subject:d}.csv')  # noqa
+fname.add('dics_megset_results', '{target_path}/dics_megset_results/dics_megset_results-subject{subject:d}.csv')  # noqa
+fname.add('lcmv_somato_results', '{target_path}/lcmv_somato_results/lcmv_somato_results.csv')  # noqa
+fname.add('dics_somato_results', '{target_path}/dics_somato_results/dics_somato_results.csv')  # noqa
+
 # Set subjects_dir
 os.environ['SUBJECTS_DIR'] = fname.subjects_dir
