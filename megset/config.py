@@ -25,8 +25,10 @@ else:
                        'number of CPU cores the analysis is allowed to use.')
 
 subjects = [1, 2, 4, 5, 6, 7]
-bad_subjects = [3]
+bad_subjects = [3]  # For subject 3, we don't have T1 MRI
 
+# The events to create epochs for. In this study, we only care about
+# stimulation to the left medial nerve.
 events_id = {
     # 'visRL': 1,
     # 'visR': 2,
@@ -38,6 +40,9 @@ events_id = {
     # 'audL': 64
 }
 
+# Bad channels for each subject (manually flagged by Marijn van Vliet)
+# For some subjects, the signal is really "drifty", but I decided not to flag
+# these sensors, as there would be too many.
 bads = {
     1: ['MEG2233', 'EEG001', 'EEG035', 'EEG015'],
     2: ['MEG1041', 'EEG001', 'EEG035', 'EEG002'],
@@ -48,6 +53,17 @@ bads = {
     7: ['MEG0213', 'MEG2233', 'MEG2212', 'MEG2231', 'EEG001', 'EEG035', 'EEG045'],
 }
 
+# For these subjects, we need an extra ICA pass to get rid of all stimulation
+# artifacts. Marijn van Vliet manually picked MEG sensors that showed a lot of
+# the artifacts. This is the channel the ICA components will be compared
+# against to detect components that capture the artifact.
+subjects_with_extra_stim_artifacts = [4, 5, 7]
+stim_artifact_sensor = {
+    4: 'MEG2631',
+}
+
+# Frequency range used in the DICS beamformer. The optimal frequencies where we
+# find ERD/ERS effects varies a little between subjects.
 freq_range = {
     1: (7, 15),
     2: (7, 11),
@@ -56,6 +72,8 @@ freq_range = {
     6: (7, 15),
     7: (7, 15),
 }
+
+# Amount of regularization needed for the beamformers. Varies between subjects.
 reg = {
     1: dict(lcmv=0.05, dics=0.05),
     2: dict(lcmv=0.05, dics=1.10),  # Crazy DICS regularization needed
@@ -65,6 +83,7 @@ reg = {
     7: dict(lcmv=0.05, dics=0.05),
 }
 
+# All filenames consumed and produced in this study
 fname = FileNames()
 fname.add('target_path', target_path)
 fname.add('target_dir', '{target_path}/megset/sub{subject:02d}')
