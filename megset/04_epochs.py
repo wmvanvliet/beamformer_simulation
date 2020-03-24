@@ -1,7 +1,7 @@
 import mne
 import argparse
 import numpy as np
-from config import fname, events_id, subjects_with_extra_stim_artifacts, stim_artifact_sensor
+from config import fname, events_id, subjects_with_extra_stim_artifacts, stim_artifact_sensor, n_jobs
 
 # Handle command line arguments
 parser = argparse.ArgumentParser(description=__doc__)
@@ -39,7 +39,7 @@ if subject in subjects_with_extra_stim_artifacts:
 report.add_figs_to_section(epochs.average().plot_joint(times=[0.035, 0.1]), ['Evokeds after cleaning (grads)', 'Evokeds after cleaning (mags)'], 'Sensor level', replace=True)
 
 # Create longer epochs for rhythmic analysis
-epochs_long = mne.Epochs(raw, events, events_id, tmin=-1.5, tmax=2, reject=None, baseline=None, preload=True)
+epochs_long = mne.Epochs(raw, events, events_id, tmin=-1.5, tmax=2, reject=None, baseline=(-0.5, 0), preload=True)
 epochs_long = ica.apply(epochs_long)
 mne.preprocessing.fix_stim_artifact(epochs_long)
 if subject in subjects_with_extra_stim_artifacts:
@@ -48,7 +48,7 @@ epochs_long.save(fname.epochs_long(subject=subject), overwrite=True)
 
 # Visualize spectral content of the longer epochs
 freqs = np.logspace(np.log10(5), np.log10(40), 20)
-epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long, freqs, n_cycles=7, return_itc=False, n_jobs=4)
+epochs_tfr = mne.time_frequency.tfr_morlet(epochs_long.decimate(5), freqs, n_cycles=7, return_itc=False, n_jobs=n_jobs)
 fig = epochs_tfr.plot_topo(baseline=(-0.8, 0), tmin=-0.8, tmax=1.0, mode='logratio')
 fig.set_size_inches((12, 12))
 report.add_figs_to_section(fig, 'Time-frequency decomposition', 'Sensor level', replace=True)
