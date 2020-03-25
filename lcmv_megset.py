@@ -6,7 +6,7 @@ from mne.beamformer import make_lcmv, apply_lcmv
 from config import lcmv_settings, fname
 from megset.config import fname as megset_fname
 
-subject = 1
+subject = 7
 mne.set_log_level(False)  # Shhh
 
 ###############################################################################

@@ -7,11 +7,20 @@ import config
 settings = config.lcmv_settings
 settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                     'weight_norm', 'normalize_fwd', 'use_noise_cov',
-                    'reduce_rank', 'noise']
-lcmv = pd.read_csv(config.fname.lcmv_megset_results(subject=1), index_col=0)
-lcmv['weight_norm'] = lcmv['weight_norm'].fillna('none')
-lcmv['pick_ori'] = lcmv['pick_ori'].fillna('none')
-lcmv['dist'] *= 1000  # Measure distance in mm
+                    'reduce_rank']
+
+dfs = []
+for subject in [1, 2, 4, 5, 6, 7]:
+    df = pd.read_csv(config.fname.lcmv_megset_results(subject=subject), index_col=0)
+    df['weight_norm'] = df['weight_norm'].fillna('none')
+    df['pick_ori'] = df['pick_ori'].fillna('none')
+    df['dist'] *= 1000  # Measure distance in mm
+    df['subject'] = subject
+    dfs.append(df)
+lcmv = pd.concat(dfs, ignore_index=True)
+
+# Average across the subjects
+lcmv = lcmv.groupby(settings_columns).agg('mean').reset_index()
 
 assert len(lcmv) == len(settings)
 
@@ -159,14 +168,14 @@ plt.tight_layout()
 
 
 ###############################################################################
-# Explore inversion method
+# Explore reduce_rank
 plt.figure()
 
-x, y = lcmv.query('inversion=="matrix"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[4], label='matrix inversion')
+x, y = lcmv.query('reduce_rank==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[4], label='no rank reduction')
 
-x, y = lcmv.query('inversion=="single"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[0], label='single inversion')
+x, y = lcmv.query('reduce_rank==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[0], label='with rank reduction')
 
 plt.legend(loc=loc)
 plt.title(title)
