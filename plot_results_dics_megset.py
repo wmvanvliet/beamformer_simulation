@@ -10,7 +10,7 @@ settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                     'use_noise_cov', 'reduce_rank']
 
 dfs = []
-for subject in [1]:
+for subject in [1, 4, 5, 6, 7]:
     df = pd.read_csv(config.fname.dics_megset_results(subject=subject), index_col=0)
     df['weight_norm'] = df['weight_norm'].fillna('none')
     df['pick_ori'] = df['pick_ori'].fillna('none')
@@ -39,11 +39,11 @@ if plot_type == 'foc':
     y_label = 'Focality measure'
     y_data = 'focality'
     title = f'Focality as a function of localization error'
-    ylims = (0.0001, 0.06)
-    xlims = (-1, 135)
+    ylims = (0.00025, 0.2)
+    xlims = (-1, 96)
     loc = 'upper right'
     yticks = np.arange(0.0, 0.06, 0.005)
-    xticks = np.arange(0, 135, 5)
+    xticks = np.arange(0, 96, 5)
     yscale='log'  # or 'log'
 elif plot_type == 'ori_error':
     dics = dics.query('ori_error >= 0')
@@ -54,7 +54,7 @@ elif plot_type == 'ori_error':
     xlims = (-1, 96)
     loc = 'upper right'
     yticks = np.arange(0.0, 90, 5)
-    xticks = np.arange(0, 135, 5)
+    xticks = np.arange(0, 96, 5)
     yscale='linear'  # or 'log'
 else:
     raise ValueError(f'Do not know plotting type "{plot_type}".')
