@@ -51,9 +51,25 @@ elif plot_type == 'ori_error':
     loc = 'upper right'
     yticks = np.arange(0.0, 90, 5)
     xticks = np.arange(0, 85, 5)
-    yscale='linear'  # or 'log'
+    yscale = 'linear'  # or 'log'
 else:
     raise ValueError(f'Do not know plotting type "{plot_type}".')
+
+###############################################################################
+# Adjust font sizes in plots
+
+xsmall_font = 8
+small_font = 10
+medium_font = 12
+big_font = 14
+
+plt.rcParams.update({'font.size': small_font,  # controls default text sizes
+                     'axes.titlesize': medium_font,  # fontsize of the subplot titles
+                     'axes.labelsize': small_font,  # fontsize of axis labels
+                     'xtick.labelsize': xsmall_font,  # fontsize of the x axis ticks
+                     'ytick.labelsize': xsmall_font,  # fontsize of the y axis ticks
+                     'legend.fontsize': xsmall_font,  # legend fontsize
+                     'figure.titlesize': big_font})  # fontsize of the figure title
 
 ###############################################################################
 # Plot the different leadfield normalizations contrasted with each other
