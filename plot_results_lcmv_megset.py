@@ -99,7 +99,6 @@ plt.ylim(ylims)
 plt.xticks(xticks)
 plt.xlim(xlims)
 
-
 ###############################################################################
 # Plot vector vs scalar beamformer considering normalization
 
@@ -108,22 +107,22 @@ plt.subplot(2, 2, 2)
 x, y = lcmv.query('pick_ori=="none" and weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[0], label='No normalization, vector')
 
-x, y = lcmv.query('pick_ori=="max-power" and weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[1], label='No normalization, scalar')
-
 x, y = lcmv.query('pick_ori=="none" and weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[2], label='LF normalization, vector')
-
-x, y = lcmv.query('pick_ori=="max-power" and weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[3], label='LF normalization, scalar')
 
 x, y = lcmv.query('pick_ori=="none" and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[4], label='Weight normalization, vector')
 
+x, y = lcmv.query('pick_ori=="max-power" and weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[1], label='No normalization, scalar')
+
+x, y = lcmv.query('pick_ori=="max-power" and weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[3], label='LF normalization, scalar')
+
 x, y = lcmv.query('pick_ori=="max-power" and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[5], label='Weight normalization, scalar')
 
-plt.legend(loc=loc)
+plt.legend(loc=loc, ncol=2)
 plt.title(title)
 plt.xlabel('Localization error [mm]')
 plt.ylabel(y_label)
