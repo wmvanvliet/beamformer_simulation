@@ -43,7 +43,7 @@ if plot_type == 'foc':
     loc = 'upper right'
     yticks = np.arange(0.0, 0.041, 0.005)
     xticks = np.arange(0, 96, 5)
-    yscale='linear'  # or 'log'
+    yscale = 'linear'  # 'linear' or 'log'
 elif plot_type == 'ori_error':
     lcmv = lcmv.query('ori_error >= 0')
     y_label = 'Orientation error'
@@ -54,7 +54,7 @@ elif plot_type == 'ori_error':
     loc = 'upper right'
     yticks = np.arange(0.0, 90, 5)
     xticks = np.arange(0, 96, 5)
-    yscale='linear'  # or 'log'
+    yscale = 'linear'  # 'linear' or 'log'
 else:
     raise ValueError(f'Do not know plotting type "{plot_type}".')
 

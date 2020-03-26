@@ -35,7 +35,7 @@ if plot_type == 'foc':
     loc = 'upper right'
     yticks = np.arange(0.0, ylims[1], 0.0005)
     xticks = np.arange(0, 85, 5)
-    yscale = 'linear'  # or 'log'
+    yscale = 'linear'  # 'linear' or 'log'
 elif plot_type == 'ori_error':
     y_label = 'Orientation error'
     y_data = 'ori_error'
@@ -45,7 +45,7 @@ elif plot_type == 'ori_error':
     loc = 'upper right'
     yticks = np.arange(0.0, ylims[1], 5)
     xticks = np.arange(0, xlims[1], 5)
-    yscale = 'linear'  # or 'log'
+    yscale = 'linear'  # 'linear' or 'log'
 else:
     raise ValueError(f'Do not know plotting type "{plot_type}".')
 
