@@ -132,10 +132,10 @@ somato_true_vert_idx = 5419
 # Colors for scatter plots
 ###############################################################################
 # color pairs for visualization:
-cols = dict(cherry='#8A475C', orchid='#86587C',
-            purple='#736D97', blue='#5183A6',
-            sea='#2196A6', sky='#06A798',
-            forest='#44B47F', spring='#7BBD62')
+cols = dict(cherry='#5E2D25', orchid='#6F3746',
+            magician='#6E4B6A', purple='#556486',
+            sky='#277D8F', sea='#109281',
+            forest='#50A164', spring='#91AA47')
 
 ###############################################################################
 # Filenames for various things
