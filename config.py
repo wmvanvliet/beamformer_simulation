@@ -129,6 +129,15 @@ somato_true_pos = [-0.00445296, -0.0150457, 0.0552662]  # In head space, in m
 somato_true_vert_idx = 5419
 
 ###############################################################################
+# Colors for scatter plots
+###############################################################################
+# color pairs for visualization:
+cols = dict(cherry='#8A475C', orchid='#86587C',
+            purple='#736D97', blue='#5183A6',
+            sea='#2196A6', sky='#06A798',
+            forest='#44B47F', spring='#7BBD62')
+
+###############################################################################
 # Filenames for various things
 ###############################################################################
 fname = FileNames()
@@ -164,6 +173,11 @@ fname.add('simulated_events', '{target_path}/volume_simulated-eve.fif')
 fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vertex:04d}-epo.fif')  # noqa
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
+
+# Files for parameter plots
+fname.add('lcmv_params', '{target_path}/lcmv_results-noise{noise:.1f}.csv')  # noqa
+fname.add('dics_params', '{target_path}/dics_results-noise{noise:.1f}.csv')  # noqa
+
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
