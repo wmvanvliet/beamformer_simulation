@@ -165,18 +165,6 @@ fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vert
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 
-# no backwards compatability in naming:
-if user == 'we' and args.noise == 0.0:
-    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}.csv')  # noqa
-    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}.csv')  # noqa
-    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}.csv')  # noqa
-    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}.csv')  # noqa
-else:
-    fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('lcmv_results_2s', '{target_path}/lcmv_results/lcmv_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-    fname.add('dics_results_2s', '{target_path}/dics_results/dics_results-2sources-vertex{vertex:04d}-noise{noise:.1f}.csv')  # noqa
-
 # Brainstorm phantom data
 phantom_fname = FileNames()
 phantom_fname.add('data_path', bst_phantom_ctf.data_path())
