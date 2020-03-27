@@ -107,7 +107,7 @@ options = ['weight_norm=="unit-noise-gain" and normalize_fwd==False',
            'weight_norm=="none" and normalize_fwd==False']
 labels = ['Weight normalization', 'Lead field normalization',
           'No normalization']
-colors = [config.cols['orchid'], config.cols['sea'], config.cols['spring']]
+colors = [config.cols['orchid'], config.cols['sky'], config.cols['spring']]
 full_title = (title % 'Normalization')
 
 scatter_plot(options, colors, labels, full_title, **kwargs)
@@ -118,7 +118,7 @@ scatter_plot(options, colors, labels, full_title, **kwargs)
 if plot_type != 'ori':
     options = ['pick_ori=="none"', 'pick_ori=="max-power"']
     labels = ['Vector beamformers', 'Scalar beamformers']
-    colors = [config.cols['cherry'], config.cols['purple']]
+    colors = [config.cols['cherry'], config.cols['sky']]
     full_title = (title % 'Scalar and vector beamformers')
 
     scatter_plot(options, colors, labels, full_title, **kwargs)
@@ -128,7 +128,7 @@ if plot_type != 'ori':
 
 options = ['use_noise_cov==True', 'use_noise_cov==False']
 labels = ['Whitening', 'No whitening']
-colors = [config.cols['orchid'], config.cols['blue']]
+colors = [config.cols['orchid'], config.cols['sea']]
 full_title = (title % 'Whitening')
 
 scatter_plot(options, colors, labels, full_title, **kwargs)
@@ -138,8 +138,8 @@ scatter_plot(options, colors, labels, full_title, **kwargs)
 
 options = ['sensor_type=="grad"', 'sensor_type=="mag"', 'sensor_type=="joint"']
 labels = ['Gradiometers', 'Magnetometers', 'Joint grad. and mag.']
-colors = [config.cols['cherry'], config.cols['blue'], config.cols['forest']]
-full_tilte = (title % 'Sensor types')
+colors = [config.cols['cherry'], config.cols['purple'], config.cols['forest']]
+full_title = (title % 'Sensor types')
 
 scatter_plot(options, colors, labels, full_title, **kwargs)
 
@@ -148,7 +148,7 @@ scatter_plot(options, colors, labels, full_title, **kwargs)
 
 options = ['inversion=="single"', 'inversion=="matrix"']
 labels = ['Single inversion', 'Matrix inversion']
-colors = [config.cols['sea'], config.cols['forest']]
+colors = [config.cols['magician'], config.cols['forest']]
 full_title = (title % 'Inversion method')
 
 scatter_plot(options, colors, labels, full_title, **kwargs)
@@ -158,7 +158,7 @@ scatter_plot(options, colors, labels, full_title, **kwargs)
 
 options = ['reduce_rank==True', 'reduce_rank==False']
 labels = ['Lead field rank reduction', 'No rank reduction']
-colors = [config.cols['sky'], config.cols['spring']]
+colors = [config.cols['purple'], config.cols['spring']]
 full_title = (title % 'Lead field rank redcution')
 
 scatter_plot(options, colors, labels, full_title, **kwargs)
