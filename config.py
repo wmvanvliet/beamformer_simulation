@@ -5,7 +5,7 @@ from itertools import product
 from socket import getfqdn
 
 import numpy as np
-from mne.datasets import sample, somato
+from mne.datasets import sample
 from mne.datasets.brainstorm import bst_phantom_ctf
 
 from fnames import FileNames
@@ -37,7 +37,7 @@ elif user == 'we':
     target_path = '~/Documents/projects/beamf_sim/data'
     n_jobs = 2
 elif user == '2628425':
-    target_path = '/home/ECIT.QUB.AC.UK/2628425/nbe/scratch/epasana/beamformer_simulation/data'
+    target_path = '/home/ECIT.QUB.AC.UK/2628425/nbe/scratch/epasana/beamformer_simulation/data'  # noqa
     n_jobs = 4
 else:
     raise RuntimeError('Please edit scripts/config.py and set the target_path '
