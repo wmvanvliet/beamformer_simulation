@@ -50,7 +50,7 @@ def get_plotting_specs(beamf_type, plot_type):
                 y_data='focality',
                 ylims=(0, 0.014),
                 xlims=(-1, 85),
-                loc='upper right',
+                loc='upper left',
                 yticks=np.arange(0.0, 0.014, 0.01),
                 xticks=np.arange(0, 85, 5),
                 yscale='linear')
@@ -61,9 +61,9 @@ def get_plotting_specs(beamf_type, plot_type):
                  y_data='ori_error',
                  ylims=(-5, 90),
                  xlims=(-1, 85),
-                 loc='upper right',
+                 loc='upper left',
                  yticks=np.arange(0.0, 90, 5),
-                 xticks=np.arange(0, 85, 5),
+                 xticks=np.arange(0, 85, 10),
                  yscale='linear')
             title = f'DICS Orientation error: %s, noise={config.noise:.2f}'
 
