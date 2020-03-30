@@ -7,11 +7,11 @@ from plotting_functions import get_plotting_specs, scatter_plot
 ###############################################################################
 # Settings: what to plot
 
-beamf_type = 'dics'  # can be lcmv or dics
+beamf_type = 'lcmv'  # can be lcmv or dics
 
 # plot_type can be "corr" for correlation, "foc" for focality or "ori" for
 # orientation error
-plot_type = 'foc'
+plot_type = 'ori'
 
 ###############################################################################
 # Read in the data
@@ -109,6 +109,17 @@ scatter_plot(data, options, colors, labels, full_title, **kwargs)
 options = ['reduce_rank==True', 'reduce_rank==False']
 labels = ['Lead field rank reduction', 'No rank reduction']
 colors = [config.cols['purple'], config.cols['spring']]
-full_title = (title % 'Lead field rank redcution')
+full_title = (title % 'Lead field rank reduction')
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
+
+###############################################################################
+# For DICS: plot FILTER TYPE
+
+if beamf_type == 'dics':
+    options = ['real_filter==True', 'real_filter==False']
+    labels = ['Real filter', 'Complex filter']
+    colors = [config.cols['magician'], config.cols['spring']]
+    full_title = (title % 'Filter type')
+
+    scatter_plot(data, options, colors, labels, full_title, **kwargs)
