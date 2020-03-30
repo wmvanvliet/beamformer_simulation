@@ -20,7 +20,7 @@ def read_data(beamf_type, plot_type):
                             'use_noise_cov', 'reduce_rank', 'noise']
         data_fname = config.fname.dics_params(noise=config.noise)
     else:
-        raise ValueError('Unknown beamformer type %s.' % beamf_type)
+        raise ValueError('Unknown beamformer type "%s".' % beamf_type)
 
     data = pd.read_csv(data_fname, index_col=0)
     data['weight_norm'] = data['weight_norm'].fillna('none')
@@ -70,11 +70,11 @@ def get_plotting_specs(beamf_type, plot_type):
             title = f'LCMV Focality: %s, noise={config.noise:.2f}'
         elif plot_type == 'ori':
             kwargs = dict(
-                y_label='Orienatation error',
+                y_label='Orientation error',
                 y_data='ori_error',
                 ylims=(-5, 90.0),
                 xlims=(-1, 72),
-                loc='upper left',
+                loc='lower right',
                 yticks=np.arange(0.0, 90.0, 10.0),
                 xticks=np.arange(0, 75, 10),
                 yscale='linear')
