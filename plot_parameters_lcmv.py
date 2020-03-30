@@ -28,11 +28,6 @@ assert len(lcmv) == len(settings)
 # error
 plot_type = 'foc'
 
-# Colors for plotting
-colors_5 = ['navy', 'orangered', 'crimson', 'firebrick', 'seagreen']
-colors_6 = ['seagreen', 'yellowgreen', 'orangered', 'firebrick', 'navy',
-            'cornflowerblue']
-
 if plot_type == 'corr':
     kwargs = dict(
         y_label='Correlation',
