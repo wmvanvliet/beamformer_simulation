@@ -19,18 +19,17 @@ title, kwargs = get_plotting_specs(beamf_type, plot_type)
 ###############################################################################
 # WEIGHT NORMALIZATION
 
-options = ['weight_norm=="unit-noise-gain" and normalize_fwd==False and \
-           inversion=="matrix" and reduce_rank==False',
-           'weight_norm=="unit-noise-gain" and normalize_fwd==False and \
-           inversion=="matrix" and reduce_rank==True',
-           'weight_norm=="unit-noise-gain" and normalize_fwd==False and \
-           inversion=="single"',
-           'weight_norm=="unit-noise-gain" and normalize_fwd==False and \
-           inversion=="matrix" and reduce_rank==False and \
+base = 'weight_norm=="unit-noise-gain" and normalize_fwd==False and %s'
+options = [base % 'inversion=="matrix" and reduce_rank==False',
+           base % 'inversion=="matrix" and reduce_rank==True',
+           base % 'inversion=="single"',
+           base % 'inversion=="matrix" and reduce_rank==False and \
            pick_ori=="none"']
 
-labels = ['matrix and no rank red', 'matrix and rank red', 'single',
-          'matrix and no rank red and vector']
+labels = ['matrix inversion + no rank reduction',
+          'matrix inversion + reduce rank',
+          'single inversion',
+          'matrix inversion + no rank reduction + vector']
 colors = [config.cols['forest'], config.cols['magician'],
           config.cols['orchid'],
           config.cols['sea']]
@@ -40,21 +39,22 @@ scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
 ###############################################################################
 # LEAD FIELD NORMALIZATION
-
-options = ['weight_norm=="none" and normalize_fwd==True and \
-           inversion=="single"',
-           'weight_norm=="none" and normalize_fwd==True and \
-           inversion=="matrix" and reduce_rank==True and \
+base = 'weight_norm=="none" and normalize_fwd==True and %s'
+options = [base % 'inversion=="single"',
+           base % 'inversion=="matrix" and reduce_rank==True and \
            pick_ori=="max-power"',
-           'weight_norm=="none" and normalize_fwd==True and \
-           inversion=="matrix" and reduce_rank==True and pick_ori=="none"',
-           'weight_norm=="none" and normalize_fwd==True and \
-           inversion=="matrix" and reduce_rank==False']
-labels = ['single', 'matrix and reduce rank and scalar',
-          'matrix and red rank and vec',
-          'matrix and no rank red']
+           base % 'inversion=="matrix" and reduce_rank==True and \
+           pick_ori=="none"',
+           base % 'inversion=="matrix" and reduce_rank==False']
+labels = ['single inversion',
+          'matrix inversion + reduce rank + scalar',
+          'matrix inversion + reduce rank + vector',
+          'matrix inversion + no rank reduction']
 colors = [config.cols['orchid'], config.cols['magician'],
           config.cols['forest'], config.cols['sky'], config.cols['cherry']]
 full_title = 'Lead field normalization'
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
+
+###############################################################################
+# NO NORMALIZATION
