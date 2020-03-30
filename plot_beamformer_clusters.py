@@ -4,7 +4,7 @@ from plotting_functions import get_plotting_specs, scatter_plot, read_data
 ###############################################################################
 # Settings: what to plot
 
-beamf_type = 'lcmv'  # can be lcmv or dics
+beamf_type = 'dics'  # can be lcmv or dics
 
 # plot_type can be "corr" for correlation, "foc" for focality or "ori" for
 # orientation error
@@ -39,6 +39,7 @@ scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
 ###############################################################################
 # LEAD FIELD NORMALIZATION
+
 base = 'weight_norm=="none" and normalize_fwd==True and %s'
 options = [base % 'inversion=="single"',
            base % 'inversion=="matrix" and reduce_rank==True and \
@@ -58,3 +59,16 @@ scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
 ###############################################################################
 # NO NORMALIZATION
+
+base = 'weight_norm=="none" and normalize_fwd==False and %s'
+options = [base % 'inversion=="single"',
+           base % 'inversion=="matrix" and reduce_rank==False',
+           base % 'inversion=="matrix" and reduce_rank==True and \
+           pick_ori=="none"',
+           base % 'inversion=="matrix" and reduce_rank==True and \
+           pick_ori=="max-power"']
+colors = [config.cols['sky'], config.cols['magician'],
+          config.cols['forest'], config.cols['orchid']]
+full_title = 'No normalization'
+
+scatter_plot(data, options, colors, labels, full_title, **kwargs)
