@@ -88,7 +88,7 @@ def get_plotting_specs(beamf_type, plot_type):
                 xlims=(-1, 85),
                 loc='upper left',
                 yticks=np.arange(0.0, 0.014, 0.01),
-                xticks=np.arange(0, 85, 5),
+                xticks=np.arange(0, 85, 10),
                 yscale='linear')
             title = f'DICS Focality: %s, noise={config.noise:.2f}'
         elif plot_type == 'ori':
