@@ -247,5 +247,5 @@ df['dist'] = dists
 df['focs'] = focs
 df['ori_error'] = ori_errors
 
-df.to_csv(fname.dip_vs_dics_results)
+df.to_csv(fname.dics_somato_results)
 print('OK!')
