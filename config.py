@@ -187,6 +187,8 @@ phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
 # MEGSET results
 fname.add('lcmv_megset_results', '{target_path}/lcmv_megset_results/lcmv_megset_results-subject{subject:d}.csv')  # noqa
 fname.add('dics_megset_results', '{target_path}/dics_megset_results/dics_megset_results-subject{subject:d}.csv')  # noqa
+
+# Somato results
 fname.add('lcmv_somato_results', '{target_path}/lcmv_somato_results/lcmv_somato_results.csv')  # noqa
 fname.add('dics_somato_results', '{target_path}/dics_somato_results/dics_somato_results.csv')  # noqa
 

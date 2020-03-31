@@ -3,22 +3,22 @@ import os.path as op
 import mne
 import numpy as np
 import pandas as pd
-from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_lcmv, apply_lcmv
 
 from config import lcmv_settings
-from somato.config import fname, subject_id
+from somato.config import fname as somato_fname
+from somato.config import subject_id
 from utils import set_directory
 
-report = mne.open_report(fname.report)
+report = mne.open_report(somato_fname.report)
 
 ###############################################################################
 # Load the data
 ###############################################################################
 
-epochs = mne.read_epochs(fname.epochs)
-trans = mne.transforms.read_trans(fname.trans)
-fwd = mne.read_forward_solution(fname.fwd)
+epochs = mne.read_epochs(somato_fname.epochs)
+trans = mne.transforms.read_trans(somato_fname.trans)
+fwd = mne.read_forward_solution(somato_fname.fwd)
 
 ###############################################################################
 # Sensor-level analysis for beamformer
@@ -43,10 +43,10 @@ evoked_joint = epochs_joint.average().crop(tmin, tmax)
 # read dipole created by 06_dipole.py
 ###############################################################################
 
-dip = mne.read_dipole(fname.ecd)
+dip = mne.read_dipole(somato_fname.ecd)
 # get the position of the dipole in MRI coordinates
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
-                          subject=subject_id, subjects_dir=fname.subjects_dir)
+                          subject=subject_id, subjects_dir=somato_fname.subjects_dir)
 
 # get true_vert_idx
 rr = fwd['src'][0]['rr']
@@ -234,5 +234,5 @@ df['dist'] = dists
 df['focs'] = focs
 df['ori_error'] = ori_errors
 
-df.to_csv(fname.lcmv_somato_results)
+df.to_csv(somato_fname.lcmv_somato_results)
 print('OK!')
