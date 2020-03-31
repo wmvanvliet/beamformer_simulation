@@ -57,6 +57,7 @@ def read_data_megset(beamf_type, plot_type):
         for subject in [1, 2, 4, 5, 6, 7]:
             df = pd.read_csv(data_fname(subject=subject), index_col=0)
             df['subject'] = subject
+            df = df.rename(columns={'focs': 'focality'})
             dfs.append(df)
         data = pd.concat(dfs, ignore_index=True)
 
