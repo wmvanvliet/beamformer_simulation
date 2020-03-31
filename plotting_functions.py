@@ -12,13 +12,13 @@ def read_data(beamf_type, plot_type):
         settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                             'weight_norm', 'normalize_fwd', 'use_noise_cov',
                             'reduce_rank', 'noise']
-        data_fname = config.fname.lcmv_params(noise=config.noise)
+        data_fname = config.fname.lcmv_params
     elif beamf_type == 'dics':
         settings = config.dics_settings
         settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                             'weight_norm', 'normalize_fwd', 'real_filter',
                             'use_noise_cov', 'reduce_rank', 'noise']
-        data_fname = config.fname.dics_params(noise=config.noise)
+        data_fname = config.fname.dics_params
     else:
         raise ValueError('Unknown beamformer type "%s".' % beamf_type)
 
@@ -36,6 +36,10 @@ def read_data(beamf_type, plot_type):
     # Exchange the -1 with NaN for the orientation error case
     if plot_type == 'ori':
         data.loc[(data['ori_error'] == -1), data.columns[-1]] = np.nan
+
+    # query for noise parameter
+    q = ('noise==%f' % 0.1).rstrip('0')
+    data = data.query(q)
 
     return data
 
