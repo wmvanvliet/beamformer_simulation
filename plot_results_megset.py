@@ -1,5 +1,5 @@
 import config
-from plotting_functions import read_data_megset, get_plotting_specs, scatter_plot
+from plotting_functions import read_data_megset, get_plotting_specs_megset, scatter_plot
 
 ###############################################################################
 # Settings: what to plot
@@ -14,8 +14,8 @@ plot_type = 'foc'
 # Read in the data and plot settings
 
 data = read_data_megset(beamf_type, plot_type)
-title, kwargs = get_plotting_specs(beamf_type, plot_type)
-# remove noise part from title
+title, kwargs = get_plotting_specs_megset(beamf_type, plot_type)
+# remove noise part from title if using get_plotting_specs()
 title = title.split(',')[0]
 
 ###############################################################################
