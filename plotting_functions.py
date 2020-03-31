@@ -169,7 +169,6 @@ def get_plotting_specs_megset(beamf_type, plot_type):
 
         xmax = 72
         if plot_type == 'foc':
-
             ymax = 0.005
             kwargs = dict(
                 y_label='Focality measure',
@@ -182,7 +181,6 @@ def get_plotting_specs_megset(beamf_type, plot_type):
                 yscale='linear')
             title = f'LCMV Focality: %s'
         elif plot_type == 'ori':
-
             ymax = 90
             kwargs = dict(
                 y_label='Orientation error',
