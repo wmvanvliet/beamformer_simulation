@@ -44,6 +44,55 @@ def read_data(beamf_type, plot_type):
     return data
 
 
+def read_data_megset(beamf_type, plot_type):
+    """ Read and prepare data for plotting."""
+    if beamf_type == 'lcmv':
+        settings = config.lcmv_settings
+        settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
+                            'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                            'reduce_rank']
+        data_fname = config.fname.lcmv_megset_results
+
+        dfs = []
+        for subject in [1, 2, 4, 5, 6, 7]:
+            df = pd.read_csv(data_fname(subject=subject), index_col=0)
+            df['subject'] = subject
+            dfs.append(df)
+        data = pd.concat(dfs, ignore_index=True)
+
+    elif beamf_type == 'dics':
+        settings = config.dics_settings
+        settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
+                            'weight_norm', 'normalize_fwd', 'real_filter',
+                            'use_noise_cov', 'reduce_rank']
+        data_fname = config.fname.dics_megset_results
+
+        dfs = []
+        for subject in [1, 4, 5, 6, 7]:
+            df = pd.read_csv(data_fname(subject=subject), index_col=0)
+            df['focality'] = abs(df['focality'])
+            df['subject'] = subject
+            dfs.append(df)
+        data = pd.concat(dfs, ignore_index=True)
+    else:
+        raise ValueError('Unknown beamformer type "%s".' % beamf_type)
+
+    data['weight_norm'] = data['weight_norm'].fillna('none')
+    data['pick_ori'] = data['pick_ori'].fillna('none')
+    data['dist'] *= 1000  # Measure distance in mm
+
+    # Average across the subjects
+    data = data.groupby(settings_columns).agg('mean').reset_index()
+
+    assert len(data) == len(settings)
+
+    # Exchange the -1 with NaN for the orientation error case
+    if plot_type == 'ori':
+        data.loc[(data['ori_error'] == -1), data.columns[-1]] = np.nan
+
+    return data
+
+
 def get_plotting_specs(beamf_type, plot_type):
     """Get all parameters and settings for plotting."""
 
