@@ -1,5 +1,5 @@
 import config
-from plotting_functions import get_plotting_specs, scatter_plot, read_data
+from plotting_functions import read_data_megset, get_plotting_specs_megset, scatter_plot
 
 ###############################################################################
 # Settings: what to plot
@@ -8,13 +8,15 @@ beamf_type = 'lcmv'  # can be lcmv or dics
 
 # plot_type can be "corr" for correlation, "foc" for focality or "ori" for
 # orientation error
-plot_type = 'ori'
+plot_type = 'foc'
 
 ###############################################################################
 # Read in the data and plot settings
 
-data = read_data(beamf_type, plot_type)
-title, kwargs = get_plotting_specs(beamf_type, plot_type)
+data = read_data_megset(beamf_type, plot_type)
+title, kwargs = get_plotting_specs_megset(beamf_type, plot_type)
+# remove noise part from title if using get_plotting_specs()
+title = title.split(',')[0]
 
 ###############################################################################
 # Plot the different NORMALIZATIONS contrasted with each other
