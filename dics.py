@@ -103,6 +103,7 @@ for setting in dics_settings:
             ori_error = np.nan
 
     except Exception as e:
+        raise e
         print(e)
         dist = np.nan
         focality_score = np.nan

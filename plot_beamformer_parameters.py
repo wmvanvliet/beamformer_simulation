@@ -4,11 +4,11 @@ from plotting_functions import get_plotting_specs, scatter_plot, read_data
 ###############################################################################
 # Settings: what to plot
 
-beamf_type = 'lcmv'  # can be lcmv or dics
+beamf_type = 'dics'  # can be lcmv or dics
 
 # plot_type can be "corr" for correlation, "foc" for focality or "ori" for
 # orientation error
-plot_type = 'ori'
+plot_type = 'foc'
 
 ###############################################################################
 # Read in the data and plot setttings
