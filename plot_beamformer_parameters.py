@@ -1,5 +1,6 @@
 import config
-from plotting_functions import get_plotting_specs, scatter_plot, read_data
+from plotting_functions import (get_plotting_specs, scatter_plot, read_data,
+                                scatter_plot_hover)
 
 ###############################################################################
 # Settings: what to plot
@@ -27,7 +28,7 @@ labels = ['Weight normalization', 'Lead field normalization',
 colors = [config.cols['orchid'], config.cols['sky'], config.cols['spring']]
 full_title = (title % 'Normalization')
 
-scatter_plot(data, options, colors, labels, full_title, **kwargs)
+scatter_plot_hover(data, options, colors, labels, full_title, **kwargs)
 
 ###############################################################################
 # Plot VECTOR vs SCALAR beamformer considering normalization
