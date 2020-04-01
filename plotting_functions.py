@@ -244,3 +244,101 @@ def scatter_plot(data, options, colors, labels, title, y_data, loc, y_label,
     plt.xlim(xlims)
 
     plt.show()
+
+
+def scatter_plot_hover(data, options, colors, labels, title, y_data, loc,
+                       y_label, yticks, yscale, ylims, xticks, xlims):
+    """Customized plotting function for scatter plots."""
+
+    fig, ax = plt.subplots()
+
+    scatter = []
+    go_back = []
+    for op, col, label in zip(options, colors, labels):
+        queried = data.query(op)
+        x, y = queried[['dist', y_data]].values.T
+        go_back.append(queried)
+        scatter.append(plt.scatter(x, y, color=col, label=label))
+
+    plt.legend(loc=loc)
+    plt.title(title)
+    plt.xlabel('Localization error [mm]')
+    plt.ylabel(y_label)
+    plt.yticks(yticks)
+    plt.yscale(yscale)
+    plt.ylim(ylims)
+    plt.xticks(xticks)
+    plt.xlim(xlims)
+
+    annotation = ax.annotate("", xy=(0, 0), xytext=(20, 20),
+                             textcoords='offset points',
+                             bbox=dict(boxstyle='round', fc='w'),
+                             arrowprops=dict(arrowstyle='->'))
+
+    annotation.set_visible(False)  # dummy annotation should not be shown
+
+    def hover_over(event):
+        """Function to pass to mpl_connect(), can only call event."""
+        visible = annotation.get_visible()
+        if event.inaxes == ax:
+            for iterat, scat in enumerate(scatter):  # we plot in a loop
+                cont, ind = scat.contains(event)
+                if cont:
+                    # update annotation and show
+                    update_annotation(fig, annotation, cont, ind, scat, iterat)
+                    annotation.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if visible:
+                        # if mouse not over point, don't show anything
+                        annotation.set_visible(False)
+                        fig.canvas.draw_idle()
+
+    def update_annotation(fig, annotation, cont, ind, scat, iterat):
+        """Update and make annotation for mouse over."""
+
+        position = scat.get_offsets()[ind["ind"][0]]  # get updated position
+        annotation.xy = position  # update position
+        text = get_annotation_text(go_back, iterat, ind["ind"][0])
+        annotation.set_text(text)
+
+    # actually call the functions using matplotlib
+    fig.canvas.mpl_connect('motion_notify_event',
+                           hover_over)
+
+    plt.show()
+
+
+def get_annotation_text(data_list, iterat, ind):
+    """Get the options used for plotting the identified point."""
+    opt_lookup = dict(weight_norm=dict([('none', 'no weight norm'),
+                                        ('unit-noise-gain', 'weight norm')]),
+                      normalize_fwd=dict([('True', 'lead field norm'),
+                                          ('False', 'no lead field norm')]),
+                      pick_ori=dict([('none', 'vector beamformer'),
+                                     ('max-power', 'scalar beamformer')]),
+                      use_noise_cov=dict([('True', 'whitening'),
+                                          ('False', 'no whitening')]),
+                      reduce_rank=dict([('True', 'lead field rank reduction'),
+                                        ('False', 'no rank reduction')]),
+                      inversion=dict([('single', 'single inversion'),
+                                      ('matrix', 'matrix inversion')]),
+                      sensor_type=dict([('grad', 'gradiometers'),
+                                        ('mag', 'magnetometers'),
+                                        ('joint', 'mags + grads')]),
+                      reg=dict([('0.0', '0% regularization'),
+                                ('0.1', '10% regularization'),
+                                ('0.05', '5% regularization')]))
+    identifiers = opt_lookup.keys()
+
+    options_fill = []
+    for ident in identifiers:
+        # look up the used parameter for this data point
+        param = data_list[iterat].iloc[ind][ident]
+
+        # translate to text that should be shown:
+        options_fill.append(opt_lookup[ident][str(param)])
+
+    text = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(*options_fill)
+
+    return text
