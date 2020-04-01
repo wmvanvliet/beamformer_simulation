@@ -175,11 +175,8 @@ fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 
 # Files for parameter plots
-#fname.add('lcmv_params', '{target_path}/lcmv_results-noise{noise:.1f}.csv')  # noqa
-#fname.add('dics_params', '{target_path}/dics_results-noise{noise:.1f}.csv')  # noqa
-fname.add('lcmv_params', 'lcmv_results-noise{noise:.1f}.csv')  # noqa
-fname.add('dics_params', 'dics_results-noise{noise:.1f}.csv')  # noqa
-
+fname.add('lcmv_params', '{target_path}/lcmv.csv')  # noqa
+fname.add('dics_params', '{target_path}/dics.csv')  # noqa
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
@@ -190,6 +187,8 @@ phantom_fname.add('ernoise', '{data_path}/emptyroom_20150709_01.ds')
 # MEGSET results
 fname.add('lcmv_megset_results', '{target_path}/lcmv_megset_results/lcmv_megset_results-subject{subject:d}.csv')  # noqa
 fname.add('dics_megset_results', '{target_path}/dics_megset_results/dics_megset_results-subject{subject:d}.csv')  # noqa
+
+# Somato results
 fname.add('lcmv_somato_results', '{target_path}/lcmv_somato_results/lcmv_somato_results.csv')  # noqa
 fname.add('dics_somato_results', '{target_path}/dics_somato_results/dics_somato_results.csv')  # noqa
 

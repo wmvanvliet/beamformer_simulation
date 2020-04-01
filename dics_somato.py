@@ -7,19 +7,20 @@ from jumeg.jumeg_volume_plotting import plot_vstc_sliced_old
 from mne.beamformer import make_dics, apply_dics_csd
 
 from config import dics_settings
-from somato.config import fname, subject_id
+from somato.config import fname as somato_fname
+from somato.config import subject_id
 from utils import set_directory
 
-report = mne.open_report(fname.report)
+report = mne.open_report(somato_fname.report)
 
 ###############################################################################
 # Load the data
 ###############################################################################
 
 # Read longer epochs
-epochs = mne.read_epochs(fname.epochs_long).pick_types(meg=True)
-trans = mne.transforms.read_trans(fname.trans)
-fwd = mne.read_forward_solution(fname.fwd)
+epochs = mne.read_epochs(somato_fname.epochs_long).pick_types(meg=True)
+trans = mne.transforms.read_trans(somato_fname.trans)
+fwd = mne.read_forward_solution(somato_fname.fwd)
 
 ###############################################################################
 # Sensor level analysis
@@ -47,10 +48,10 @@ csd_ers = csd_ers.mean()
 # read dipole created by 06_dipole.py
 ###############################################################################
 
-dip = mne.read_dipole(fname.ecd)
+dip = mne.read_dipole(somato_fname.ecd)
 # get the position of the dipole in MRI coordinates
 mri_pos = mne.head_to_mri(dip.pos, mri_head_t=trans,
-                          subject=subject_id, subjects_dir=fname.subjects_dir)
+                          subject=subject_id, subjects_dir=somato_fname.subjects_dir)
 
 # get true_vert_idx
 rr = fwd['src'][0]['rr']
@@ -203,13 +204,13 @@ for ii, setting in enumerate(dics_settings):
             cbar_range = [stc_ers.data.min(), stc_ers.data.max()]
             threshold = np.percentile(stc_ers.data, 99.5)
             plot_vstc_sliced_old(stc_ers, vsrc=fwd['src'], tstep=stc_ers.tstep,
-                                 subjects_dir=fname.subjects_dir,
+                                 subjects_dir=somato_fname.subjects_dir,
                                  time=stc_ers.tmin, cut_coords=mri_pos[0],
                                  display_mode='ortho', figure=None,
                                  axes=None, colorbar=True, cmap='magma',
                                  symmetric_cbar='auto', threshold=threshold,
                                  cbar_range=cbar_range,
-                                 save=True, fname_save=fp_image)
+                                 save=True, somato_fname_save=fp_image)
 
         ###############################################################################
         # save to html
@@ -247,5 +248,5 @@ df['dist'] = dists
 df['focs'] = focs
 df['ori_error'] = ori_errors
 
-df.to_csv(fname.dip_vs_dics_results)
+df.to_csv(somato_fname.dics_somato_results)
 print('OK!')

@@ -11,7 +11,7 @@ beamf_type = 'dics'  # can be lcmv or dics
 plot_type = 'foc'
 
 ###############################################################################
-# Read in the data and plot setttings
+# Read in the data and plot settings
 
 data = read_data(beamf_type, plot_type)
 title, kwargs = get_plotting_specs(beamf_type, plot_type)
