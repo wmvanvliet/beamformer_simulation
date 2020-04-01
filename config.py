@@ -175,8 +175,8 @@ fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 
 # Files for parameter plots
-fname.add('lcmv_params', '{target_path}/lcmv.csv')  # noqa
-fname.add('dics_params', '{target_path}/dics.csv')  # noqa
+fname.add('lcmv_params', '{target_path}/lcmv.csv')
+fname.add('dics_params', '{target_path}/dics.csv')
 
 # Brainstorm phantom data
 phantom_fname = FileNames()
