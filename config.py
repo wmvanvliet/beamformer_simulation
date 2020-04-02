@@ -20,7 +20,7 @@ if user == 'rodin':
     n_jobs = 4
 if user == 'wmvan':
     # My work laptop
-    target_path = 'X:/megset'
+    target_path = 'X:/'
     n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'
@@ -175,8 +175,8 @@ fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 
 # Files for parameter plots
-fname.add('lcmv_params', '{target_path}/lcmv.csv')
-fname.add('dics_params', '{target_path}/dics.csv')
+fname.add('lcmv_params', 'lcmv.csv')  # noqa
+fname.add('dics_params', 'dics.csv')  # noqa
 
 # Brainstorm phantom data
 phantom_fname = FileNames()

@@ -77,7 +77,7 @@ freq_range = {
 # Amount of regularization needed for the beamformers. Varies between subjects.
 reg = {
     1: dict(lcmv=0.05, dics=0.05),
-    2: dict(lcmv=0.05, dics=1.10),  # Crazy DICS regularization needed
+    2: dict(lcmv=0.05, dics=2.00),  # Crazy DICS regularization needed
     4: dict(lcmv=0.05, dics=0.05),
     5: dict(lcmv=0.05, dics=0.05),
     6: dict(lcmv=0.05, dics=0.05),
