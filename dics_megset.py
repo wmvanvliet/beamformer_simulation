@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 from mne.beamformer import make_dics, apply_dics_csd
 
-from config import dics_settings, fname
+from config import dics_settings, fname, args
 from megset.config import fname as megset_fname
 from megset.config import freq_range
 
-subject = 1
+subject = args.subject
+print(f'Running analsis for subject {subject}')
+
 mne.set_log_level(False)  # Shhh
 
 ###############################################################################

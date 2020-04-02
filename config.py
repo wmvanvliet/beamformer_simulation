@@ -51,6 +51,8 @@ parser.add_argument('-n', '--noise', type=float, metavar='float', default=0.1,
                     help='Amount of noise to add')
 parser.add_argument('-v', '--vertex', type=int, metavar='int', default=2000,
                     help='Vertex index of the signal dipole')
+parser.add_argument('-s', '--subject', type=int, metavar='int', default=1,
+                    help='Subject to analyse (for MEGSET analysis)')
 args = parser.parse_args()
 
 ###############################################################################
