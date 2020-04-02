@@ -111,6 +111,7 @@ def read_data_somato(beamf_type):
     data['weight_norm'] = data['weight_norm'].fillna('none')
     data['pick_ori'] = data['pick_ori'].fillna('none')
     data['dist'] *= 1000  # Measure distance in mm
+    data = data.rename(columns={'focs': 'focality'})
 
     # Average across the various performance scores
     data = data.groupby(settings_columns).agg('mean').reset_index()
@@ -223,6 +224,70 @@ def get_plotting_specs_megset(beamf_type, plot_type):
         xmax = 100
         if plot_type == 'foc':
             ymax = 0.014
+            kwargs = dict(
+                y_label='Focality measure',
+                y_data='focality',
+                ylims=(0, ymax),
+                xlims=(-1, xmax),
+                loc='upper left',
+                yticks=np.arange(0.0, ymax, 0.01),
+                xticks=np.arange(0, xmax, 10),
+                yscale='linear')
+            title = f'DICS Focality: %s'
+        elif plot_type == 'ori':
+            ymax = 90
+            kwargs = dict(
+                y_label='Orientation error',
+                y_data='ori_error',
+                ylims=(-5, ymax),
+                xlims=(-1, xmax),
+                loc='upper left',
+                yticks=np.arange(0.0, ymax, 5),
+                xticks=np.arange(0, xmax, 10),
+                yscale='linear')
+            title = f'DICS Orientation error: %s'
+
+    return title, kwargs
+
+
+def get_plotting_specs_somato(beamf_type, plot_type):
+    """Get all parameters and settings for plotting."""
+
+    if plot_type not in ('corr', 'foc', 'ori'):
+        raise ValueError('Do not know plotting type "%s".' % plot_type)
+    if beamf_type == 'lcmv':
+
+        xmax = 130
+        if plot_type == 'foc':
+            ymin = 0.0001
+            ymax = 1
+            kwargs = dict(
+                y_label='Focality measure',
+                y_data='focality',
+                ylims=(ymin, ymax),
+                xlims=(-1, xmax),
+                loc='upper right',
+                yticks=np.arange(0.0, ymax, 0.01),
+                xticks=np.arange(0, xmax, 5),
+                yscale='log')
+            title = f'LCMV Focality: %s'
+        elif plot_type == 'ori':
+            ymax = 90
+            kwargs = dict(
+                y_label='Orientation error',
+                y_data='ori_error',
+                ylims=(-5, ymax),
+                xlims=(-1, xmax),
+                loc='lower right',
+                yticks=np.arange(0.0, ymax, 10.0),
+                xticks=np.arange(0, xmax, 10),
+                yscale='linear')
+            title = f'LCMV Orientation error: %s'
+    elif beamf_type == 'dics':
+
+        xmax = 130
+        if plot_type == 'foc':
+            ymax = 0.01
             kwargs = dict(
                 y_label='Focality measure',
                 y_data='focality',

@@ -13,10 +13,8 @@ plot_type = 'foc'
 ###############################################################################
 # Read in the data and plot settings
 
-data = read_data_megset(beamf_type, plot_type)
+data = read_data_megset(beamf_type)
 title, kwargs = get_plotting_specs_megset(beamf_type, plot_type)
-# remove noise part from title if using get_plotting_specs()
-title = title.split(',')[0]
 
 ###############################################################################
 # Plot the different NORMALIZATIONS contrasted with each other
