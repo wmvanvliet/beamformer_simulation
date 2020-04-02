@@ -191,8 +191,8 @@ def random_three_vector():
     Algo from http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution
     :return:
     """
-    phi = np.random.uniform(0, np.pi * 2)
-    costheta = np.random.uniform(-1, 1)
+    phi = config.random.uniform(0, np.pi * 2)
+    costheta = config.random.uniform(-1, 1)
 
     theta = np.arccos(costheta)
     x = np.sin(theta) * np.cos(phi)
