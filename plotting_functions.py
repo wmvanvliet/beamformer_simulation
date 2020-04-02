@@ -44,7 +44,7 @@ def read_data(beamf_type, plot_type):
     return data
 
 
-def read_data_megset(beamf_type, plot_type):
+def read_data_megset(beamf_type):
     """ Read and prepare data for plotting."""
     if beamf_type == 'lcmv':
         settings = config.lcmv_settings
@@ -87,9 +87,35 @@ def read_data_megset(beamf_type, plot_type):
 
     assert len(data) == len(settings)
 
-    # Exchange the -1 with NaN for the orientation error case
-    if plot_type == 'ori':
-        data.loc[(data['ori_error'] == -1), data.columns[-1]] = np.nan
+    return data
+
+
+def read_data_somato(beamf_type):
+    """ Read and prepare data for plotting."""
+    if beamf_type == 'lcmv':
+        settings = config.lcmv_settings
+        settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
+                            'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                            'reduce_rank']
+        data_fname = config.fname.lcmv_somato_results
+    elif beamf_type == 'dics':
+        settings = config.dics_settings
+        settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
+                            'weight_norm', 'normalize_fwd', 'real_filter',
+                            'use_noise_cov', 'reduce_rank']
+        data_fname = config.fname.dics_somato_results
+    else:
+        raise ValueError('Unknown beamformer type "%s".' % beamf_type)
+
+    data = pd.read_csv(data_fname, index_col=0)
+    data['weight_norm'] = data['weight_norm'].fillna('none')
+    data['pick_ori'] = data['pick_ori'].fillna('none')
+    data['dist'] *= 1000  # Measure distance in mm
+
+    # Average across the various performance scores
+    data = data.groupby(settings_columns).agg('mean').reset_index()
+
+    assert len(data) == len(settings)
 
     return data
 
