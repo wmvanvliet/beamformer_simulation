@@ -176,6 +176,9 @@ fname.add('simulated_epochs', '{target_path}/volume_simulated-epochs-vertex{vert
 fname.add('report', '{target_path}/volume_report-vertex{vertex:04d}.h5')
 fname.add('report_html', '{target_path}/volume_report-vertex{vertex:04d}.html')
 
+fname.add('dics_results', '{target_path}/dics_results/dics_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
+fname.add('lcmv_results', '{target_path}/lcmv_results/lcmv_results-vertex{vertex:04d}-noise{noise:.1f}.csv')
+
 # Files for parameter plots
 fname.add('lcmv_params', '{target_path}/lcmv.csv')
 fname.add('dics_params', '{target_path}/dics.csv')
