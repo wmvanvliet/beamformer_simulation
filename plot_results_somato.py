@@ -1,10 +1,10 @@
 import config
-from plotting_functions import read_data_megset, get_plotting_specs_megset, scatter_plot
+from plotting_functions import read_data_somato, get_plotting_specs_somato, scatter_plot
 
 ###############################################################################
 # Settings: what to plot
 
-beamf_type = 'lcmv'  # can be lcmv or dics
+beamf_type = 'dics'  # can be lcmv or dics
 
 # plot_type can be "corr" for correlation, "foc" for focality or "ori" for
 # orientation error
@@ -13,8 +13,8 @@ plot_type = 'foc'
 ###############################################################################
 # Read in the data and plot settings
 
-data = read_data_megset(beamf_type)
-title, kwargs = get_plotting_specs_megset(beamf_type, plot_type)
+data = read_data_somato(beamf_type)
+title, kwargs = get_plotting_specs_somato(beamf_type, plot_type)
 
 ###############################################################################
 # Plot the different NORMALIZATIONS contrasted with each other

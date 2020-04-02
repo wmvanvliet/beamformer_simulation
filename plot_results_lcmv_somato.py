@@ -3,13 +3,13 @@ import numpy as np
 import pandas as pd
 
 import config
-from somato.config import fname
+from somato.config import fname as somato_fname
 
 settings = config.lcmv_settings
 settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                     'weight_norm', 'normalize_fwd', 'use_noise_cov',
                     'reduce_rank']
-lcmv = pd.read_csv(fname.dip_vs_lcmv_results, index_col=0)
+lcmv = pd.read_csv(somato_fname.lcmv_somato_results, index_col=0)
 lcmv['weight_norm'] = lcmv['weight_norm'].fillna('none')
 lcmv['pick_ori'] = lcmv['pick_ori'].fillna('none')
 lcmv['dist'] *= 1000  # Measure distance in mm
@@ -31,12 +31,12 @@ if plot_type == 'foc':
     y_label = 'Focality measure'
     y_data = 'focs'
     title = f'Focality as a function of localization error'
-    ylims = (-0.001, 0.02)
-    xlims = (-1, 72)
+    ylims = (-0.001, 1.0)
+    xlims = (-1, 130)
     loc = 'upper right'
     yticks = np.arange(0.0, ylims[1], 0.001)
     xticks = np.arange(0, xlims[1], 5)
-    yscale = 'linear'  # 'linear' or 'log'
+    yscale = 'log'  # 'linear' or 'log'
 elif plot_type == 'ori_error':
     y_label = 'Orientation error'
     y_data = 'ori_error'
