@@ -3,10 +3,12 @@ import numpy as np
 import pandas as pd
 from mne.beamformer import make_lcmv, apply_lcmv
 
-from config import lcmv_settings, fname
+from config import lcmv_settings, fname, args
 from megset.config import fname as megset_fname
 
-subject = 7
+subject = args.subject
+print(f'Running analsis for subject {subject}')
+
 mne.set_log_level(False)  # Shhh
 
 ###############################################################################
