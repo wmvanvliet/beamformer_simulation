@@ -5,7 +5,47 @@ import pandas as pd
 import config
 
 
-def read_data(beamf_type, plot_type):
+def get_deep_vertices(radius, plot=True):
+    """
+    Get deep vertices in a radius around the center of mass.
+    """
+    import mne
+    src = mne.read_source_spaces(config.fname.src)
+
+    # get vertices inuse
+    rr = src[0]['rr']
+    rr = rr[src[0]['inuse'] == 1]
+
+    com = rr.mean(axis=0)  # center of mass
+    # get vectors pointing from center of mass to voxels
+    radial = rr - com
+    dist = np.linalg.norm(radial, axis=-1)
+
+    deep_vertices = np.where(dist < radius)[0]
+
+    if plot:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        shallow_vertices = np.where(dist >= radius)[0]
+
+        xs, ys, zs = rr[shallow_vertices].T
+        xd, yd, zd = rr[deep_vertices].T
+
+        fig = plt.figure()
+        # why is projection='3d' not working?
+        # ax = fig.add_subplot(111, projection='3d')
+        ax = Axes3D(fig)
+
+        ax.scatter(xs, ys, zs, c='b')
+        ax.scatter(xd, yd, zd, c='r')
+        ax.set_title('Deep vs. shallow sources (red vs. blue)')
+        plt.show()
+
+    return deep_vertices
+
+
+def read_data(beamf_type, plot_type, exclude_deep_vertices=False,
+              radius=0.055, plot_deep_vertices=False):
     """ Read and prepare data for plotting."""
     if beamf_type == 'lcmv':
         settings = config.lcmv_settings
@@ -27,6 +67,9 @@ def read_data(beamf_type, plot_type):
     data['pick_ori'] = data['pick_ori'].fillna('none')
     data['dist'] *= 1000  # Measure distance in mm
 
+    if exclude_deep_vertices:
+        deep_vertices = get_deep_vertices(radius=radius, plot=plot_deep_vertices)
+        data = data[data['vertex'].isin(deep_vertices)]
     # Average across the various performance scores
     data = data.groupby(settings_columns).agg('mean').reset_index()
     del data['vertex']  # No longer needed
