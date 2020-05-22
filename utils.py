@@ -47,12 +47,12 @@ def add_volume_stcs(stc1, stc2):
 
     data = np.zeros((len(vertices), stc1.data.shape[1]))
     for i, vert in enumerate(vertices):
-        if vert in stc1.vertices:
-            data[[i]] += stc1.data[stc1.vertices == vert]
-        if vert in stc2.vertices:
-            data[[i]] += stc2.data[stc2.vertices == vert]
+        if vert in stc1.vertices[0]:
+            data[[i]] += stc1.data[stc1.vertices[0] == vert]
+        if vert in stc2.vertices[0]:
+            data[[i]] += stc2.data[stc2.vertices[0] == vert]
 
-    return mne.VolSourceEstimate(data, vertices, tmin=stc1.tmin, tstep=stc1.tstep)
+    return mne.VolSourceEstimate(data, [vertices], tmin=stc1.tmin, tstep=stc1.tstep)
 
 
 def plot_estimation(stc_est, stc_signal, initial_time=1.5, surface='inflated'):

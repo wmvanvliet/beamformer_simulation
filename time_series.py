@@ -172,7 +172,7 @@ def simulate_raw(info, fwd_disc_true, signal_vertex, signal_freq,
     signal_vert = src[0]['vertno'][signal_vertex]
     data = np.asarray([generate_signal(times, freq=signal_freq)])
     vertices = np.array([signal_vert])
-    stc_signal = mne.VolSourceEstimate(data=data, vertices=vertices, tmin=times[0],
+    stc_signal = mne.VolSourceEstimate(data=data, vertices=[vertices], tmin=times[0],
                                        tstep=np.diff(times[:2])[0], subject='sample')
     if fn_stc_signal is not None:
         set_directory(op.dirname(fn_stc_signal))

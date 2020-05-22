@@ -98,7 +98,7 @@ else:
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = [None, 'max-power']
 inversions = ['single', 'matrix']
-weight_norms = ['unit-noise-gain', None]
+weight_norms = ['unit-noise-gain', 'unit-noise-gain-old', 'unit-noise-gain-pooled', None]
 normalize_fwds = [True, False]
 real_filters = [True, False]
 use_noise_covs = [True, False]
