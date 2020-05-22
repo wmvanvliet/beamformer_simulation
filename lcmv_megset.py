@@ -71,14 +71,18 @@ for ii, setting in enumerate(lcmv_settings):
 
         filters = make_lcmv(evoked.info, fwd, data_cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
-                            inversion=inversion, normalize_fwd=normalize_fwd,
+                            inversion=inversion,
+                            depth=1. if normalize_fwd else None,
                             noise_cov=noise_cov if use_noise_cov else None,
                             reduce_rank=reduce_rank)
 
         stc = apply_lcmv(evoked, filters)
-        stc = abs(stc.copy().crop(peak_time, peak_time))
-        stc_power = (stc ** 2).sqrt()
-        peak_vertex, _ = stc.get_peak(vert_as_index=True)
+        # Estimated source location is at peak power
+        if pick_ori == 'vector':
+            stc_power = (stc.magnitude() ** 2).sum().sqrt()
+        else:
+            stc_power = (stc ** 2).sum().sqrt()
+        peak_vertex, _ = stc_power.get_peak(vert_as_index=True)
 
         # Compute distance between true and estimated source locations
         pos = fwd['source_rr'][peak_vertex]
@@ -89,6 +93,13 @@ for ii, setting in enumerate(lcmv_settings):
 
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_ori'][peak_vertex]
+            ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
+            if ori_error > 90:
+                ori_error = 180 - ori_error
+        elif pick_ori == 'vector':
+            _, peak_time = stc.magnitude().get_peak(time_as_index=True)
+            estimated_ori = stc.data[peak_vertex, :, peak_time]
+            estimated_ori /= np.linalg.norm(estimated_ori)
             ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
             if ori_error > 90:
                 ori_error = 180 - ori_error
