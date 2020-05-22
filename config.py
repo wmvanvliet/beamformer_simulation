@@ -96,10 +96,10 @@ if user == 'we':
 else:
     regs = [0, 0.05, 0.1]
 sensor_types = ['grad', 'mag', 'joint']
-pick_oris = [None, 'max-power']
-inversions = ['single', 'matrix']
+pick_oris = ['vector', None, 'max-power']
+inversions = ['matrix', 'single']
 weight_norms = ['unit-noise-gain', 'unit-noise-gain-old', 'unit-noise-gain-pooled', None]
-normalize_fwds = [True, False]
+normalize_fwds = [False, True]
 real_filters = [True, False]
 use_noise_covs = [True, False]
 reduce_ranks = [True, False]

@@ -90,7 +90,10 @@ for setting in lcmv_settings:
         stc_est = apply_lcmv(evoked, filters).crop(0.001, 1)
 
         # Estimated source location is at peak power
-        stc_est_power = (stc_est ** 2).sum().sqrt()
+        if pick_ori == 'vector':
+            stc_est_power = (stc_est.magnitude() ** 2).sum().sqrt()
+        else:
+            stc_est_power = (stc_est ** 2).sum().sqrt()
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
         # Compute distance between true and estimated source locations
@@ -103,12 +106,22 @@ for setting in lcmv_settings:
 
         # Correlation between true and reconstructed timecourse
         true_time_course = stc_signal.copy().crop(0, 1).data[0]
-        estimated_time_course = np.abs(stc_est.data[peak_vertex])
+        if pick_ori == 'vector':
+            estimated_time_course = np.abs(stc_est.magnitude().data[peak_vertex])
+        else:
+            estimated_time_course = np.abs(stc_est.data[peak_vertex])
         corr = pearsonr(np.abs(true_time_course), estimated_time_course)[0]
 
         # Angle between estimated and true source orientation
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_ori'][config.vertex]
+            ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
+            if ori_error > 90:
+                ori_error = 180 - ori_error
+        elif pick_ori == 'vector':
+            _, peak_time = stc_est.magnitude().get_peak(time_as_index=True)
+            estimated_ori = stc_est.data[peak_vertex, :, peak_time]
+            estimated_ori /= np.linalg.norm(estimated_ori)
             ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
             if ori_error > 90:
                 ori_error = 180 - ori_error
@@ -139,5 +152,5 @@ df['focality'] = focs
 df['corr'] = corrs
 df['ori_error'] = ori_errors
 
-df.to_csv(fname.lcmv_results(vertex=config.vertex, noise=config.noise))
+#df.to_csv(fname.lcmv_results(vertex=config.vertex, noise=config.noise))
 print('OK!')
