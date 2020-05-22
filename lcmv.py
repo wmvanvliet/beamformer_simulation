@@ -82,7 +82,8 @@ for setting in lcmv_settings:
 
         filters = make_lcmv(evoked.info, fwd_disc_true, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
-                            inversion=inversion, normalize_fwd=normalize_fwd,
+                            inversion=inversion,
+                            depth=1. if normalize_fwd else None,
                             noise_cov=noise_cov if use_noise_cov else None,
                             reduce_rank=reduce_rank)
 
