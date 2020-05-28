@@ -20,7 +20,7 @@ if user == 'rodin':
     n_jobs = 4
 if user == 'wmvan':
     # My work laptop
-    target_path = 'X:/'
+    target_path = 'X:/data'
     n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'
@@ -98,7 +98,7 @@ else:
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = ['vector', None, 'max-power']
 inversions = ['matrix', 'single']
-weight_norms = ['unit-noise-gain', 'unit-noise-gain-old', 'unit-noise-gain-pooled', None]
+weight_norms = ['unit-noise-gain', 'unit-noise-gain-old', 'unit-noise-gain-pooled', 'unit-noise-gain-sqrtm', None]
 normalize_fwds = [False, True]
 real_filters = [True, False]
 use_noise_covs = [True, False]
