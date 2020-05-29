@@ -60,6 +60,12 @@ ori_errors = []
 
 for setting in dics_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
+    if pick_ori == 'vector':
+        dists.append(np.nan)
+        focs.append(np.nan)
+        ori_errors.append(np.nan)
+        continue
+
     try:
         if sensor_type == 'grad':
             info = epochs_grad.info
@@ -73,7 +79,7 @@ for setting in dics_settings:
         filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
                             noise_csd=noise_csd if use_noise_cov else None,
-                            normalize_fwd=normalize_fwd,
+                            depth=1. if normalize_fwd else None,
                             real_filter=real_filter, reduce_rank=reduce_rank)
         stc_est_power, freqs = apply_dics_csd(csd, filters)
 
@@ -100,6 +106,7 @@ for setting in dics_settings:
         dist = np.nan
         focality_score = np.nan
         ori_error = np.nan
+        raise(e)
     print(setting, dist, focality_score, ori_error)
 
     dists.append(dist)
