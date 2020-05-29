@@ -152,5 +152,5 @@ df['focality'] = focs
 df['corr'] = corrs
 df['ori_error'] = ori_errors
 
-#df.to_csv(fname.lcmv_results(vertex=config.vertex, noise=config.noise))
+df.to_csv(fname.lcmv_results(vertex=config.vertex, noise=config.noise))
 print('OK!')
