@@ -75,12 +75,15 @@ for setting in dics_settings:
             info = epochs_joint.info
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
+        # Allow using other MNE branches without this arg
+        use_kwargs = dict(noise_csd=noise_csd) if use_noise_cov else dict()
 
-        filters = make_dics(info, fwd_disc_man, csd, reg=reg, pick_ori=pick_ori,
+        filters = make_dics(info, fwd_disc_man, csd, reg=reg,
+                            pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
-                            noise_csd=noise_csd if use_noise_cov else None,
                             depth=1. if normalize_fwd else None,
-                            real_filter=real_filter, reduce_rank=reduce_rank)
+                            real_filter=real_filter, reduce_rank=reduce_rank,
+                            **use_kwargs)
         stc_est_power, freqs = apply_dics_csd(csd, filters)
 
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
