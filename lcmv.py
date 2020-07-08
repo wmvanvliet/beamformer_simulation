@@ -80,7 +80,7 @@ for setting in lcmv_settings:
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
-        filters = make_lcmv(evoked.info, fwd_disc_true, cov, reg=reg,
+        filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             inversion=inversion,
                             depth=1. if normalize_fwd else None,
