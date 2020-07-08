@@ -1,7 +1,7 @@
 import mne
 import numpy as np
 import pandas as pd
-from mne.beamformer import make_lcmv, apply_lcmv
+from mne.beamformer import make_lcmv, apply_lcmv, apply_lcmv_cov
 from scipy.stats import pearsonr
 
 import config
@@ -88,12 +88,8 @@ for setting in lcmv_settings:
                             reduce_rank=reduce_rank)
 
         stc_est = apply_lcmv(evoked, filters).crop(0.001, 1)
+        stc_est_power = apply_lcmv_cov(cov, filters)
 
-        # Estimated source location is at peak power
-        if pick_ori == 'vector':
-            stc_est_power = (stc_est.magnitude() ** 2).sum().sqrt()
-        else:
-            stc_est_power = (stc_est ** 2).sum().sqrt()
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
         # Compute distance between true and estimated source locations
