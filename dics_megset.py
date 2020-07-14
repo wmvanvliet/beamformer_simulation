@@ -84,7 +84,7 @@ for setting in dics_settings:
         focality_score = stc_power.data[peak_vertex, 0] / stc_power.data.sum()
 
         if pick_ori == 'max-power':
-            estimated_ori = filters['max_power_oris'][0][peak_vertex]
+            estimated_ori = filters['max_power_ori'][0][peak_vertex]
             ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
             if ori_error > 90:
                 ori_error = 180 - ori_error
