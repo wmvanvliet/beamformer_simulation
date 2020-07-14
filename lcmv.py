@@ -95,11 +95,13 @@ for setting in lcmv_settings:
         if pick_ori == 'vector':
             # Combine vector time source
             if project_pca:
-                stc_est = stc_est.project('pca', fwd_disc_man['src'])
+                stc_proj, _ = stc_est.project('pca', fwd_disc_man['src'])
             else:
-                stc_est = stc_est.magnitude()
-        stc_est_power = (stc_est ** 2).sum()
-        peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
+                stc_proj = stc_est.magnitude()
+            stc_est_power = (stc_proj ** 2).sum()
+        else:
+            stc_est_power = (stc_est ** 2).sum()
+        peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
         estimated_time_course = np.abs(stc_est.data[peak_vertex])
 
         # Compute distance between true and estimated source locations
@@ -121,7 +123,6 @@ for setting in lcmv_settings:
             if ori_error > 90:
                 ori_error = 180 - ori_error
         elif pick_ori == 'vector':
-            _, peak_time = stc_est.magnitude().get_peak(time_as_index=True)
             estimated_ori = stc_est.data[peak_vertex, :, peak_time]
             estimated_ori /= np.linalg.norm(estimated_ori)
             ori_error = np.rad2deg(np.arccos(estimated_ori @ true_ori))
