@@ -99,10 +99,12 @@ for setting in lcmv_settings:
             else:
                 stc_proj = stc_est.magnitude()
             stc_est_power = (stc_proj ** 2).sum()
+            peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
+            estimated_time_course = np.abs(stc_proj.data[peak_vertex])
         else:
             stc_est_power = (stc_est ** 2).sum()
-        peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
-        estimated_time_course = np.abs(stc_est.data[peak_vertex])
+            peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
+            estimated_time_course = np.abs(stc_est.data[peak_vertex])
 
         # Compute distance between true and estimated source locations
         pos_est = fwd_disc_man['source_rr'][peak_vertex]
