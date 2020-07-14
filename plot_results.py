@@ -19,6 +19,7 @@ if 'real_filter' in df.columns:
     settings_columns.insert(6, 'real_filter')
     settings = config.dics_settings
 else:
+    settings_columns.append('project_pca')
     settings = config.lcmv_settings
 
 # Average across the various performance scores
@@ -43,7 +44,7 @@ if plot_type == 'foc':
     y_label = 'Focality measure'
     y_data = 'focality'
     title = f'Focality as a function of localization error, noise={config.noise:.2f}'
-    ylims = (0, 0.014)
+    ylims = (0, 0.04)
     xlims = (-1, 85)
     loc = 'upper right'
     yticks = np.arange(0.0, 0.014, 0.01)
@@ -70,13 +71,16 @@ plt.figure(figsize=(12, 8))
 plt.subplot(2, 2, 1)
 
 x, y = df.query('weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[0], label='Weight normalization')
+plt.scatter(x, y, color=colors1[1], label='unit-noise-gain')
 
 x, y = df.query('weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[4], label="Lead field normalization")
+plt.scatter(x, y, color=colors1[0], label="Lead field normalization")
 
 x, y = df.query('weight_norm=="none" and normalize_fwd==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[3], label='No normalization')
+plt.scatter(x, y, color=colors1[4], label='No normalization')
+
+x, y = df.query('weight_norm=="sqrtm"')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors1[3], label='sqrtm')
 
 plt.legend(loc=loc)
 plt.title(title)
@@ -106,10 +110,10 @@ plt.scatter(x, y, color=colors2[2], label='LF normalization, vector')
 x, y = df.query('pick_ori=="max-power" and weight_norm=="none" and normalize_fwd==True')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[3], label='LF normalization, scalar')
 
-x, y = df.query('pick_ori=="none" and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
+x, y = df.query('pick_ori=="none" and weight_norm!="none"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[4], label='Weight normalization, vector')
 
-x, y = df.query('pick_ori=="max-power" and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
+x, y = df.query('pick_ori=="max-power" and weight_norm!="none"')[['dist', y_data]].values.T
 plt.scatter(x, y, color=colors2[5], label='Weight normalization, scalar')
 
 plt.legend(loc=loc)
@@ -196,14 +200,20 @@ plt.show()
 
 
 ###############################################################################
-# # Explore real vs complex filter
+# Explore real vs complex filter
 # plt.figure()
 # 
-# x, y = df.query('real_filter==True')[['dist', y_data]].values.T
-# plt.scatter(x, y, color=colors2[4], label='real filter')
+# x, y = df.query('real_filter==True and normalize_fwd==True and weight_norm=="none"')[['dist', y_data]].values.T
+# plt.scatter(x, y, color=colors2[0], label='real filter, normalized leadfield')
 # 
-# x, y = df.query('real_filter==False')[['dist', y_data]].values.T
-# plt.scatter(x, y, color=colors2[0], label='complex filter')
+# x, y = df.query('real_filter==False and normalize_fwd==True and weight_norm=="none"')[['dist', y_data]].values.T
+# plt.scatter(x, y, color=colors2[1], label='complex filter, normalized leadfield')
+# 
+# x, y = df.query('real_filter==True and normalize_fwd==False and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
+# plt.scatter(x, y, color=colors2[2], label='real filter, unit-noise-gain')
+# 
+# x, y = df.query('real_filter==False and normalize_fwd==False and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
+# plt.scatter(x, y, color=colors2[3], label='complex filter, unit-noise-gain')
 # 
 # plt.legend(loc=loc)
 # plt.title(title)
@@ -218,17 +228,23 @@ plt.show()
 # plt.show()
 
 ###############################################################################
-# Explore weight normalization
+# Explore PCA projection
 plt.figure()
 
-x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[0], label='unit-noise-gain')
+x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain" and project_pca==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[0], label='unit-noise-gain')
+x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain" and project_pca==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[1], label='unit-noise-gain (PCA proj)')
 
-x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain-old"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[1], label='unit-noise-gain-old')
+x, y = df.query('pick_ori=="vector" and weight_norm=="none" and normalize_fwd==True and project_pca==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[2], label='leadfield norm')
+x, y = df.query('pick_ori=="vector" and weight_norm=="none" and normalize_fwd==True and project_pca==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[3], label='leadfield norm (PCA proj)')
 
-x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain-pooled"')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors1[3], label='unit-noise-gain-pooled')
+x, y = df.query('pick_ori=="vector" and weight_norm=="sqrtm" and project_pca==False')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[4], label='sqrtm')
+x, y = df.query('pick_ori=="vector" and weight_norm=="sqrtm" and project_pca==True')[['dist', y_data]].values.T
+plt.scatter(x, y, color=colors2[5], label='sqrtm (PCA proj)')
 
 plt.legend(loc=loc)
 plt.title(title)

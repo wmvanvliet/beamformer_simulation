@@ -58,7 +58,7 @@ focs = []
 ori_errors = []
 
 for ii, setting in enumerate(lcmv_settings):
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank, project_pca = setting
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -76,20 +76,28 @@ for ii, setting in enumerate(lcmv_settings):
                             noise_cov=noise_cov if use_noise_cov else None,
                             reduce_rank=reduce_rank)
 
-        stc = apply_lcmv(evoked, filters)
-        # Estimated source location is at peak power
+        stc_est = apply_lcmv(evoked, filters)
+
         if pick_ori == 'vector':
-            stc_power = (stc.magnitude() ** 2).sum().sqrt()
+            # Combine vector time source
+            if project_pca:
+                stc_proj, _ = stc_est.project('pca', fwd['src'])
+            else:
+                stc_proj = stc_est.magnitude()
+            stc_est_power = (stc_proj ** 2).sum()
+            peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
+            estimated_time_course = np.abs(stc_est.data[peak_vertex])
         else:
-            stc_power = (stc ** 2).sum().sqrt()
-        peak_vertex, _ = stc_power.get_peak(vert_as_index=True)
+            stc_est_power = (stc_est ** 2).sum()
+            peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
+            estimated_time_course = np.abs(stc_est.data[peak_vertex])
 
         # Compute distance between true and estimated source locations
         pos = fwd['source_rr'][peak_vertex]
         dist = np.linalg.norm(dip.pos - pos)
 
         # Ratio between estimated peak activity and all estimated activity.
-        focality_score = stc_power.data[peak_vertex, 0] / stc_power.data.sum()
+        focality_score = stc_est_power.data[peak_vertex, 0] / stc_est_power.data.sum()
 
         if pick_ori == 'max-power':
             estimated_ori = filters['max_power_ori'][peak_vertex]
@@ -97,8 +105,7 @@ for ii, setting in enumerate(lcmv_settings):
             if ori_error > 90:
                 ori_error = 180 - ori_error
         elif pick_ori == 'vector':
-            _, peak_time = stc.magnitude().get_peak(time_as_index=True)
-            estimated_ori = stc.data[peak_vertex, :, peak_time]
+            estimated_ori = stc_est.data[peak_vertex, :, peak_time]
             estimated_ori /= np.linalg.norm(estimated_ori)
             ori_error = np.rad2deg(np.arccos(estimated_ori @ dip.ori[0]))
             if ori_error > 90:
@@ -122,7 +129,8 @@ for ii, setting in enumerate(lcmv_settings):
 
 df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                           'reduce_rank', 'project_pca'])
 
 df['dist'] = dists
 df['focs'] = focs

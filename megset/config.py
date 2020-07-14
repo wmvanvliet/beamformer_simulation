@@ -8,7 +8,7 @@ print('Running on %s@%s' % (user, host))
 
 if user == 'wmvan':
     # My work laptop
-    target_path = 'X:/'
+    target_path = 'M:/scratch/epasana/beamformer_simulation'
     n_jobs = 6
 elif host == 'nbe-024.org.aalto.fi' and user == 'vanvlm1':
     # My workstation

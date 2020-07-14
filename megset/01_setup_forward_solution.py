@@ -1,3 +1,6 @@
+"""
+From T1-weighted MRI to forward solution
+"""
 import mne
 import argparse
 from mayavi import mlab
@@ -13,15 +16,12 @@ print('Processing subject:', subject)
 
 info = mne.io.read_info(fname.raw(subject=subject, run=1))
 
-
-# From T1-weighted MRI to forward solution
-single_shell = subject in []
 bem = mne.make_bem_model(fname.subject_id(subject=subject), ico=4, subjects_dir=fname.subjects_dir,
-                         conductivity=[0.3] if single_shell else [0.3, 0.006, 0.3])
+                         conductivity=[0.3, 0.006, 0.3])
 bem_sol = mne.make_bem_solution(bem)
 mne.write_bem_solution(fname.bem(subject=subject), bem_sol)
 src = mne.setup_volume_source_space(subject=fname.subject_id(subject=subject), bem=bem_sol, subjects_dir=fname.subjects_dir)
-fwd = mne.make_forward_solution(info=info, trans=fname.trans(subject=subject), src=src, bem=bem_sol, eeg=not single_shell)
+fwd = mne.make_forward_solution(info=info, trans=fname.trans(subject=subject), src=src, bem=bem_sol, eeg=True)
 
 # Save things
 src.save(fname.src(subject=subject), overwrite=True)
