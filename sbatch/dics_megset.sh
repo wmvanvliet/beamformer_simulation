@@ -17,7 +17,6 @@
 LOG_FILE=logs/dics_megset_${SLURM_ARRAY_TASK_ID}.log
 
 # Load the python environment
-module load anaconda3
 module load anaconda
 
 # Tell BLAS to only use a single thread

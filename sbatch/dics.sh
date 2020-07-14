@@ -19,7 +19,6 @@ LOG_FILE=logs/dics.log
 VERTEX_NUMBER=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 
 # Load the python environment
-module load anaconda3
 module load anaconda
 
 # Tell BLAS to only use a single thread
