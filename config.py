@@ -20,7 +20,7 @@ if user == 'rodin':
     n_jobs = 4
 if user == 'wmvan':
     # My work laptop
-    target_path = 'X:/data'
+    target_path = 'M:/m/nbe/scratch/epasana/beamformer_simulation/data'
     n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'
@@ -101,11 +101,12 @@ else:
 sensor_types = ['grad', 'mag', 'joint']
 pick_oris = ['vector', None, 'max-power']
 inversions = ['matrix', 'single']
-weight_norms = ['unit-noise-gain', None]
+weight_norms = ['unit-noise-gain', 'sqrtm', None]
 normalize_fwds = [False, True]
 real_filters = [True, False]
 use_noise_covs = [True, False]
 reduce_ranks = [True, False]
+project_pcas = [True, False]
 
 dics_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
@@ -114,7 +115,7 @@ dics_settings = list(product(
 
 lcmv_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
-    use_noise_covs, reduce_ranks
+    use_noise_covs, reduce_ranks, project_pcas
 ))
 
 ###############################################################################

@@ -69,7 +69,7 @@ focs = []
 corrs = []
 ori_errors = []
 for setting in lcmv_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank, project_pca = setting
     try:
         if sensor_type == 'grad':
             evoked = evoked_grad
@@ -80,6 +80,9 @@ for setting in lcmv_settings:
         else:
             raise ValueError('Invalid sensor type: %s', sensor_type)
 
+        if project_pca and pick_ori != 'vector':
+            raise NotImplementedError('project_pca=True only makes sense when pick_ori="vector"')
+
         filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             inversion=inversion,
@@ -88,9 +91,16 @@ for setting in lcmv_settings:
                             reduce_rank=reduce_rank)
 
         stc_est = apply_lcmv(evoked, filters).crop(0.001, 1)
-        stc_est_power = apply_lcmv_cov(cov, filters)
 
+        if pick_ori == 'vector':
+            # Combine vector time source
+            if project_pca:
+                stc_est = stc_est.project('pca', fwd_disc_man['src'])
+            else:
+                stc_est = stc_est.magnitude()
+        stc_est_power = (stc_est ** 2).sum()
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
+        estimated_time_course = np.abs(stc_est.data[peak_vertex])
 
         # Compute distance between true and estimated source locations
         pos_est = fwd_disc_man['source_rr'][peak_vertex]
@@ -102,10 +112,6 @@ for setting in lcmv_settings:
 
         # Correlation between true and reconstructed timecourse
         true_time_course = stc_signal.copy().crop(0, 1).data[0]
-        if pick_ori == 'vector':
-            estimated_time_course = np.abs(stc_est.magnitude().data[peak_vertex])
-        else:
-            estimated_time_course = np.abs(stc_est.data[peak_vertex])
         corr = pearsonr(np.abs(true_time_course), estimated_time_course)[0]
 
         # Angle between estimated and true source orientation
@@ -142,7 +148,8 @@ for setting in lcmv_settings:
 
 df = pd.DataFrame(lcmv_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
-                           'weight_norm', 'normalize_fwd', 'use_noise_cov', 'reduce_rank'])
+                           'weight_norm', 'normalize_fwd', 'use_noise_cov',
+                           'reduce_rank', 'project_pca'])
 df['dist'] = dists
 df['focality'] = focs
 df['corr'] = corrs
