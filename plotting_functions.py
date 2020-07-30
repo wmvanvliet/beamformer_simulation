@@ -69,7 +69,8 @@ def read_data(beamf_type, plot_type, exclude_deep_vertices=False,
 
     if exclude_deep_vertices:
         deep_vertices = get_deep_vertices(radius=radius, plot=plot_deep_vertices)
-        data = data[data['vertex'].isin(deep_vertices)]
+        # deselect vertex if it is in deep_vertices
+        data = data[~data['vertex'].isin(deep_vertices)]
     # Average across the various performance scores
     data = data.groupby(settings_columns).agg('mean').reset_index()
     del data['vertex']  # No longer needed
