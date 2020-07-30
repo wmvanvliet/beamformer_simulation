@@ -44,8 +44,117 @@ def get_deep_vertices(radius, plot=True):
     return deep_vertices
 
 
-def read_data(beamf_type, plot_type, exclude_deep_vertices=False,
-              radius=0.055, plot_deep_vertices=False):
+def get_vertices_in_sensor_range(dist, plot=True, plot_sensors=True):
+    """
+    Get vertices that are close to at least one sensor.
+    """
+    import mne
+    from conpy.forward import select_vertices_in_sensor_range
+
+    fwd = mne.read_forward_solution(config.fname.fwd_discrete_man)
+
+    vertices_close = select_vertices_in_sensor_range(inst=fwd, dist=dist, info=None, picks=None,
+                                                     trans=None, indices=True)
+
+    # get vertices inuse
+    rr = fwd['src'][0]['rr']
+    vertno = fwd['src'][0]['vertno']
+
+    vertices_far = vertno[np.where(np.isin(vertno, vertices_close, invert=True))]
+
+    if plot:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+
+        xc, yc, zc = rr[vertices_close].T
+        xf, yf, zf = rr[vertices_far].T
+
+        fig = plt.figure()
+        # why is projection='3d' not working?
+        # ax = fig.add_subplot(111, projection='3d')
+        ax = Axes3D(fig)
+
+        ax.scatter(xc, yc, zc, c='b')
+        ax.scatter(xf, yf, zf, c='r')
+
+        if plot_sensors:
+            # shape (305, 3)
+            sensor_pos = get_sensor_pos_from_fwd(inst=fwd, info=None, picks=None, trans=None)
+            xs, ys, zs = sensor_pos.T
+            ax.scatter(xs, ys, zs, c='black')
+            ax.set_title('Far vs. close sources and sensor positions (red, blue, black)')
+        else:
+            ax.set_title('Deep vs. shallow sources (red vs. blue)')
+        plt.show()
+
+    return vertices_close
+
+
+def get_sensor_pos_from_fwd(inst, info=None, picks=None, trans=None):
+    from mne import SourceSpaces, Forward
+    from mne.io.constants import FIFF
+    from six import string_types
+    from mne.transforms import read_trans, _ensure_trans, invert_transform, Transform, apply_trans
+    from mne.io.pick import channel_type, pick_types
+
+    if isinstance(inst, Forward):
+        info = inst['info']
+        src = inst['src']
+    elif isinstance(inst, SourceSpaces):
+        src = inst
+        if info is None:
+            raise ValueError('You need to specify an Info object with '
+                             'information about the channels.')
+
+    # Load the head<->MRI transform if necessary
+    if src[0]['coord_frame'] == FIFF.FIFFV_COORD_MRI:
+        if trans is None:
+            raise ValueError('Source space is in MRI coordinates, but no '
+                             'head<->MRI transform was given. Please specify '
+                             'the full path to the appropriate *-trans.fif '
+                             'file as the "trans" parameter.')
+        if isinstance(trans, string_types):
+            trans = read_trans(trans, return_all=True)
+            for trans in trans:  # we got at least 1
+                try:
+                    trans = _ensure_trans(trans, 'head', 'mri')
+                except Exception as exp:
+                    pass
+                else:
+                    break
+            else:
+                raise exp
+
+        src_trans = invert_transform(_ensure_trans(trans, 'head', 'mri'))
+        print('Transform!')
+    else:
+        src_trans = Transform('head', 'head')  # Identity transform
+
+    dev_to_head = _ensure_trans(info['dev_head_t'], 'meg', 'head')
+
+    if picks is None:
+        picks = pick_types(info, meg=True)
+        if len(picks) > 0:
+            print('Using MEG channels')
+        else:
+            print('Using EEG channels')
+            picks = pick_types(info, eeg=True)
+
+    sensor_pos = []
+    for ch in picks:
+        # MEG channels are in device coordinates, translate them to head
+        if channel_type(info, ch) in ['mag', 'grad']:
+            sensor_pos.append(apply_trans(dev_to_head,
+                                          info['chs'][ch]['loc'][:3]))
+        else:
+            sensor_pos.append(info['chs'][ch]['loc'][:3])
+    sensor_pos = np.array(sensor_pos)
+
+    return sensor_pos
+
+
+def read_data(beamf_type, plot_type, exclude_deep_vertices=True,
+              dist=0.07, plot_deep_vertices=False):
     """ Read and prepare data for plotting."""
     if beamf_type == 'lcmv':
         settings = config.lcmv_settings
@@ -68,9 +177,8 @@ def read_data(beamf_type, plot_type, exclude_deep_vertices=False,
     data['dist'] *= 1000  # Measure distance in mm
 
     if exclude_deep_vertices:
-        deep_vertices = get_deep_vertices(radius=radius, plot=plot_deep_vertices)
-        # deselect vertex if it is in deep_vertices
-        data = data[~data['vertex'].isin(deep_vertices)]
+        shallow_vertices = get_vertices_in_sensor_range(dist=dist, plot=plot_deep_vertices)
+        data = data[data['vertex'].isin(shallow_vertices)]
     # Average across the various performance scores
     data = data.groupby(settings_columns).agg('mean').reset_index()
     del data['vertex']  # No longer needed
