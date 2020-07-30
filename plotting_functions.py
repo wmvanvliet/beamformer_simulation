@@ -5,45 +5,6 @@ import pandas as pd
 import config
 
 
-def get_deep_vertices(radius, plot=True):
-    """
-    Get deep vertices in a radius around the center of mass.
-    """
-    import mne
-    src = mne.read_source_spaces(config.fname.src)
-
-    # get vertices inuse
-    rr = src[0]['rr']
-    rr = rr[src[0]['inuse'] == 1]
-
-    com = rr.mean(axis=0)  # center of mass
-    # get vectors pointing from center of mass to voxels
-    radial = rr - com
-    dist = np.linalg.norm(radial, axis=-1)
-
-    deep_vertices = np.where(dist < radius)[0]
-
-    if plot:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        shallow_vertices = np.where(dist >= radius)[0]
-
-        xs, ys, zs = rr[shallow_vertices].T
-        xd, yd, zd = rr[deep_vertices].T
-
-        fig = plt.figure()
-        # why is projection='3d' not working?
-        # ax = fig.add_subplot(111, projection='3d')
-        ax = Axes3D(fig)
-
-        ax.scatter(xs, ys, zs, c='b')
-        ax.scatter(xd, yd, zd, c='r')
-        ax.set_title('Deep vs. shallow sources (red vs. blue)')
-        plt.show()
-
-    return deep_vertices
-
-
 def get_vertices_in_sensor_range(dist, plot=True, plot_sensors=True):
     """
     Get vertices that are close to at least one sensor.
