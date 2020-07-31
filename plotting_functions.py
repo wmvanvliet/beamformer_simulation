@@ -35,7 +35,7 @@ def get_vertices_in_sensor_range(dist, plot=True, plot_sensors=True):
         # ax = fig.add_subplot(111, projection='3d')
         ax = Axes3D(fig)
 
-        ax.scatter(xc, yc, zc, c='b')
+        ax.scatter(xc, yc, zc, c='b', alpha=0.15)
         ax.scatter(xf, yf, zf, c='r')
 
         if plot_sensors:
