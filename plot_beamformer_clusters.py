@@ -12,8 +12,7 @@ plot_type = 'foc'
 
 ###############################################################################
 # Read in the data and plotting settings
-
-data = read_data(beamf_type, plot_type)
+data = read_data(beamf_type, plot_type, select_vertices='shallow')
 title, kwargs = get_plotting_specs(beamf_type, plot_type)
 
 ###############################################################################

@@ -114,7 +114,7 @@ def get_sensor_pos_from_fwd(inst, info=None, picks=None, trans=None):
     return sensor_pos
 
 
-def read_data(beamf_type, plot_type, exclude_deep_vertices=True,
+def read_data(beamf_type, plot_type, select_vertices='deep',
               dist=0.07, plot_deep_vertices=False):
     """ Read and prepare data for plotting."""
     if beamf_type == 'lcmv':
@@ -137,9 +137,13 @@ def read_data(beamf_type, plot_type, exclude_deep_vertices=True,
     data['pick_ori'] = data['pick_ori'].fillna('none')
     data['dist'] *= 1000  # Measure distance in mm
 
-    if exclude_deep_vertices:
+    if select_vertices == 'deep':
+        shallow_vertices = get_vertices_in_sensor_range(dist=dist, plot=plot_deep_vertices)
+        data = data[~data['vertex'].isin(shallow_vertices)]
+    elif select_vertices == 'shallow':
         shallow_vertices = get_vertices_in_sensor_range(dist=dist, plot=plot_deep_vertices)
         data = data[data['vertex'].isin(shallow_vertices)]
+
     # Average across the various performance scores
     data = data.groupby(settings_columns).agg('mean').reset_index()
     del data['vertex']  # No longer needed
