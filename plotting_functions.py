@@ -238,29 +238,52 @@ def read_data_somato(beamf_type):
     return data
 
 
-def get_plotting_specs(beamf_type, plot_type):
+def get_plotting_specs(beamf_type, plot_type, select_vertices):
     """Get all parameters and settings for plotting."""
 
     if plot_type not in ('corr', 'foc', 'ori'):
         raise ValueError('Do not know plotting type "%s".' % plot_type)
     if beamf_type == 'lcmv':
         if plot_type == 'corr':
+
+            if select_vertices == 'shallow':
+                ylims = (0.4, 1.0)
+                xlims = (-1, 72)
+            elif select_vertices == 'deep':
+                ylims = (0.6, 1.0)
+                xlims = (-1, 72)
+            else:
+                ylims = (0.6, 1.0)
+                xlims = (-1, 72)
+
             kwargs = dict(
                 y_label='Correlation',
                 y_data='corr',
-                ylims=(0.0, 1.1),
-                xlims=(-1, 72),
+                ylims=ylims,
+                xlims=xlims,
                 loc='lower left',
                 yticks=np.arange(0.0, 1.1, 0.2),
                 xticks=np.arange(0, 75, 10),
                 yscale='linear')
             title = f'LCMV Correlation: %s, noise={config.noise:.2f}'
+
         elif plot_type == 'foc':
+
+            if select_vertices == 'shallow':
+                ylims = (0.0, 0.065)
+                xlims = (-1, 72)
+            elif select_vertices == 'deep':
+                ylims = (0.0, 0.02)
+                xlims = (-1, 72)
+            else:
+                ylims = (0.0, 0.04)
+                xlims = (-1, 72)
+
             kwargs = dict(
                 y_label='Focality measure',
                 y_data='focality',
-                ylims=(0.0, 0.006),
-                xlims=(-1, 72),
+                ylims=ylims,
+                xlims=xlims,
                 loc='upper right',
                 yticks=np.arange(0.0, 0.041, 0.005),
                 xticks=np.arange(0, 75, 10),
@@ -279,22 +302,32 @@ def get_plotting_specs(beamf_type, plot_type):
             title = f'LCMV Orientation error: %s, noise={config.noise:.2f}'
     elif beamf_type == 'dics':
         if plot_type == 'foc':
+
+            # select vertices does not make a difference for lims
+            ylims = (0, 0.0145)
+            xlims = (-1, 90)
+
             kwargs = dict(
                 y_label='Focality measure',
                 y_data='focality',
-                ylims=(0, 0.014),
-                xlims=(-1, 85),
+                ylims=ylims,
+                xlims=xlims,
                 loc='upper left',
                 yticks=np.arange(0.0, 0.014, 0.01),
                 xticks=np.arange(0, 85, 10),
                 yscale='linear')
             title = f'DICS Focality: %s, noise={config.noise:.2f}'
         elif plot_type == 'ori':
+
+            # select vertices does not make a difference for lims
+            ylims = (-5, 90)
+            xlims = (-1, 85)
+
             kwargs = dict(
-                 y_label='Orientation error',
-                 y_data='ori_error',
-                 ylims=(-5, 90),
-                xlims=(-1, 85),
+                y_label='Orientation error',
+                y_data='ori_error',
+                ylims=ylims,
+                xlims=xlims,
                 loc='upper left',
                 yticks=np.arange(0.0, 90, 5),
                 xticks=np.arange(0, 85, 10),
