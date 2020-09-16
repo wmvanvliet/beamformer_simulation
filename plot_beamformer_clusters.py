@@ -12,8 +12,26 @@ plot_type = 'foc'
 
 ###############################################################################
 # Read in the data and plotting settings
-data = read_data(beamf_type, plot_type, select_vertices='shallow')
-title, kwargs = get_plotting_specs(beamf_type, plot_type)
+select_vertices = 'shallow'  # 'deep', 'shallow', or None
+data = read_data(beamf_type, plot_type, select_vertices)
+title, kwargs = get_plotting_specs(beamf_type, plot_type, select_vertices)
+
+###############################################################################
+# WEIGHT vs. LEAD FIELD vs. NO NORMALIZATION
+
+options = ['weight_norm=="unit-noise-gain" and normalize_fwd==False',
+           'weight_norm=="none" and normalize_fwd==True',
+           'weight_norm=="none" and normalize_fwd==False']
+
+labels = ['Weight normalization',
+          'Lead field normalization',
+          'No normalization']
+
+colors = [config.cols['forest'], config.cols['magician'],
+          config.cols['sky']]
+full_title = 'Normalization comparison'
+
+scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
 ###############################################################################
 # WEIGHT NORMALIZATION
@@ -43,9 +61,8 @@ elif beamf_type == 'dics':
               'complex filter + no whitening']
 
 colors = [config.cols['forest'], config.cols['magician'],
-          config.cols['sky'],
-          config.cols['spring']]
-full_title = ('Weight Normalization')
+          config.cols['sky'], config.cols['spring']]
+full_title = 'Weight Normalization'
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
@@ -80,7 +97,8 @@ elif beamf_type == 'dics':
               'matrix inversion + no rank reduction']
 
 colors = [config.cols['orchid'], config.cols['magician'],
-          config.cols['forest'], config.cols['sky'], config.cols['cherry']]
+          config.cols['forest'], config.cols['sky'],
+          config.cols['cherry']]
 full_title = 'Lead field normalization'
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
@@ -112,7 +130,8 @@ elif beamf_type == 'dics':
               'matrix inversion + reduce rank']
 
 colors = [config.cols['sky'], config.cols['magician'],
-          config.cols['forest'], config.cols['orchid'], config.cols['spring']]
+          config.cols['forest'], config.cols['orchid'],
+          config.cols['spring']]
 full_title = 'No normalization'
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
