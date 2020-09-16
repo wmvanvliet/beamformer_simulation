@@ -29,7 +29,10 @@ labels = ['Weight normalization',
 
 colors = [config.cols['forest'], config.cols['magician'],
           config.cols['sky']]
-full_title = 'Normalization comparison'
+full_title = '%s normalization comparison' % beamf_type.upper()
+
+if select_vertices is not None:
+    full_title += ' for %s vertices' % select_vertices
 
 scatter_plot(data, options, colors, labels, full_title, **kwargs)
 
