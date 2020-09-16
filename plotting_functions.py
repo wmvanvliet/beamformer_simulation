@@ -121,7 +121,7 @@ def read_data(beamf_type, plot_type, select_vertices='deep',
         settings = config.lcmv_settings
         settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                             'weight_norm', 'normalize_fwd', 'use_noise_cov',
-                            'reduce_rank', 'noise']
+                            'reduce_rank', 'noise', 'project_pca']
         data_fname = config.fname.lcmv_params
     elif beamf_type == 'dics':
         settings = config.dics_settings
