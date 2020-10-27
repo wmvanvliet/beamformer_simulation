@@ -42,6 +42,8 @@ for vertex in tqdm(range(3756), total=3756):
     except Exception as e:
         print(e)
 dics = pd.concat(dfs, ignore_index=True)
+dics.to_csv('dics_new_max_ori.csv')
+1/0
 dics['pick_ori'].fillna('none', inplace=True)
 dics['weight_norm'].fillna('none', inplace=True)
 dics['ori_error'].fillna(-1, inplace=True)
@@ -129,11 +131,9 @@ set_directory(image_path)
 
 for i, setting in enumerate(dics_settings):
     # construct query
-    setting = tuple(['none' if s is None else s for s in setting])
-
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
     q = (f"reg=={reg:.2f} and sensor_type=='{sensor_type}' and pick_ori=='{pick_ori}' and inversion=='{inversion}' and real_filter=={real_filter} and "
-         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=={reduce_rank}")
+         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=='{reduce_rank}'")
 
     print(q)
 

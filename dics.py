@@ -81,7 +81,9 @@ for setting in dics_settings:
         # Allow using other MNE branches without this arg
         use_kwargs = dict(noise_csd=noise_csd) if use_noise_cov else dict()
 
-        filters = make_dics(info, fwd_disc_man, csd, reg=reg,
+        filters = make_dics(info, fwd_disc_man,
+                            csd if use_noise_cov else signal_csd,
+                            reg=reg,
                             pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
                             depth=1. if normalize_fwd else None,
@@ -89,7 +91,6 @@ for setting in dics_settings:
                             **use_kwargs)
         stc_est_power, freqs = apply_dics_csd(signal_csd, filters)
         stc_noise_power, freqs = apply_dics_csd(noise_csd, filters)
-        stc_est_power = stc_est_power / stc_noise_power
 
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
