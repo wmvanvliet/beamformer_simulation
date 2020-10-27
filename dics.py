@@ -28,6 +28,8 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_ve
                                signal_freq=config.signal_freq, n_trials=config.n_trials,
                                noise_multiplier=config.noise, random_state=config.random,
                                n_noise_dipoles=config.n_noise_dipoles_vol, er_raw=er_raw)
+#raw = mne.io.read_raw_fif('simulation-vertex3609-raw.fif')
+#stc_signal = mne.read_source_estimate('simulation-vertex3609-vl.stc')
 
 true_ori = fwd_disc_true['src'][0]['nn'][config.vertex]
 
@@ -46,6 +48,8 @@ epochs_joint = epochs.copy().pick_types(meg=True)
 # Make CSD matrix
 csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
 noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
+#csd = mne.time_frequency.read_csd('simulation-vertex3609-csd.h5')
+#noise_csd = mne.time_frequency.read_csd('simulation-vertex3609-noise-csd.h5')
 
 ###############################################################################
 # Compute DICS beamformer results
@@ -85,6 +89,8 @@ for setting in dics_settings:
                             real_filter=real_filter, reduce_rank=reduce_rank,
                             **use_kwargs)
         stc_est_power, freqs = apply_dics_csd(csd, filters)
+        stc_est_noise, freqs = apply_dics_csd(noise_csd, filters)
+        stc_est_power = stc_est_power / stc_est_noise
 
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
