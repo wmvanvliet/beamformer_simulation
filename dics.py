@@ -44,8 +44,9 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make CSD matrix
-csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
+csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=1)
 noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
+signal_csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
 
 ###############################################################################
 # Compute DICS beamformer results
@@ -60,7 +61,7 @@ ori_errors = []
 
 for setting in dics_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
-    if pick_ori == 'vector':
+    if pick_ori == 'vector' or (inversion=='single' and reduce_rank==True):
         dists.append(np.nan)
         focs.append(np.nan)
         ori_errors.append(np.nan)
@@ -84,7 +85,9 @@ for setting in dics_settings:
                             depth=1. if normalize_fwd else None,
                             real_filter=real_filter, reduce_rank=reduce_rank,
                             **use_kwargs)
-        stc_est_power, freqs = apply_dics_csd(csd, filters)
+        stc_est_power, freqs = apply_dics_csd(signal_csd, filters)
+        stc_noise_power, freqs = apply_dics_csd(noise_csd, filters)
+        stc_est_power = stc_est_power / stc_noise_power
 
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 
