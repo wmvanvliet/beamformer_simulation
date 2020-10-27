@@ -28,6 +28,8 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_ve
                                signal_freq=config.signal_freq, n_trials=config.n_trials,
                                noise_multiplier=config.noise, random_state=config.random,
                                n_noise_dipoles=config.n_noise_dipoles_vol, er_raw=er_raw)
+#raw = mne.io.read_raw_fif('simulation-vertex3609-raw.fif')
+#stc_signal = mne.read_source_estimate('simulation-vertex3609-vl.stc')
 
 true_ori = fwd_disc_true['src'][0]['nn'][config.vertex]
 
