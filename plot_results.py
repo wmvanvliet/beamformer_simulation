@@ -7,7 +7,7 @@ import config
 settings_columns = ['reg', 'sensor_type', 'pick_ori', 'inversion',
                     'weight_norm', 'normalize_fwd', 'use_noise_cov',
                     'reduce_rank', 'noise']
-df = pd.read_csv('lcmv.csv', index_col=0)
+df = pd.read_csv('lcmv.csv').set_index('Unnamed: 0')
 df['weight_norm'] = df['weight_norm'].fillna('none')
 df['pick_ori'] = df['pick_ori'].fillna('none')
 df['dist'] *= 1000  # Measure distance in mm
@@ -44,7 +44,7 @@ if plot_type == 'foc':
     y_label = 'Focality measure'
     y_data = 'focality'
     title = f'Focality as a function of localization error, noise={config.noise:.2f}'
-    ylims = (0, 0.04)
+    ylims = (0, 0.06) # 0.002
     xlims = (-1, 85)
     loc = 'upper right'
     yticks = np.arange(0.0, 0.014, 0.01)
@@ -226,34 +226,3 @@ plt.show()
 # plt.xlim(xlims)
 # 
 # plt.show()
-
-###############################################################################
-# Explore PCA projection
-plt.figure()
-
-x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain" and project_pca==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[0], label='unit-noise-gain')
-x, y = df.query('pick_ori=="vector" and weight_norm=="unit-noise-gain" and project_pca==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[1], label='unit-noise-gain (PCA proj)')
-
-x, y = df.query('pick_ori=="vector" and weight_norm=="none" and normalize_fwd==True and project_pca==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[2], label='leadfield norm')
-x, y = df.query('pick_ori=="vector" and weight_norm=="none" and normalize_fwd==True and project_pca==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[3], label='leadfield norm (PCA proj)')
-
-x, y = df.query('pick_ori=="vector" and weight_norm=="sqrtm" and project_pca==False')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[4], label='sqrtm')
-x, y = df.query('pick_ori=="vector" and weight_norm=="sqrtm" and project_pca==True')[['dist', y_data]].values.T
-plt.scatter(x, y, color=colors2[5], label='sqrtm (PCA proj)')
-
-plt.legend(loc=loc)
-plt.title(title)
-plt.xlabel('Localization error [mm]')
-plt.ylabel(y_label)
-plt.yticks(yticks)
-plt.yscale(yscale)
-plt.ylim(ylims)
-plt.xticks(xticks)
-plt.xlim(xlims)
-
-plt.show()
