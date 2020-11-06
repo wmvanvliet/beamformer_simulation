@@ -20,7 +20,7 @@ if user == 'rodin':
     n_jobs = 4
 if user == 'wmvan':
     # My work laptop
-    target_path = 'M:/m/nbe/scratch/epasana/beamformer_simulation/data'
+    target_path = 'M:/scratch/epasana/beamformer_simulation/data'
     n_jobs = 8
 elif user == 'ckiefer':
     target_path = '~/beamformer/data'

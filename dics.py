@@ -28,6 +28,8 @@ raw, stc_signal = simulate_raw(info=info, fwd_disc_true=fwd_disc_true, signal_ve
                                signal_freq=config.signal_freq, n_trials=config.n_trials,
                                noise_multiplier=config.noise, random_state=config.random,
                                n_noise_dipoles=config.n_noise_dipoles_vol, er_raw=er_raw)
+#raw = mne.io.read_raw_fif('simulation-vertex3609-raw.fif')
+#stc_signal = mne.read_source_estimate('simulation-vertex3609-vl.stc')
 
 true_ori = fwd_disc_true['src'][0]['nn'][config.vertex]
 
@@ -44,8 +46,9 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make CSD matrix
-csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
+csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=1)
 noise_csd = csd_morlet(epochs, [config.signal_freq], tmin=-1, tmax=0)
+signal_csd = csd_morlet(epochs, [config.signal_freq], tmin=0, tmax=1)
 
 ###############################################################################
 # Compute DICS beamformer results
@@ -60,7 +63,7 @@ ori_errors = []
 
 for setting in dics_settings:
     reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
-    if pick_ori == 'vector':
+    if pick_ori == 'vector' or (inversion=='single' and reduce_rank==True):
         dists.append(np.nan)
         focs.append(np.nan)
         ori_errors.append(np.nan)
@@ -78,13 +81,16 @@ for setting in dics_settings:
         # Allow using other MNE branches without this arg
         use_kwargs = dict(noise_csd=noise_csd) if use_noise_cov else dict()
 
-        filters = make_dics(info, fwd_disc_man, csd, reg=reg,
+        filters = make_dics(info, fwd_disc_man,
+                            csd if use_noise_cov else signal_csd,
+                            reg=reg,
                             pick_ori=pick_ori,
                             inversion=inversion, weight_norm=weight_norm,
                             depth=1. if normalize_fwd else None,
                             real_filter=real_filter, reduce_rank=reduce_rank,
                             **use_kwargs)
-        stc_est_power, freqs = apply_dics_csd(csd, filters)
+        stc_est_power, freqs = apply_dics_csd(signal_csd, filters)
+        stc_noise_power, freqs = apply_dics_csd(noise_csd, filters)
 
         peak_vertex, _ = stc_est_power.get_peak(vert_as_index=True)
 

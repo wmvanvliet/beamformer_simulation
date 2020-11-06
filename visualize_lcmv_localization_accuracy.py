@@ -44,18 +44,29 @@ for vertex in tqdm(range(3756), total=3756):
     except Exception as e:
         print(e)
 lcmv = pd.concat(dfs, ignore_index=True)
+lcmv.to_csv('lcmv_new_max_ori.csv')
+1/0
+
 lcmv['pick_ori'].fillna('none', inplace=True)
 lcmv['weight_norm'].fillna('none', inplace=True)
 lcmv['ori_error'].fillna(-1, inplace=True)
 
-def fix(x):
+def fix_ori_error(x):
     if x == np.nan:
         return np.nan
     elif x > 90:
         return 180 - x
     else:
         return x
-lcmv['ori_error'] = lcmv['ori_error'].map(fix)
+lcmv['ori_error'] = lcmv['ori_error'].map(fix_ori_error)
+
+def fix_reduce_rank(x):
+    if x == 'False':
+        return 'none'
+    else:
+        return x
+lcmv['reduce_rank'] = lcmv['reduce_rank'].map(fix_reduce_rank)
+
 cbar_range_dist = [0, lcmv['dist'].dropna().to_numpy().max()]
 # fancy metric is very skewed, use 0.015 as fixed cutoff
 cbar_range_eval = [0, 0.015]
@@ -144,11 +155,16 @@ set_directory(image_path)
 
 for i, setting in enumerate(config.lcmv_settings):
     # construct query
-    setting = tuple(['none' if s is None else s for s in setting])
-
     (reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, use_noise_cov, reduce_rank) = setting
+    if pick_ori is None:
+        pick_ori = 'none'
+    if weight_norm is None:
+        weight_norm = 'none'
+    if reduce_rank is False:
+        reduce_rank = 'none'
+
     q = (f"reg=={reg:.2f} and sensor_type=='{sensor_type}' and pick_ori=='{pick_ori}' and inversion=='{inversion}' and "
-         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=={reduce_rank}")
+         f"weight_norm=='{weight_norm}' and normalize_fwd=={normalize_fwd} and use_noise_cov=={use_noise_cov} and reduce_rank=='{reduce_rank}'")
 
     print(q)
 
