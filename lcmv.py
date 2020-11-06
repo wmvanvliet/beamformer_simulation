@@ -49,7 +49,8 @@ epochs_mag = epochs.copy().pick_types(meg='mag')
 epochs_joint = epochs.copy().pick_types(meg=True)
 
 # Make cov matrices
-cov = mne.compute_covariance(epochs, tmin=0, tmax=1, method='empirical')
+cov = mne.compute_covariance(epochs, tmin=-1, tmax=1, method='empirical')
+signal_cov = mne.compute_covariance(epochs, tmin=0, tmax=1, method='empirical')
 noise_cov = mne.compute_covariance(epochs, tmin=-1, tmax=0, method='empirical')
 
 # Compute evokeds
@@ -83,7 +84,9 @@ for setting in lcmv_settings:
         if project_pca and pick_ori != 'vector':
             raise NotImplementedError('project_pca=True only makes sense when pick_ori="vector"')
 
-        filters = make_lcmv(evoked.info, fwd_disc_man, cov, reg=reg,
+        filters = make_lcmv(evoked.info, fwd_disc_man,
+                            cov if use_noise_cov else signal_cov,
+                            reg=reg,
                             pick_ori=pick_ori, weight_norm=weight_norm,
                             inversion=inversion,
                             depth=1. if normalize_fwd else None,
