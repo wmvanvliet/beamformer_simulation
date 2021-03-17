@@ -103,7 +103,7 @@ for setting in lcmv_settings:
                 stc_proj = stc_est.magnitude()
             stc_est_power = (stc_proj ** 2).sum()
             peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
-            estimated_time_course = np.abs(stc_est.data[peak_vertex])
+            estimated_time_course = np.abs(stc_proj.data[peak_vertex])
         else:
             stc_est_power = (stc_est ** 2).sum()
             peak_vertex, peak_time = stc_est_power.get_peak(vert_as_index=True, time_as_index=True)
