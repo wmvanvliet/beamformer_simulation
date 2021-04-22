@@ -62,7 +62,7 @@ focs = []
 ori_errors = []
 
 for setting in dics_settings:
-    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank = setting
+    reg, sensor_type, pick_ori, inversion, weight_norm, normalize_fwd, real_filter, use_noise_cov, reduce_rank, real_ori = setting
     if pick_ori == 'vector' or (inversion=='single' and reduce_rank==True):
         dists.append(np.nan)
         focs.append(np.nan)
@@ -88,6 +88,7 @@ for setting in dics_settings:
                             inversion=inversion, weight_norm=weight_norm,
                             depth=1. if normalize_fwd else None,
                             real_filter=real_filter, reduce_rank=reduce_rank,
+                            real_ori=real_ori,
                             **use_kwargs)
         stc_est_power, freqs = apply_dics_csd(signal_csd, filters)
         stc_noise_power, freqs = apply_dics_csd(noise_csd, filters)
@@ -128,7 +129,7 @@ for setting in dics_settings:
 df = pd.DataFrame(dics_settings,
                   columns=['reg', 'sensor_type', 'pick_ori', 'inversion',
                            'weight_norm', 'normalize_fwd', 'real_filter',
-                           'use_noise_cov', 'reduce_rank'])
+                           'use_noise_cov', 'reduce_rank', 'real_ori'])
 df['dist'] = dists
 df['focality'] = focs
 df['ori_error'] = ori_errors

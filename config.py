@@ -104,10 +104,11 @@ real_filters = [True, False]
 use_noise_covs = [True, False]
 reduce_ranks = [True, False]
 project_pcas = [True, False]
+real_ori = [True, False]
 
 dics_settings = list(product(
     regs, sensor_types, pick_oris, inversions, weight_norms, normalize_fwds,
-    real_filters, use_noise_covs, reduce_ranks
+    real_filters, use_noise_covs, reduce_ranks, real_ori
 ))
 
 lcmv_settings = list(product(
